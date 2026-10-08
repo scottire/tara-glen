@@ -702,7 +702,8 @@
     "Mrs Kehoe's peg bag blew somewhere dusty.",
     "Mobile 131 is just south-west of 127. Water balloons pop dust bunnies.",
     "Go into 131. The chest in the back room has trainers."
-   ]
+   ],
+   "target": "chest131"
   },
   {
    "when": [
@@ -712,7 +713,8 @@
     "There's a tall gate east of the big road, south of the long hedge.",
     "The tall gate to Playground Row is at the bottom of the hedge, east side.",
     "Walk into the tall gate with trainers on to climb it."
-   ]
+   ],
+   "target": "gate_g1"
   },
   {
    "when": [
@@ -732,7 +734,8 @@
     "The road down to the pitch is closed. Too low to climb, too high to duck.",
     "Dash 🛹 under the ROAD CLOSED pole on the main road south.",
     "Face the pole and tap 🛹 right in front of it."
-   ]
+   ],
+   "target": "pole"
   },
   {
    "when": [
@@ -742,7 +745,8 @@
     "Big Mick on the pitch is giving away his BMX.",
     "Do ten keepy-uppies for Big Mick.",
     "Talk to Big Mick in the middle of the pitch."
-   ]
+   ],
+   "target": "mick"
   },
   {
    "when": [
@@ -752,6 +756,21 @@
     "Your walkie needs batteries. Teenagers always have batteries.",
     "The teens in the woods den want a Club Orange from Tony's van.",
     "Buy a can from Tony at the pitch (2🪙), give it to Shauna in the den north-west of 127, then combine walkie + batteries."
+   ],
+   "target": [
+    {
+     "when": [
+      "!can",
+      "!batteries"
+     ],
+     "to": "tony"
+    },
+    {
+     "when": [
+      "!batteries"
+     ],
+     "to": "shauna"
+    }
    ]
   },
   {
@@ -762,7 +781,8 @@
     "The cattle grid south of the pitch would snap your ankle. On wheels, though...",
     "Ride the bike 🚲 over the cattle grid at the bottom of the pitch.",
     "Hop on the bike and ride straight over it."
-   ]
+   ],
+   "target": "gate_g2"
   },
   {
    "when": [
@@ -772,6 +792,37 @@
     "Sully loves his golf balls. Three should do it.",
     "One's under Biscuit the dog, one's from crazy golf, one's on the links.",
     "Feed Biscuit the sausage (Mrs Kehoe), win crazy golf, find the ball on the far links, give all 3 to Sully at his shed."
+   ],
+   "target": [
+    {
+     "when": [
+      "!sausage",
+      "!@biscuit_fed"
+     ],
+     "to": "kehoe"
+    },
+    {
+     "when": [
+      "!@biscuit_fed"
+     ],
+     "to": "biscuit"
+    },
+    {
+     "when": [
+      "!golf_ball",
+      "!@putt_done"
+     ],
+     "to": "putt"
+    },
+    {
+     "when": [
+      "!golf_ball"
+     ],
+     "to": "links_ball"
+    },
+    {
+     "to": "sully"
+    }
    ]
   },
   {
@@ -782,7 +833,8 @@
     "Tadhg only lets in people who know the word. Who'd know the word?",
     "Teenagers can't keep secrets. Especially on walkie-talkies.",
     "Fix the walkie, then tell Tadhg the password."
-   ]
+   ],
+   "target": "tadhg"
   },
   {
    "when": [
@@ -793,7 +845,8 @@
     "Nana Breda lost something in the clubhouse cellar.",
     "The cellar stairs are behind the bar. You need light.",
     "With the torch, go through the clubhouse bar to the cellar stairs."
-   ]
+   ],
+   "target": "cellar_door"
   },
   {
    "when": [
@@ -803,7 +856,8 @@
     "Somebody in Playground Row would love to see that album.",
     "Bring the photo album to Nana Breda at 210.",
     "Talk to Nana Breda with the album."
-   ]
+   ],
+   "target": "nana"
   },
   {
    "when": [
@@ -814,7 +868,8 @@
     "Something shiny hangs over the ditch by the beach gate.",
     "Use the fishing rod by the ditch next to the beach gate.",
     "Stand by the whitethorn near the beach gate and tap A."
-   ]
+   ],
+   "target": "key_hook"
   },
   {
    "when": [
@@ -824,7 +879,8 @@
     "Róisín the lifeguard would kill for a 99.",
     "Tony's van moves down to the beach at dusk. A 99 is 3🪙.",
     "Give Róisín a 99 for her spare fins."
-   ]
+   ],
+   "target": "roisin"
   },
   {
    "when": [
@@ -834,7 +890,8 @@
     "Big Gerry's on the Rock. The tide's out.",
     "Go round the groyne, out the sandbar, and wade the channel with fins.",
     "North Strand → sandbar → the Rock. Balloons and dashes beat Big Gerry."
-   ]
+   ],
+   "target": "gerry"
   },
   {
    "when": [
@@ -844,7 +901,8 @@
     "Take the flag to the bonfire.",
     "Mam and Dad are at the bonfire on the South Strand.",
     "Talk to Mam at the bonfire."
-   ]
+   ],
+   "target": "mam"
   }
  ]
 }

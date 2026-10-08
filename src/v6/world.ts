@@ -283,6 +283,21 @@ export class World extends Phaser.Scene implements Host {
     banner(z.name, first ? 'New area!' : '');
   }
 
+  arrowT = 0;
+  // ?hints only: edge arrow towards the current hint's target (resolved by the generator), or a bobbing marker over it when on screen
+  pointArrow() {
+    const el = $('arrow'), h = G.w.hints.find((h: any) => cond(h.when));
+    const t = h?.target?.find((t: any) => cond(t.when))?.at;
+    if (!t || G.paused) { el.style.display = 'none'; return; }
+    const cam = this.cameras.main, v = cam.worldView, q = this.game.canvas.getBoundingClientRect().width / this.scale.width;
+    const sx = (t[0] - v.x) * cam.zoom * q, sy = (t[1] - v.y) * cam.zoom * q, W = innerWidth, H = innerHeight, m = 40;
+    let x = sx, y = sy - 26, rot = 90;
+    if (sx < m || sx > W - m || sy < 90 || sy > H - 120) {
+      const cx = W / 2, cy = H / 2, a = Math.atan2(sy - cy, sx - cx), k = Math.min((W / 2 - m) / Math.abs(Math.cos(a) || 1e-6), (H / 2 - 110) / Math.abs(Math.sin(a) || 1e-6));
+      x = cx + Math.cos(a) * k; y = cy + Math.sin(a) * k; rot = a * 180 / Math.PI;
+    } else y += Math.sin(this.time.now / 180) * 4;
+    el.style.display = 'block'; el.style.transform = `translate(${x - 16}px, ${y - 16}px) rotate(${rot}deg)`;
+  }
   update(_: number, dt: number) {
     if (!this.player) return;
     if (this.night.visible) { const m = this.cameras.main.midPoint; this.night.setPosition(m.x, m.y); }
@@ -290,6 +305,7 @@ export class World extends Phaser.Scene implements Host {
     if (!G.st.done) G.st.elapsed += dt;
     if ((this.saveT += dt) > 2000) { this.saveT = 0; G.st.pos = [Math.round(this.player.x), Math.round(this.player.y)]; persist(); }
     if ((this.zoneT += dt) > 500) { this.zoneT = 0; this.checkZone(); }
+    if (document.body.classList.contains('hints') && (this.arrowT += dt) > 100) { this.arrowT = 0; this.pointArrow(); }
     for (const [id, r] of this.said) if (!r.contains(this.player.x, this.player.y)) this.said.delete(id);
     this.ents.update();
     if (this.hunt) {

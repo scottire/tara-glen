@@ -533,6 +533,28 @@ for zid in order:
 for i, s in enumerate(spheres[:-1]):
     stt = {'items': s['state']['items'], 'flags': set(s['state']['flags'])}
     if not any(ok(h['when'], stt) for h in STORY['hints']): err(f'hint gap at sphere {i}')
+# hint targets (for ?hints arrow): id of an entity / NPC / lock, or [{when, to}] (first match wins); resolved to outdoor px
+def outdoor_of_room(rid):
+    r = ROOMS[rid]
+    if 'exitTo' in r:
+        door = next((e for e in ENT if e['type'] == 'door' and e.get('to') == rid), None)
+        return outdoor_of_room(door['room']) if door else None
+    d = next((d for d in DOORS if d.get('room') == rid), None)
+    return [int(d['out'][0]), int(d['out'][1])] if d else None
+def target_px(tid):
+    e = next((e for e in ENT if e.get('id') == tid), None)
+    if e: return outdoor_of_room(e['room']) if e.get('room') else [int(e['x']), int(e['y'])]
+    if tid in NPCS: a = NPCS[tid]['at'][0]; return [int(a['x']), int(a['y'])]
+    if tid in LOCKS: r = LOCKS[tid].get('rect'); return [int(r[0] + r[2] / 2), int(r[1] + r[3] / 2)] if r else None
+    return None
+for h in STORY['hints']:
+    tg = h.get('target')
+    if not tg: continue
+    lst = [{'to': tg}] if isinstance(tg, str) else tg
+    for t in lst:
+        t['at'] = target_px(t['to'])
+        if not t['at']: err(f"hint target {t['to']} not found")
+    h['target'] = lst
 # supply/demand: coins
 coin_supply = sum(e.get('n', 1) for e in ENT if e['type'] == 'pickup' and e.get('item') == 'coin') + sum(x.get('n', 1) for e in ENT for x in e.get('effects', []) if x.get('give') == 'coin')
 coin_spend = sum(x.get('n', 1) for n in NPCS.values() for t in n['talk'] for c in t.get('choices', []) for x in c.get('effects', []) if x.get('take') == 'coin')
