@@ -1,7 +1,7 @@
 # Tara Glen generator report
 
-seed 1987 · 136 entities · 19 NPCs · 24 ambient walkers · 163 decor · 25 interiors · 80 knock doors
-coverage 95.3% (radius 12, 25 fill items) · hiders 12 · shells 10 · coins 35 (shop 5) · max hearts at end 7
+seed 1987 · 136 entities · 19 NPCs · 24 ambient walkers · 172 decor · 25 interiors · 200 knock doors
+coverage 95.2% (radius 12, 34 fill items) · hiders 12 · shells 10 · coins 35 (shop 5) · max hearts at end 7
 
 ## Progression (solver spheres)
 ### Sphere 0
@@ -12,7 +12,7 @@ coverage 95.3% (radius 12, 25 fill items) · hiders 12 · shells 10 · coins 35 
 - pickup peg131 -> give:peg_bag
 - chest chest131 -> give:trainers
 - whisper den_whisper -> give:coin
-- hider hider10 -> give:kids
+- hider hider9 -> give:kids
 - hider hider70 -> give:kids
 - talk kehoe -> give:sausage, give:string, set:kehoe_done
 - talk shauna -> set:teens_asked
@@ -65,11 +65,11 @@ coverage 95.3% (radius 12, 25 fill items) · hiders 12 · shells 10 · coins 35 
 - enter The South Strand
 - enter The North Strand
 - activity hunt -> give:string, give:shell, set:hunt_done
+- hider hider51 -> give:kids
 - whisper whisper86 -> give:coin
 - hider hider87 -> give:kids
 - hider hider88 -> give:kids
-- whisper whisper94 -> give:coin
-- hider hider95 -> give:kids
+- whisper whisper95 -> give:coin
 - hider hider96 -> give:kids
 - talk ciaran -> maxhp:1, set:manhunt_won
 - talk roisin -> give:fins, set:roisin_done
@@ -83,10 +83,10 @@ coverage 95.3% (radius 12, 25 fill items) · hiders 12 · shells 10 · coins 35 
 |---|---|---|---|
 | The Top Field | 1 | 0 | {'note': 4, 'vista': 1, 'pickup': 16, 'interact': 1, 'chest': 1, 'enemy': 13, 'whisper': 3, 'hider': 2} |
 | Playground Row | 1 | 1 | {'pickup': 5, 'activity': 1, 'vista': 2, 'hider': 2, 'enemy': 4, 'note': 2, 'whisper': 1} |
-| The Pitch | 2 | 2 | {'interact': 1, 'activity': 1, 'pickup': 5, 'note': 2, 'enemy': 8, 'hider': 2, 'whisper': 1} |
+| The Pitch | 2 | 2 | {'interact': 1, 'activity': 1, 'pickup': 5, 'enemy': 8, 'note': 2, 'hider': 2, 'whisper': 1} |
 | The Clubhouse & Golf Links | 3 | 3 | {'interact': 2, 'activity': 1, 'pickup': 6, 'note': 4, 'vista': 1, 'door': 1, 'chest': 1, 'hider': 2, 'enemy': 8, 'whisper': 1} |
 | The South Strand | 4 | 7 | {'interact': 1, 'activity': 1, 'note': 2, 'pickup': 4, 'decor': 1, 'whisper': 1, 'hider': 2, 'enemy': 4} |
-| The North Strand | 5 | 7 | {'enemy': 8, 'vista': 1, 'note': 1, 'pickup': 2, 'whisper': 1, 'hider': 2} |
+| The North Strand | 5 | 7 | {'enemy': 8, 'vista': 1, 'hider': 2, 'pickup': 2, 'note': 1, 'whisper': 1} |
 
 ## Snapshots
 start, s00-fill_balloons, s01-build_skate, s02-pitch, s03-fix_walkie, s04-tadhg, s05-evening, s06-key_hook, s07-necklace, s08-gerry, night, end-ready, everything

@@ -97,7 +97,7 @@ DOOR_TILES = set()
 def caravan_door(c):
     cx, by = G.door_px(c)
     return {'x': cx, 'y': by, 'out': [cx, by + 10], 'tile': (int(cx // 16), int((by + 10) // 16)), 'seg': c['p'].get('segId')}
-hcar = [c for c in G.caravans if c['p'].get('orient') != 'v']
+hcar = list(G.caravans)  # both orientations have their front door at the bottom centre
 ALL_DOORS = {c['p']['segId']: caravan_door(c) for c in hcar}
 for d in ALL_DOORS.values():
     DOOR_TILES.add(T(*d['tile'])); DOOR_TILES.add(T(int(d['x'] // 16), int((d['y'] - 2) // 16)))

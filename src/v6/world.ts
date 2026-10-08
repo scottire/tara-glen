@@ -135,7 +135,7 @@ export class World extends Phaser.Scene implements Host {
     for (const a of G.w.ambient) { const wk = new Walker(this, a, this.pather); this.physics.add.collider(wk, [objects, solids]);
       this.ents.things.push({ kind: 'decor', e: { lines: [a.barks[Math.floor(Math.random() * a.barks.length)] ?? 'Lovely day.'] }, obj: wk }); }
     // night + lamps (world event: evening)
-    this.night = this.add.rectangle(0, 0, 4000, 4000, 0x0b1030, 0.42).setDepth(9e5).setVisible(false); // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
+    this.night = this.add.rectangle(0, 0, 4000, 4000, 0x101a50, 0.5).setDepth(9e5).setVisible(false); // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
     for (const [x, y] of lamps) this.glows.push(this.add.circle(x, y, 26, 0xffd27a, 0.22).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
     const fire = G.w.entities.find((e: any) => e.id === 'bonfire');
     if (fire) this.glows.push(this.add.circle(fire.x, fire.y, 46, 0xff9a3a, 0.3).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));

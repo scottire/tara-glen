@@ -8,7 +8,7 @@
  },
  "player": {
   "maxhpCap": 7,
-  "invulnMs": 1000,
+  "invulnMs": 1300,
   "knockback": 140,
   "dashSpeed": 230,
   "dashMs": 260,
