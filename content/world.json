@@ -1,0 +1,250 @@
+{
+ "_readme": "Global settings + zones + barriers. Tile coords (16px). Edit, then run `npm run gen`.",
+ "seed": 1987,
+ "start": {
+  "room": "127",
+  "hp": 3,
+  "walk": 60
+ },
+ "player": {
+  "maxhpCap": 7,
+  "invulnMs": 1000,
+  "knockback": 140,
+  "dashSpeed": 230,
+  "dashMs": 260,
+  "dashCooldownMs": 700,
+  "dashDamage": 2,
+  "balloonDamage": 1
+ },
+ "zones": [
+  {
+   "id": "z1",
+   "name": "The Top Field",
+   "rects": [
+    [
+     0,
+     0,
+     140,
+     80
+    ],
+    [
+     0,
+     81,
+     181,
+     132
+    ]
+   ],
+   "tier": 1,
+   "enemy": [
+    "dust"
+   ],
+   "rooms": 8,
+   "shells": 3,
+   "coins": 8,
+   "hiders": 2,
+   "notes": 3,
+   "whispers": 2,
+   "ambient": 7,
+   "decor": 1.0
+  },
+  {
+   "id": "z2",
+   "name": "Playground Row",
+   "rects": [
+    [
+     141,
+     0,
+     181,
+     80
+    ]
+   ],
+   "tier": 1,
+   "enemy": [
+    "slime"
+   ],
+   "rooms": 4,
+   "shells": 1,
+   "coins": 3,
+   "hiders": 2,
+   "notes": 2,
+   "whispers": 1,
+   "ambient": 3,
+   "decor": 1.0
+  },
+  {
+   "id": "z3",
+   "name": "The Pitch",
+   "rects": [
+    [
+     96,
+     133,
+     181,
+     165
+    ]
+   ],
+   "tier": 2,
+   "enemy": [
+    "wasp",
+    "slime"
+   ],
+   "rooms": 4,
+   "shells": 1,
+   "coins": 3,
+   "hiders": 2,
+   "notes": 2,
+   "whispers": 1,
+   "ambient": 4,
+   "decor": 0.8
+  },
+  {
+   "id": "z4",
+   "name": "The Clubhouse & Golf Links",
+   "rects": [
+    [
+     0,
+     133,
+     95,
+     196
+    ],
+    [
+     95,
+     166,
+     181,
+     196
+    ]
+   ],
+   "tier": 3,
+   "enemy": [
+    "eye",
+    "slime"
+   ],
+   "rooms": 2,
+   "shells": 1,
+   "coins": 2,
+   "hiders": 2,
+   "notes": 2,
+   "whispers": 1,
+   "ambient": 5,
+   "decor": 0.6
+  },
+  {
+   "id": "z5",
+   "name": "The South Strand",
+   "rects": [
+    [
+     182,
+     101,
+     203,
+     196
+    ]
+   ],
+   "tier": 4,
+   "enemy": [
+    "crab"
+   ],
+   "outdoorEnemies": 4,
+   "rooms": 0,
+   "shells": 2,
+   "coins": 1,
+   "hiders": 2,
+   "notes": 1,
+   "whispers": 1,
+   "ambient": 4,
+   "decor": 1.2,
+   "beach": true
+  },
+  {
+   "id": "z6",
+   "name": "The North Strand",
+   "rects": [
+    [
+     182,
+     0,
+     203,
+     100
+    ]
+   ],
+   "tier": 5,
+   "enemy": [
+    "gull",
+    "crab"
+   ],
+   "outdoorEnemies": 4,
+   "rooms": 1,
+   "shells": 1,
+   "coins": 1,
+   "hiders": 2,
+   "notes": 1,
+   "whispers": 1,
+   "ambient": 2,
+   "decor": 1.0,
+   "beach": true
+  }
+ ],
+ "barriers": [
+  {
+   "id": "b1",
+   "type": "hedge",
+   "from": [
+    96,
+    132
+   ],
+   "to": [
+    180,
+    132
+   ],
+   "lockAt": [
+    130,
+    132
+   ],
+   "lock": "pole",
+   "elseBlock": "roadworks"
+  },
+  {
+   "id": "groyne",
+   "type": "rocks",
+   "from": [
+    182,
+    100
+   ],
+   "to": [
+    192,
+    100
+   ]
+  }
+ ],
+ "tide": {
+  "flag": "tide_out",
+  "shallows": [
+   [
+    193,
+    96,
+    196,
+    105
+   ]
+  ],
+  "sandbar": [
+   [
+    193,
+    38,
+    197,
+    42
+   ]
+  ],
+  "rock": [
+   199,
+   34,
+   202,
+   46
+  ]
+ },
+ "gates": {
+  "g1": "gate_g1",
+  "g2": "gate_g2",
+  "g3": "gate_g3"
+ },
+ "density": {
+  "interestRadius": 12,
+  "minCoverage": 0.95
+ }
+}
