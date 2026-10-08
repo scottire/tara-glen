@@ -1,3 +1,6 @@
+# Builds main at the site root and the `mechanics` branch at /preview/, then deploys both.
+# Always runs from main (the github-pages environment only allows main). Pushes to `mechanics` trigger this via
+# workflow_dispatch from .github/workflows/preview-trigger.yml on that branch.
 name: Deploy to GitHub Pages
 on:
   push: { branches: [main] }
@@ -9,10 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { ref: main }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
       - run: npm ci
       - run: npm run build
+      - name: Build mechanics preview (/preview/)
+        run: |
+          if git ls-remote --exit-code --heads origin mechanics >/dev/null; then
+            git clone --depth 1 --branch mechanics "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" preview-src
+            cd preview-src && npm ci && npx tsc --noEmit && npx vite build --base /tara-glen/preview/ --outDir ../dist/preview --emptyOutDir
+          else echo "no mechanics branch, skipping preview"; fi
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
   deploy:
