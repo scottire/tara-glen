@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen": "python3 scripts/gen/art.py && python3 scripts/gen/build.py",
+    "validate": "python3 scripts/gen/build.py --check"
   },
   "dependencies": {
     "easystarjs": "^0.4.4",

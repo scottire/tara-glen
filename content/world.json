@@ -194,7 +194,7 @@
     132
    ],
    "lockAt": [
-    130,
+    136,
     132
    ],
    "lock": "pole",
@@ -208,7 +208,7 @@
     100
    ],
    "to": [
-    192,
+    193,
     100
    ]
   }
@@ -217,22 +217,22 @@
   "flag": "tide_out",
   "shallows": [
    [
-    193,
+    194,
     96,
-    196,
+    197,
     105
    ]
   ],
   "sandbar": [
    [
-    193,
+    194,
     38,
-    197,
+    198,
     42
    ]
   ],
   "rock": [
-   199,
+   200,
    34,
    202,
    46
@@ -246,5 +246,53 @@
  "density": {
   "interestRadius": 12,
   "minCoverage": 0.95
+ },
+ "title": "Tara Glen",
+ "minigames": {
+  "swing": {
+   "title": "Aoife's Swing Contest",
+   "help": "Tap when the swing is at the very top. 3 in a row!",
+   "needed": 3,
+   "timeLimit": 30
+  },
+  "keepy": {
+   "title": "Big Mick's Keepy-uppies",
+   "help": "Tap the ball to keep it up. Reach 10!",
+   "needed": 10
+  },
+  "putt": {
+   "title": "Crazy Golf: Hole 9",
+   "help": "Drag back from the ball to aim, release to putt. Sink it in 3.",
+   "strokes": 3
+  },
+  "hunt": {
+   "title": "Starfish hunt",
+   "help": "Grab all 6 starfish before the time runs out!"
+  }
+ },
+ "strings": {
+  "win": "Nice!",
+  "lose": "Not quite. Tap to try again",
+  "ouch": "Ouch!",
+  "fainted": "You fainted. Mam would be raging. Back on your feet...",
+  "noAmmo": "Out of water balloons. Find a tap!",
+  "noSand": "Can't ride on the sand",
+  "offSand": "Hopped off: sand",
+  "huntStart": "Starfish hunt! Grab all {n}!",
+  "huntFail": "Out of time. Talk to the kids to try again!",
+  "got": "Got {icon} {name}{n}",
+  "combineFail": "Those don't go together.",
+  "bagEmpty": "Your pockets are empty. Apart from fluff.",
+  "dashHint": "Dash 🛹 under it!",
+  "rideHint": "You'd need to be on the bike 🚲",
+  "hop": "You scramble over the gate!",
+  "endTitle": "Tara Glen",
+  "endSubtitle": "Best. Summer. Ever.",
+  "playAgain": "Play again",
+  "keepExploring": "Keep exploring",
+  "resetConfirm": "Reset all progress?",
+  "hintNone": "Walkie: ...kkhh... nothing to report... over.",
+  "heal": "Home sweet mobile. Hearts refilled.",
+  "found": "Found {n}/12 hiders!"
  }
 }

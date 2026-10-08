@@ -1,104 +1,876 @@
 {
-  "_readme": "NPCs. sprite = Ninja Adventure character number (1-25) or 'dog'. at = position ref, or a list of {when, at} (first match wins = schedule). talk = list of entries; first entry whose `when` matches is used. Entries: lines (pages), choices [{text, when, effects, reply}], effects, once (flag name set after). Conditions: 'item', 'item>=3', '@flag', '!x', 'a|b'.",
-  "npcs": {
-    "wayne": { "name": "Wayne the Know-All", "sprite": 16, "at": { "zone": "z1", "near": "door:127", "off": [3, 1] },
-      "talk": [
-        { "lines": ["Wayne: I know everything that happens in Tara Glen. EVERYTHING.", "Want a hint? I charge nothing. I'm a giver."],
-          "choices": [ { "text": "Give me a hint", "effects": [{ "hint": true }] }, { "text": "What's going on?", "reply": ["Manhunt's been going since lunch. Half the park's still hiding.", "And there's... dust. Moving dust. In the mobiles. Not normal dust."] }, { "text": "Bye, Wayne" } ] }
-      ] },
-    "ciaran": { "name": "Ciarán", "sprite": 2, "at": { "zone": "z1", "near": "door:127", "off": [-4, 3] },
-      "talk": [
-        { "when": ["@evening"], "lines": ["Ciarán: Mam says we can stay up for the bonfire! On the beach! In the DARK!"] },
-        { "lines": ["Ciarán: Are you IT? You can't be it. You're in the mobile. You're on base.", "Everyone's still hiding. My big brother's been hiding since dinner time yesterday.", "Find them all and you win manhunt forever. That's the rules."] }
-      ] },
-    "kehoe": { "name": "Mrs Kehoe", "sprite": 4, "at": { "zone": "z1", "near": "caravan:123", "off": [2, 3] },
-      "talk": [
-        { "when": ["peg_bag"], "lines": ["Mrs Kehoe: My peg bag! You went into 131? With the dust? You're braver than my husband.", "Here. A sausage off the barbecue. And a bit of string, I'd only lose it."], "effects": [{ "take": "peg_bag" }, { "give": "sausage" }, { "give": "string" }, { "set": "kehoe_done" }] },
-        { "when": ["@kehoe_done"], "lines": ["Mrs Kehoe: Lovely drying day. You can't beat a Wexford breeze."] },
-        { "lines": ["Mrs Kehoe: A gust took my peg bag clean through the window of 131.", "Nobody's been in 131 since the Furlongs went home. It's full of dust bunnies. Big ones.", "If you're feeling brave, I'll make it worth your while. I've a barbecue on."], "effects": [{ "set": "kehoe_asked" }] }
-      ] },
-    "doyle": { "name": "Mr Doyle", "sprite": 14, "at": { "zone": "z1", "near": "caravan:126", "off": [1, 3] },
-      "talk": [
-        { "when": ["@evening"], "lines": ["Mr Doyle: Tide's out. Eleven years I've waited for a tide that far out. The boat's nearly ready."] },
-        { "lines": ["Mr Doyle: Eleven years I've been building her. The Saoirse. Ocean-going.", "She's in the garden because the gate is too narrow. A design flaw. Not mine. The gate's.", "Tip: the sea goes out a long way at night. Further than you'd think."] }
-      ] },
-    "shauna": { "name": "Shauna", "sprite": 12, "at": { "zone": "z1", "near": "lm:1", "off": [0, 2] },
-      "talk": [
-        { "when": ["can"], "lines": ["Shauna: Is that a Club Orange? For us? You're sound, actually.", "Deco, give the child your batteries.", "Deco: They're for my torch. ...Fine. Here."], "effects": [{ "take": "can" }, { "give": "batteries" }, { "set": "teens_done" }] },
-        { "when": ["@teens_done"], "lines": ["Shauna: We were never here. You never saw us. This den doesn't exist."] },
-        { "lines": ["Shauna: This is the den. Teenagers only. You're not a teenager.", "Deco: Leave them. Here, kid, get us a Club Orange from the van and I'll give you these batteries.", "Shauna: The van's down by the pitch. Tony. He does a lovely 99 too."], "effects": [{ "set": "teens_asked" }] }
-      ] },
-    "deco": { "name": "Deco", "sprite": 7, "at": { "zone": "z1", "near": "lm:1", "off": [2, 2] },
-      "talk": [ { "lines": ["Deco: I'm not smoking, it's a lollipop. It's a lollipop stick. Leave me alone."] } ] },
-    "aoife": { "name": "Aoife", "sprite": 5, "at": { "zone": "z2", "near": "lm:10", "off": [-3, -2] },
-      "talk": [
-        { "when": ["@swing_done"], "lines": ["Aoife: Keep the deck. It's got no wheels anyway. The old pram behind 210 has wheels..."] },
-        { "lines": ["Aoife: I'm the swing champion of Playground Row. Three summers running.", "Beat me on the swings and you can have my old skateboard deck."] }
-      ] },
-    "nana": { "name": "Nana Breda", "sprite": 9, "at": { "zone": "z2", "near": "door:203", "off": [2, 1] },
-      "talk": [
-        { "when": ["photo"], "moment": "nana", "lines": ["Nana Breda: Is that... where did you find this?", "Oh, look at us. Summer 1987. That's my Tom with the fishing rod, and that's me in the hat.", "He caught nothing all summer. Not one fish. Said the sea was 'having a think'.", "...You keep the rod, love. He'd want it out there, not in my wardrobe.", "And take a slice of tart. You've got his look about you. Mischief."], "effects": [{ "take": "photo" }, { "give": "rod" }, { "maxhp": 1 }, { "set": "photo_returned" }] },
-        { "when": ["@photo_returned"], "lines": ["Nana Breda: The sun's going down. Go on to the bonfire. I'll watch from the step."] },
-        { "lines": ["Nana Breda: Hello, pet. Forty summers I've been in 210.", "I lost my photo album years ago. At the clubhouse, I think, in the cellar after a dance.", "Silly thing to miss. It's only pictures."], "effects": [{ "set": "nana_asked" }] }
-      ] },
-    "mick": { "name": "Big Mick", "sprite": 6, "at": { "zone": "z3", "near": "lm:25", "off": [2, 0] },
-      "talk": [
-        { "when": ["@keepy_done"], "lines": ["Big Mick: Mind the BMX. The back brake is more of a suggestion."] },
-        { "lines": ["Big Mick: Ten keepy-uppies and the BMX is yours. I've a moped now. Basically.", "It's a moped in my heart."] }
-      ] },
-    "tony": { "name": "Tony's Ices", "sprite": 19, "at": [ { "when": ["@evening"], "at": { "zone": "z5", "near": [187, 128] } }, { "at": { "zone": "z3", "near": [150, 148] } } ],
-      "talk": [
-        { "lines": ["Tony: Tony's Ices! Since 1979! What'll it be?"],
-          "choices": [
-            { "text": "Club Orange (2🪙)", "when": ["coin>=2"], "effects": [{ "take": "coin", "n": 2 }, { "give": "can" }], "reply": ["Tony: Ice cold. Like my heart. Joking."] },
-            { "text": "A 99 (3🪙)", "when": ["coin>=3"], "effects": [{ "take": "coin", "n": 3 }, { "give": "cone" }], "reply": ["Tony: With a flake. I'm not an animal."] },
-            { "text": "Just looking" }
-          ] }
-      ] },
-    "biscuit": { "name": "Biscuit", "sprite": "dog", "solid": true, "at": [ { "when": ["@biscuit_fed"], "at": { "zone": "z3", "near": [168, 146], "off": [3, 2] } }, { "at": { "zone": "z3", "near": [168, 146] } } ],
-      "talk": [
-        { "when": ["sausage", "!@biscuit_fed"], "lines": ["Biscuit sniffs the sausage. Biscuit LOVES the sausage.", "Biscuit wanders off happy. Something was under him the whole time."], "effects": [{ "take": "sausage" }, { "set": "biscuit_fed" }] },
-        { "when": ["@biscuit_fed"], "lines": ["Biscuit rolls over. He is a good boy. The best boy."] },
-        { "lines": ["A dog called Biscuit (it says on his collar) is lying on something.", "He growls in a friendly way. He wants something. He looks at your mouth hopefully."] }
-      ] },
-    "sully": { "name": "Sully the Groundsman", "sprite": 3, "at": { "zone": "z4", "near": "lm:30", "off": [2, 3] },
-      "talk": [
-        { "when": ["golf_ball>=3"], "lines": ["Sully: Three of my balls! I count them every night, you know. Every night.", "Here, take the torch. It's only clutter to me. Mind the cellar under the clubhouse; there's eyes down there."], "effects": [{ "take": "golf_ball", "n": 3 }, { "give": "torch" }, { "set": "sully_done" }] },
-        { "when": ["@sully_done"], "lines": ["Sully: Nobody walks on my greens. Nobody."] },
-        { "lines": ["Sully: Golf balls. Kids keep robbing my golf balls. Three gone this week.", "Bring me three and I'll give you something useful. A torch. Is that useful? It's useful."], "effects": [{ "set": "sully_asked" }] }
-      ] },
-    "tadhg": { "name": "Tadhg on the door", "sprite": 13, "at": { "zone": "z4", "near": "door:clubhouse", "off": [-2, 1] },
-      "talk": [
-        { "when": ["@knows_password"], "lines": ["Tadhg: Members and adults only. Unless... you know the word?"],
-          "choices": [ { "text": "\"Spuds.\"", "effects": [{ "set": "clubhouse_open" }], "reply": ["Tadhg: ...Fair enough. In you go. Don't tell anyone I'm sixteen."] }, { "text": "\"Please?\"", "reply": ["Tadhg: No."] } ] },
-        { "when": ["@clubhouse_open"], "lines": ["Tadhg: In you go. The quiz is on. Your mam's winning."] },
-        { "lines": ["Tadhg: Members and adults only. There's a quiz on.", "Unless you know the word. Which you don't. Because it's secret."], "effects": [{ "set": "tadhg_asked" }] }
-      ] },
-    "roisin": { "name": "Róisín the Lifeguard", "sprite": 25, "at": { "zone": "z5", "near": [186, 120], "off": [2, 2] },
-      "talk": [
-        { "when": ["cone"], "lines": ["Róisín: Is that a 99? For me? I've been on this chair since ten o'clock.", "Here, take the fins. Spare pair. You can wade the shallows now, just don't tell my boss."], "effects": [{ "take": "cone" }, { "give": "fins" }, { "set": "roisin_done" }] },
-        { "when": ["@roisin_done"], "lines": ["Róisín: The gulls have the flag out on the Rock. When the tide's out you could nearly walk it. Nearly."] },
-        { "lines": ["Róisín: No swimming past the flags. Actually, someone took the flags.", "I'd kill for a 99. Tony's van usually comes down at dusk."], "effects": [{ "set": "roisin_asked" }] }
-      ] },
-    "sandy1": { "name": "Sandy Acres kid", "sprite": 8, "at": { "zone": "z5", "near": [186, 104] },
-      "talk": [
-        { "when": ["flag_tg"], "lines": ["Sandy Acres kid: You got it back off Big Gerry?! Fair play. Rematch next summer."] },
-        { "lines": ["Sandy Acres kid: We're from Sandy Acres. Our park has a SLIDE into a POOL.", "Your flag's out on the Rock. Big Gerry took it. He's the biggest gull in Wexford.", "Tara Glen kids are scared of gulls. Everyone knows that."] }
-      ] },
-    "sandy2": { "name": "Sandy Acres kid", "sprite": 24, "at": { "zone": "z5", "near": [187, 106] },
-      "talk": [ { "lines": ["Sandy Acres kid: We have a wave machine. It's broken. But we HAVE one."] } ] },
-    "quizmaster": { "name": "Father Murphy", "sprite": 22, "at": { "room": "clubhouse", "slot": 4 },
-      "talk": [ { "lines": ["Father Murphy: Round six! Wexford sports. What's the nickname of the Wexford hurlers?", "...The Model County! Five points to Table Two!"] } ] },
-    "mam": { "name": "Mam", "sprite": 17, "at": [ { "when": ["@evening"], "at": { "zone": "z5", "near": [188, 158], "off": [-2, 1] } }, { "at": { "room": "clubhouse", "slot": 5 } } ],
-      "talk": [
-        { "when": ["@evening", "flag_tg"], "moment": "bonfire", "lines": ["Mam: Is that the Tara Glen flag? Off the Rock? Look at you.", "Dad: When I was your age I hid in manhunt for so long they went home without me.", "Dad: 1994. Your nana found me at eleven o'clock at night in a wheelie bin.", "Mam: He's never been found since, emotionally.", "Mam: Come here. Sit with us. Best summer yet, wasn't it?"], "effects": [{ "take": "flag_tg" }, { "set": "ending" }, { "end": true }] },
-        { "when": ["@evening"], "lines": ["Mam: There you are! Come sit by the fire. Did someone say the gulls have the flag?"] },
-        { "lines": ["Mam: What are you doing in here? You're supposed to be in the mobile!", "...Ah go on, we're winning. Don't tell your father I said that. He thinks it's him."] }
-      ] },
-    "dad": { "name": "Dad", "sprite": 10, "at": [ { "when": ["@evening"], "at": { "zone": "z5", "near": [188, 158], "off": [2, 1] } }, { "at": { "room": "clubhouse", "slot": 6 } } ],
-      "talk": [
-        { "when": ["@evening"], "lines": ["Dad: Grand fire. I built it. Your mother says she built it. History will decide."] },
-        { "lines": ["Dad: Shh, this is the music round. I know this one. It's... Daniel O'Donnell. It's always Daniel O'Donnell."] }
-      ] }
+ "_readme": "NPCs. sprite = Ninja Adventure character number (1-25) or 'dog'. at = position ref, or a list of {when, at} (first match wins = schedule). talk = list of entries; first entry whose `when` matches is used. Entries: lines (pages), choices [{text, when, effects, reply}], effects, once (flag name set after). Conditions: 'item', 'item>=3', '@flag', '!x', 'a|b'.",
+ "npcs": {
+  "wayne": {
+   "name": "Wayne the Know-All",
+   "sprite": 16,
+   "at": {
+    "zone": "z1",
+    "near": "door:127",
+    "off": [
+     3,
+     1
+    ]
+   },
+   "talk": [
+    {
+     "lines": [
+      "Wayne: I know everything that happens in Tara Glen. EVERYTHING.",
+      "Want a hint? I charge nothing. I'm a giver."
+     ],
+     "choices": [
+      {
+       "text": "Give me a hint",
+       "effects": [
+        {
+         "hint": true
+        }
+       ]
+      },
+      {
+       "text": "What's going on?",
+       "reply": [
+        "Manhunt's been going since lunch. Half the park's still hiding.",
+        "And there's... dust. Moving dust. In the mobiles. Not normal dust."
+       ]
+      },
+      {
+       "text": "Bye, Wayne"
+      }
+     ]
+    }
+   ]
+  },
+  "ciaran": {
+   "name": "Ciarán",
+   "sprite": 2,
+   "at": {
+    "zone": "z1",
+    "near": "door:127",
+    "off": [
+     -4,
+     3
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "kids>=12",
+      "!@manhunt_won"
+     ],
+     "moment": "manhunt",
+     "lines": [
+      "Ciarán: You found EVERYONE? Even my brother?!",
+      "By the ancient rules of Tara Glen, you are Manhunt Champion. FOREVER.",
+      "Here, my lucky heart sticker. It's a real heart now. That's how it works."
+     ],
+     "effects": [
+      {
+       "maxhp": 1
+      },
+      {
+       "set": "manhunt_won"
+      }
+     ]
+    },
+    {
+     "when": [
+      "kids>=6",
+      "!@manhunt_half"
+     ],
+     "lines": [
+      "Ciarán: Six found! You're halfway! Here, my emergency coins."
+     ],
+     "effects": [
+      {
+       "give": "coin",
+       "n": 3
+      },
+      {
+       "set": "manhunt_half"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@evening"
+     ],
+     "lines": [
+      "Ciarán: Mam says we can stay up for the bonfire! On the beach! In the DARK!"
+     ]
+    },
+    {
+     "lines": [
+      "Ciarán: Are you IT? You can't be it. You're in the mobile. You're on base.",
+      "Everyone's still hiding. My big brother's been hiding since dinner time yesterday.",
+      "Find them all and you win manhunt forever. That's the rules.",
+      "Find six and I'll give you my emergency coins. Find all twelve and... I'll think of something."
+     ]
+    }
+   ]
+  },
+  "kehoe": {
+   "name": "Mrs Kehoe",
+   "sprite": 4,
+   "at": {
+    "zone": "z1",
+    "near": "caravan:123",
+    "off": [
+     2,
+     3
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "peg_bag"
+     ],
+     "lines": [
+      "Mrs Kehoe: My peg bag! You went into 131? With the dust? You're braver than my husband.",
+      "Here. A sausage off the barbecue. And a bit of string, I'd only lose it."
+     ],
+     "effects": [
+      {
+       "take": "peg_bag"
+      },
+      {
+       "give": "sausage"
+      },
+      {
+       "give": "string"
+      },
+      {
+       "set": "kehoe_done"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@kehoe_done"
+     ],
+     "lines": [
+      "Mrs Kehoe: Lovely drying day. You can't beat a Wexford breeze."
+     ]
+    },
+    {
+     "lines": [
+      "Mrs Kehoe: A gust took my peg bag clean through the window of 131.",
+      "Nobody's been in 131 since the Furlongs went home. It's full of dust bunnies. Big ones.",
+      "If you're feeling brave, I'll make it worth your while. I've a barbecue on."
+     ],
+     "effects": [
+      {
+       "set": "kehoe_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "doyle": {
+   "name": "Mr Doyle",
+   "sprite": 14,
+   "at": {
+    "zone": "z1",
+    "near": "caravan:126",
+    "off": [
+     1,
+     3
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "@evening"
+     ],
+     "lines": [
+      "Mr Doyle: Tide's out. Eleven years I've waited for a tide that far out. The boat's nearly ready."
+     ]
+    },
+    {
+     "lines": [
+      "Mr Doyle: Eleven years I've been building her. The Saoirse. Ocean-going.",
+      "She's in the garden because the gate is too narrow. A design flaw. Not mine. The gate's.",
+      "Tip: the sea goes out a long way at night. Further than you'd think."
+     ]
+    }
+   ]
+  },
+  "shauna": {
+   "name": "Shauna",
+   "sprite": 12,
+   "at": {
+    "zone": "z1",
+    "near": "lm:1",
+    "off": [
+     0,
+     2
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "can"
+     ],
+     "lines": [
+      "Shauna: Is that a Club Orange? For us? You're sound, actually.",
+      "Deco, give the child your batteries.",
+      "Deco: They're for my torch. ...Fine. Here."
+     ],
+     "effects": [
+      {
+       "take": "can"
+      },
+      {
+       "give": "batteries"
+      },
+      {
+       "set": "teens_done"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@teens_done"
+     ],
+     "lines": [
+      "Shauna: We were never here. You never saw us. This den doesn't exist."
+     ]
+    },
+    {
+     "lines": [
+      "Shauna: This is the den. Teenagers only. You're not a teenager.",
+      "Deco: Leave them. Here, kid, get us a Club Orange from the van and I'll give you these batteries.",
+      "Shauna: The van's down by the pitch. Tony. He does a lovely 99 too."
+     ],
+     "effects": [
+      {
+       "set": "teens_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "deco": {
+   "name": "Deco",
+   "sprite": 7,
+   "at": {
+    "zone": "z1",
+    "near": "lm:1",
+    "off": [
+     2,
+     2
+    ]
+   },
+   "talk": [
+    {
+     "lines": [
+      "Deco: I'm not smoking, it's a lollipop. It's a lollipop stick. Leave me alone."
+     ]
+    }
+   ]
+  },
+  "aoife": {
+   "name": "Aoife",
+   "sprite": 5,
+   "at": {
+    "zone": "z2",
+    "near": "lm:10",
+    "off": [
+     -3,
+     -2
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "@swing_done"
+     ],
+     "lines": [
+      "Aoife: Keep the deck. It's got no wheels anyway. The old pram behind 210 has wheels..."
+     ]
+    },
+    {
+     "lines": [
+      "Aoife: I'm the swing champion of Playground Row. Three summers running.",
+      "Beat me on the swings and you can have my old skateboard deck."
+     ]
+    }
+   ]
+  },
+  "nana": {
+   "name": "Nana Breda",
+   "sprite": 9,
+   "at": {
+    "zone": "z2",
+    "near": "door:203",
+    "off": [
+     2,
+     1
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "photo"
+     ],
+     "moment": "nana",
+     "lines": [
+      "Nana Breda: Is that... where did you find this?",
+      "Oh, look at us. Summer 1987. That's my Tom with the fishing rod, and that's me in the hat.",
+      "He caught nothing all summer. Not one fish. Said the sea was 'having a think'.",
+      "...You keep the rod, love. He'd want it out there, not in my wardrobe.",
+      "And take a slice of tart. You've got his look about you. Mischief."
+     ],
+     "effects": [
+      {
+       "take": "photo"
+      },
+      {
+       "give": "rod"
+      },
+      {
+       "maxhp": 1
+      },
+      {
+       "set": "photo_returned"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@photo_returned"
+     ],
+     "lines": [
+      "Nana Breda: The sun's going down. Go on to the bonfire. I'll watch from the step."
+     ]
+    },
+    {
+     "lines": [
+      "Nana Breda: Hello, pet. Forty summers I've been in 210.",
+      "I lost my photo album years ago. At the clubhouse, I think, in the cellar after a dance.",
+      "Silly thing to miss. It's only pictures."
+     ],
+     "effects": [
+      {
+       "set": "nana_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "mick": {
+   "name": "Big Mick",
+   "sprite": 6,
+   "at": {
+    "zone": "z3",
+    "near": "lm:25",
+    "off": [
+     2,
+     0
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "@keepy_done"
+     ],
+     "lines": [
+      "Big Mick: Mind the BMX. The back brake is more of a suggestion."
+     ]
+    },
+    {
+     "lines": [
+      "Big Mick: Ten keepy-uppies and the BMX is yours. I've a moped now. Basically.",
+      "It's a moped in my heart."
+     ]
+    }
+   ]
+  },
+  "tony": {
+   "name": "Tony's Ices",
+   "sprite": 19,
+   "at": [
+    {
+     "when": [
+      "@evening"
+     ],
+     "at": {
+      "zone": "z5",
+      "near": [
+       187,
+       128
+      ]
+     }
+    },
+    {
+     "at": {
+      "zone": "z3",
+      "near": [
+       150,
+       148
+      ]
+     }
+    }
+   ],
+   "talk": [
+    {
+     "lines": [
+      "Tony: Tony's Ices! Since 1979! What'll it be?"
+     ],
+     "choices": [
+      {
+       "text": "Club Orange (2🪙)",
+       "when": [
+        "coin>=2"
+       ],
+       "effects": [
+        {
+         "take": "coin",
+         "n": 2
+        },
+        {
+         "give": "can"
+        }
+       ],
+       "reply": [
+        "Tony: Ice cold. Like my heart. Joking."
+       ]
+      },
+      {
+       "text": "A 99 (3🪙)",
+       "when": [
+        "coin>=3"
+       ],
+       "effects": [
+        {
+         "take": "coin",
+         "n": 3
+        },
+        {
+         "give": "cone"
+        }
+       ],
+       "reply": [
+        "Tony: With a flake. I'm not an animal."
+       ]
+      },
+      {
+       "text": "Just looking"
+      }
+     ]
+    }
+   ],
+   "prop": "van"
+  },
+  "biscuit": {
+   "name": "Biscuit",
+   "sprite": "dog",
+   "solid": true,
+   "at": [
+    {
+     "when": [
+      "@biscuit_fed"
+     ],
+     "at": {
+      "zone": "z3",
+      "near": [
+       168,
+       146
+      ],
+      "off": [
+       3,
+       2
+      ]
+     }
+    },
+    {
+     "at": {
+      "zone": "z3",
+      "near": [
+       168,
+       146
+      ]
+     }
+    }
+   ],
+   "talk": [
+    {
+     "when": [
+      "sausage",
+      "!@biscuit_fed"
+     ],
+     "lines": [
+      "Biscuit sniffs the sausage. Biscuit LOVES the sausage.",
+      "Biscuit wanders off happy. Something was under him the whole time."
+     ],
+     "effects": [
+      {
+       "take": "sausage"
+      },
+      {
+       "set": "biscuit_fed"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@biscuit_fed"
+     ],
+     "lines": [
+      "Biscuit rolls over. He is a good boy. The best boy."
+     ]
+    },
+    {
+     "lines": [
+      "A dog called Biscuit (it says on his collar) is lying on something.",
+      "He growls in a friendly way. He wants something. He looks at your mouth hopefully."
+     ]
+    }
+   ]
+  },
+  "sully": {
+   "name": "Sully the Groundsman",
+   "sprite": 3,
+   "at": {
+    "zone": "z4",
+    "near": "lm:30",
+    "off": [
+     2,
+     3
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "golf_ball>=3"
+     ],
+     "lines": [
+      "Sully: Three of my balls! I count them every night, you know. Every night.",
+      "Here, take the torch. It's only clutter to me. Mind the cellar under the clubhouse; there's eyes down there."
+     ],
+     "effects": [
+      {
+       "take": "golf_ball",
+       "n": 3
+      },
+      {
+       "give": "torch"
+      },
+      {
+       "set": "sully_done"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@sully_done"
+     ],
+     "lines": [
+      "Sully: Nobody walks on my greens. Nobody."
+     ]
+    },
+    {
+     "lines": [
+      "Sully: Golf balls. Kids keep robbing my golf balls. Three gone this week.",
+      "Bring me three and I'll give you something useful. A torch. Is that useful? It's useful."
+     ],
+     "effects": [
+      {
+       "set": "sully_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "tadhg": {
+   "name": "Tadhg on the door",
+   "sprite": 13,
+   "at": {
+    "zone": "z4",
+    "near": "door:clubhouse",
+    "off": [
+     -2,
+     1
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "@clubhouse_open"
+     ],
+     "lines": [
+      "Tadhg: In you go. The quiz is on. Your mam's winning."
+     ]
+    },
+    {
+     "when": [
+      "@knows_password"
+     ],
+     "lines": [
+      "Tadhg: Members and adults only. Unless... you know the word?"
+     ],
+     "choices": [
+      {
+       "text": "\"Spuds.\"",
+       "effects": [
+        {
+         "set": "clubhouse_open"
+        }
+       ],
+       "reply": [
+        "Tadhg: ...Fair enough. In you go. Don't tell anyone I'm sixteen."
+       ]
+      },
+      {
+       "text": "\"Please?\"",
+       "reply": [
+        "Tadhg: No."
+       ]
+      }
+     ]
+    },
+    {
+     "lines": [
+      "Tadhg: Members and adults only. There's a quiz on.",
+      "Unless you know the word. Which you don't. Because it's secret."
+     ],
+     "effects": [
+      {
+       "set": "tadhg_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "roisin": {
+   "name": "Róisín the Lifeguard",
+   "sprite": 25,
+   "at": {
+    "zone": "z5",
+    "near": [
+     186,
+     120
+    ],
+    "off": [
+     2,
+     2
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "cone"
+     ],
+     "lines": [
+      "Róisín: Is that a 99? For me? I've been on this chair since ten o'clock.",
+      "Here, take the fins. Spare pair. You can wade the shallows now, just don't tell my boss."
+     ],
+     "effects": [
+      {
+       "take": "cone"
+      },
+      {
+       "give": "fins"
+      },
+      {
+       "set": "roisin_done"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@roisin_done"
+     ],
+     "lines": [
+      "Róisín: The gulls have the flag out on the Rock. When the tide's out you could nearly walk it. Nearly."
+     ]
+    },
+    {
+     "lines": [
+      "Róisín: No swimming past the flags. Actually, someone took the flags.",
+      "I'd kill for a 99. Tony's van usually comes down at dusk."
+     ],
+     "effects": [
+      {
+       "set": "roisin_asked"
+      }
+     ]
+    }
+   ]
+  },
+  "sandy1": {
+   "name": "Sandy Acres kid",
+   "sprite": 8,
+   "at": {
+    "zone": "z5",
+    "near": [
+     186,
+     104
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "flag_tg"
+     ],
+     "lines": [
+      "Sandy Acres kid: You got it back off Big Gerry?! Fair play. Rematch next summer."
+     ]
+    },
+    {
+     "lines": [
+      "Sandy Acres kid: We're from Sandy Acres. Our park has a SLIDE into a POOL.",
+      "Your flag's out on the Rock. Big Gerry took it. He's the biggest gull in Wexford.",
+      "Tara Glen kids are scared of gulls. Everyone knows that."
+     ]
+    }
+   ]
+  },
+  "sandy2": {
+   "name": "Sandy Acres kid",
+   "sprite": 24,
+   "at": {
+    "zone": "z5",
+    "near": [
+     187,
+     106
+    ]
+   },
+   "talk": [
+    {
+     "lines": [
+      "Sandy Acres kid: We have a wave machine. It's broken. But we HAVE one."
+     ]
+    }
+   ]
+  },
+  "quizmaster": {
+   "name": "Father Murphy",
+   "sprite": 22,
+   "at": {
+    "room": "clubhouse",
+    "slot": 4
+   },
+   "talk": [
+    {
+     "lines": [
+      "Father Murphy: Round six! Wexford sports. What's the nickname of the Wexford hurlers?",
+      "...The Model County! Five points to Table Two!"
+     ]
+    }
+   ]
+  },
+  "mam": {
+   "name": "Mam",
+   "sprite": 17,
+   "at": [
+    {
+     "when": [
+      "@evening"
+     ],
+     "at": {
+      "zone": "z5",
+      "near": [
+       188,
+       158
+      ],
+      "off": [
+       -2,
+       1
+      ]
+     }
+    },
+    {
+     "at": {
+      "room": "clubhouse",
+      "slot": 5
+     }
+    }
+   ],
+   "talk": [
+    {
+     "when": [
+      "@evening",
+      "flag_tg"
+     ],
+     "moment": "bonfire",
+     "lines": [
+      "Mam: Is that the Tara Glen flag? Off the Rock? Look at you.",
+      "Dad: When I was your age I hid in manhunt for so long they went home without me.",
+      "Dad: 1994. Your nana found me at eleven o'clock at night in a wheelie bin.",
+      "Mam: He's never been found since, emotionally.",
+      "Mam: Come here. Sit with us. Best summer yet, wasn't it?"
+     ],
+     "effects": [
+      {
+       "take": "flag_tg"
+      },
+      {
+       "set": "ending"
+      },
+      {
+       "end": true
+      }
+     ]
+    },
+    {
+     "when": [
+      "@evening"
+     ],
+     "lines": [
+      "Mam: There you are! Come sit by the fire. Did someone say the gulls have the flag?"
+     ]
+    },
+    {
+     "lines": [
+      "Mam: What are you doing in here? You're supposed to be in the mobile!",
+      "...Ah go on, we're winning. Don't tell your father I said that. He thinks it's him."
+     ]
+    }
+   ]
+  },
+  "dad": {
+   "name": "Dad",
+   "sprite": 10,
+   "at": [
+    {
+     "when": [
+      "@evening"
+     ],
+     "at": {
+      "zone": "z5",
+      "near": [
+       188,
+       158
+      ],
+      "off": [
+       2,
+       1
+      ]
+     }
+    },
+    {
+     "at": {
+      "room": "clubhouse",
+      "slot": 6
+     }
+    }
+   ],
+   "talk": [
+    {
+     "when": [
+      "@evening"
+     ],
+     "lines": [
+      "Dad: Grand fire. I built it. Your mother says she built it. History will decide."
+     ]
+    },
+    {
+     "lines": [
+      "Dad: Shh, this is the music round. I know this one. It's... Daniel O'Donnell. It's always Daniel O'Donnell."
+     ]
+    }
+   ]
   }
+ }
 }
