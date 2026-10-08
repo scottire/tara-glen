@@ -1,0 +1,12 @@
+# On a push to `mechanics`, ask main's deploy workflow to rebuild the site (root = main, /preview/ = mechanics).
+# The deploy itself runs from main because the github-pages environment only allows main.
+name: Update preview
+on:
+  push: { branches: [mechanics] }
+permissions: { actions: write }
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run deploy.yml --ref main -R "${{ github.repository }}"
+        env: { GH_TOKEN: '${{ github.token }}' }
