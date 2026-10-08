@@ -9,7 +9,7 @@ A tiny SNES-style top-down walking game set in the caravan park next to Tara Gle
 - URL params: `?overview` (whole map with landmark numbers, area tints, gate labels), `?overview&ids` (also caravan ids), `?at=x,y` (start at tile),
   `?debug` (physics bodies), `?unlock=all` (all gates open + bike), `?stage=N` (start as if N mini games are done).
 - Throw: tap the 🎈 button (or X / F) to throw ammo the way you're facing.
-- `?room=131` starts inside a room (debug).
+- `?room=131` starts inside a room (debug). `?hints` shows the old "Next: ..." objective and edge arrow (hidden by default).
 - Progress is saved in localStorage (`tara-glen-save-v2`). Reset from the ☰ menu or the end screen.
 
 ## Progression (all in `public/progression.json`)

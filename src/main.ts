@@ -17,6 +17,7 @@ const DPR = params.has('overview') ? 1 : Math.min(window.devicePixelRatio || 1, 
 type Obj = Phaser.Types.Tilemaps.TiledObject;
 const prop = (o: Obj, k: string) => (o.properties as { name: string; value: any }[] | undefined)?.find((p) => p.name === k)?.value;
 const $ = (id: string) => document.getElementById(id)!;
+if (params.has('hints')) document.body.classList.add('hints'); // objective text + arrow are hidden unless ?hints
 
 class World extends Phaser.Scene {
   constructor() { super('World'); }
