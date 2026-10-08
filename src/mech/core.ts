@@ -4,12 +4,11 @@
 import Phaser from 'phaser';
 import { stick } from '../joystick';
 import { load, save, fmt, type Save } from '../state';
-import type { Pather } from './path';
 
 // ---------- shared game state (one save object for both scenes) ----------
-export const G = { st: load() as Save, mech: {} as any, paused: false };
+export const G = { st: load() as Save, w: {} as any, paused: false, god: false };
 export const $ = (id: string) => document.getElementById(id)!;
-export const S = (k: string, v?: Record<string, any>) => fmt(G.mech.strings?.[k] ?? k, v);
+export const S = (k: string, v?: Record<string, any>) => fmt(G.w.strings?.[k] ?? k, v);
 export const persist = () => save(G.st);
 export function toast(msg: string) {
   const el = $('toast'); el.textContent = msg; el.style.opacity = '1';
@@ -18,8 +17,8 @@ export function toast(msg: string) {
 export const DIRS = ['down', 'up', 'left', 'right'] as const; // columns of the Ninja Adventure sheet
 export type Dir = (typeof DIRS)[number];
 export const DIRV: Record<Dir, [number, number]> = { down: [0, 1], up: [0, -1], left: [-1, 0], right: [1, 0] };
-export function ensureAnims(scene: Phaser.Scene, key: string, prefix = '') {
-  DIRS.forEach((d, c) => { if (!scene.anims.exists(prefix + d)) scene.anims.create({ key: prefix + d, frameRate: 8, repeat: -1, frames: scene.anims.generateFrameNumbers(key, { frames: [c, c + 4, c + 8, c + 12] }) }); });
+export function ensureAnims(scene: Phaser.Scene, key: string, prefix = '', base = 0, rate = 8) {
+  DIRS.forEach((d, c) => { if (!scene.anims.exists(prefix + d)) scene.anims.create({ key: prefix + d, frameRate: rate, repeat: -1, frames: scene.anims.generateFrameNumbers(key, { frames: [c, c + 4, c + 8, c + 12].map((f) => f + base) }) }); });
 }
 
 // ---------- state machine (Wispguard) ----------
@@ -57,6 +56,7 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
   /** Wispguard HurtState: knock back away from the source, flash, short invulnerability, then `next`. */
   hurt(src: { x: number; y: number }, dmg: number, push = 120) {
     if (this.invuln.invulnerable || this.sm.current === 'dead' || !this.active) return;
+    if ((G.god || (this as any).dashing) && this instanceof Player) return;
     this.life.takeDamage(dmg); this.onDamage();
     this.sm.set(this.life.life > 0 ? 'hurt' : 'dead', src, push);
   }
@@ -87,8 +87,8 @@ type Keys = Record<string, Phaser.Input.Keyboard.Key>;
 export class Player extends Character {
   keys: Keys;
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    const P = G.mech.player;
-    super(scene, x, y, 'player', G.st.hp > 0 ? G.st.hp : P.health, P.health, P.invulnMs);
+    const P = G.w.player;
+    super(scene, x, y, 'player', G.st.hp > 0 ? Math.min(G.st.hp, G.st.maxhp) : G.st.maxhp, G.st.maxhp, P.invulnMs);
     this.setSize(10, 8).setOffset(3, 8).setCollideWorldBounds(true);
     ensureAnims(scene, 'player');
     this.keys = scene.input.keyboard!.addKeys('UP,DOWN,LEFT,RIGHT,W,A,S,D') as Keys;
@@ -98,6 +98,19 @@ export class Player extends Character {
   }
   onDamage() { G.st.hp = this.life.life; persist(); toast(S('ouch')); this.scene.events.emit('hud'); }
   revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); persist(); }
+  dashing = false; dashReady = 0;
+  /** skateboard dash: burst in the facing direction, i-frames, passes dash locks, hurts enemies */
+  dash() {
+    const P = G.w.player, now = this.scene.time.now;
+    if (this.dashing || this.busy || now < this.dashReady || G.paused) return false;
+    this.dashing = true; this.dashReady = now + P.dashCooldownMs;
+    const [vx, vy] = DIRV[this.facing]; this.setVelocity(vx * P.dashSpeed, vy * P.dashSpeed);
+    const ghost = () => { if (!this.active) return; const g = this.scene.add.image(this.x, this.y, this.texture.key, this.frame.name).setAlpha(0.45).setDepth(this.depth - 1);
+      this.scene.tweens.add({ targets: g, alpha: 0, duration: 220, onComplete: () => g.destroy() }); };
+    const t = this.scene.time.addEvent({ delay: 45, repeat: Math.floor(P.dashMs / 45), callback: ghost });
+    this.scene.time.delayedCall(P.dashMs, () => { this.dashing = false; t.remove(); });
+    return true;
+  }
   readInput() {
     if (G.paused) return new Phaser.Math.Vector2(0, 0);
     const k = this.keys;
@@ -108,7 +121,7 @@ export class Player extends Character {
   }
   /** move + face + animate; ignored while hurt/dead. Returns whether moving. */
   drive(v: Phaser.Math.Vector2, speed: number) {
-    if (this.busy) return false;
+    if (this.busy || this.dashing) return this.dashing;
     this.setVelocity(v.x * speed, v.y * speed);
     const moving = v.length() >= 0.01;
     if (moving) this.facing = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 'right' : 'left') : (v.y > 0 ? 'down' : 'up');
@@ -117,37 +130,3 @@ export class Player extends Character {
   }
 }
 
-// ---------- baddie: patrol between points, chase the player with EasyStar when close ----------
-export class Baddie extends Character {
-  path: { x: number; y: number }[] = []; repath = 0; leg = 0;
-  constructor(scene: Phaser.Scene, x: number, y: number, public id: string, public def: any, public pather: Pather, public target: Player) {
-    super(scene, x, y, def.sprite, def.health, def.health, 400);
-    this.setSize(12, 10).setOffset(2, 5);
-    if (!scene.anims.exists(def.sprite + '-wobble')) scene.anims.create({ key: def.sprite + '-wobble', frames: scene.anims.generateFrameNumbers(def.sprite, {}), frameRate: 4, repeat: -1 });
-    this.play(def.sprite + '-wobble');
-    const sees = () => this.target.active && !this.target.busy && Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y) < def.sight;
-    const tile = (n: number) => Math.floor(n / 16);
-    this.sm.add(
-      { name: 'patrol', onEnter: () => { this.path = []; this.repath = 0; }, onUpdate: (dt) => {
-        if (sees()) return this.sm.set('chase');
-        if ((this.repath -= dt) <= 0 && !this.path.length) {
-          const p = def.patrol[this.leg = (this.leg + 1) % def.patrol.length]; this.repath = 1500;
-          this.pather.find(tile(this.x), tile(this.y), p[0], p[1]).then((n) => { if (this.sm.current === 'patrol') this.path = n ?? []; });
-        }
-        this.follow(this.path, def.speed);
-      } },
-      { name: 'chase', onEnter: () => { this.repath = 0; }, onUpdate: (dt) => {
-        if (Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y) > def.sight * 1.6 || this.target.busy) return this.sm.set('patrol');
-        if ((this.repath -= dt) <= 0) { this.repath = 400;
-          this.pather.find(tile(this.x), tile(this.y), tile(this.target.x), tile(this.target.y + 4)).then((n) => { if (n) this.path = n.slice(1); }); }
-        if (this.follow(this.path, def.chaseSpeed)) this.scene.physics.moveToObject(this, this.target, def.chaseSpeed); // same tile: go straight at them
-      } },
-      this.hurtState('chase'),
-      { name: 'dead', onEnter: () => {
-        this.body.enable = false; G.st.defeated.push(this.id); persist();
-        this.scene.tweens.add({ targets: this, alpha: 0, scaleX: 1.6, scaleY: 0.3, duration: 350, onComplete: () => this.destroy() });
-      } },
-    );
-    this.sm.set('patrol');
-  }
-}

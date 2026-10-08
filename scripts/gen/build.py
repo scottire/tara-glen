@@ -505,7 +505,7 @@ def solve(record=True):
                         else: st['items'][c] -= 1
                     apply(r['effects'], st, ITEMS); changed = True; log.append(f"combine {r['id']}")
             for ev in STORY['events']:
-                if ev['id'] not in fired and ok(ev['when'], st): fired.add(ev['id']); apply(ev['effects'], st, ITEMS); changed = True; log.append(f"event {ev['id']}")
+                if ev['id'] not in fired and ok(ev['when'], st): fired.add(ev['id']); st['flags'].add('ev:' + ev['id']); apply(ev['effects'], st, ITEMS); changed = True; log.append(f"event {ev['id']}")
         snap_ = {'items': dict(st['items']), 'flags': sorted(st['flags']), 'maxhp': st['maxhp'], 'got': sorted(got)}
         spheres.append({'log': log, 'state': snap_, 'at': first_at})
         if ok(STORY['end'], st) or (not log and len(reach) == reach_n): break
