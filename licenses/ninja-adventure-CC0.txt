@@ -2,3 +2,6 @@ Player sprite (public/assets/player.png) = "ninja_blue" from the Ninja Adventure
 Source: https://pixel-boy.itch.io/ninja-adventure-asset-pack  (raw file from https://github.com/pixel-boy/NinjaAdventure)
 License: Creative Commons Zero v1.0 Universal (CC0) - https://creativecommons.org/publicdomain/zero/1.0/
 "Attribution is not required but appreciated."
+
+Tiles (public/assets/tiles.png) = Ninja Adventure background tileset by Pixel-boy, from
+https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure (repository licence: CC0 1.0, see superpowers-asset-packs-CC0-LICENSE.txt)
