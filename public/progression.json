@@ -1,0 +1,214 @@
+{
+  "_readme": "All progression data + text. Tile coords (16px tiles). Rects are [x0,y0,x1,y1) in tiles. Edit strings freely; positions are validated by scripts/make-world.py.",
+  "title": "Tara Glen",
+  "strings": {
+    "objectivePrefix": "Next: ",
+    "promptLabel": "Play",
+    "gotBike": "Got the bike! Tap the bike button (or B) to ride.",
+    "gateOpened": "A gate has opened",
+    "collected": "Found one! ({n}/{total})",
+    "noSand": "Can't ride on the sand",
+    "offSand": "Hopped off: sand",
+    "win": "Nice!",
+    "lose": "Not quite. Tap to try again",
+    "huntStart": "Find {n} items before the time runs out!",
+    "huntFail": "Out of time. Try again!",
+    "endTitle": "Tara Glen",
+    "endSubtitle": "You did it!",
+    "endTime": "Time",
+    "endGames": "Mini games",
+    "endCollectibles": "Hidden gems",
+    "playAgain": "Play again",
+    "keepExploring": "Keep exploring",
+    "menuTitle": "Menu",
+    "reset": "Reset progress",
+    "resetConfirm": "Reset all progress?",
+    "close": "Close",
+    "allDone": "Explore freely"
+  },
+  "areas": [
+    {
+      "id": "a1",
+      "name": "Area 1",
+      "tint": "#ffd34d",
+      "rects": [
+        [141, 0, 181, 80]
+      ]
+    },
+    {
+      "id": "a2",
+      "name": "Area 2",
+      "tint": "#4dc3ff",
+      "rects": [
+        [0, 0, 140, 80],
+        [0, 81, 181, 132],
+        [96, 132, 181, 165]
+      ]
+    },
+    {
+      "id": "a3",
+      "name": "Area 3",
+      "tint": "#7dff6b",
+      "rects": [
+        [0, 133, 95, 196],
+        [95, 166, 181, 196]
+      ]
+    },
+    {
+      "id": "a4",
+      "name": "Area 4",
+      "tint": "#ff7ad9",
+      "rects": [
+        [182, 0, 203, 196]
+      ]
+    }
+  ],
+  "barriers": [
+    {
+      "type": "hedge",
+      "from": [140, 0],
+      "to": [140, 80]
+    },
+    {
+      "type": "hedge",
+      "from": [140, 80],
+      "to": [181, 80]
+    },
+    {
+      "type": "fence",
+      "from": [181, 0],
+      "to": [181, 195]
+    },
+    {
+      "type": "hedge",
+      "from": [0, 132],
+      "to": [95, 132]
+    },
+    {
+      "type": "hedge",
+      "from": [95, 132],
+      "to": [95, 165]
+    },
+    {
+      "type": "hedge",
+      "from": [95, 165],
+      "to": [181, 165]
+    }
+  ],
+  "gates": [
+    {
+      "id": "g1",
+      "near": [155, 80]
+    },
+    {
+      "id": "g2",
+      "near": [155, 165]
+    },
+    {
+      "id": "g3",
+      "near": [181, 168],
+      "size": 4
+    }
+  ],
+  "home": {
+    "near": [158, 70],
+    "label": "210"
+  },
+  "stages": [
+    {
+      "id": "playground",
+      "area": "a1",
+      "objective": "the playground",
+      "badge": "🛝",
+      "minigame": "swing",
+      "spot": [151, 60],
+      "reward": {
+        "open": [
+          "g1"
+        ]
+      }
+    },
+    {
+      "id": "pitch",
+      "area": "a2",
+      "objective": "the pitch",
+      "badge": "⚽",
+      "minigame": "keepy",
+      "spot": [115, 145],
+      "reward": {
+        "open": [
+          "g2"
+        ],
+        "bike": true
+      }
+    },
+    {
+      "id": "golf",
+      "area": "a3",
+      "objective": "the golf course",
+      "badge": "⛳",
+      "minigame": "putt",
+      "spot": [45, 152],
+      "reward": {
+        "open": [
+          "g3"
+        ]
+      }
+    },
+    {
+      "id": "beach",
+      "area": "a4",
+      "objective": "the beach",
+      "badge": "🏖️",
+      "minigame": "hunt",
+      "spot": [185, 168],
+      "reward": {
+        "end": true
+      }
+    }
+  ],
+  "minigames": {
+    "swing": {
+      "title": "Swing",
+      "help": "Tap when the swing is at the very top. 3 in a row!",
+      "needed": 3,
+      "timeLimit": 30
+    },
+    "keepy": {
+      "title": "Keepy-uppies",
+      "help": "Tap the ball to keep it up. Reach 10!",
+      "needed": 10
+    },
+    "putt": {
+      "title": "Putt",
+      "help": "Drag back from the ball to aim, release to putt. Sink it in 3.",
+      "strokes": 3
+    },
+    "hunt": {
+      "title": "Beach hunt",
+      "help": "Find the items on the beach",
+      "time": 60,
+      "items": [
+        [193, 161],
+        [184, 192],
+        [189, 154],
+        [184, 145],
+        [193, 171]
+      ]
+    }
+  },
+  "collectibles": [
+    [180, 61],
+    [170, 79],
+    [180, 27],
+    [27, 60],
+    [64, 2],
+    [106, 18],
+    [14, 138],
+    [39, 180],
+    [22, 170],
+    [182, 142],
+    [193, 41],
+    [182, 98]
+  ]
+}

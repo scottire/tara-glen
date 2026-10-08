@@ -10,6 +10,7 @@ from scipy import ndimage as ndi
 from skimage.morphology import skeletonize, remove_small_objects, disk
 random.seed(3); rng = np.random.default_rng(3)
 objs = json.load(open(sys.argv[1]))["objects"]; by = {o["id"]: o for o in objs}
+CFG_PATH = "public/progression.json"; CFG = json.load(open(CFG_PATH))
 cls = lambda c: [o for o in objs if o["cls"] == c]
 PW, PH, S = 1206, 1251, 2.5
 K = 16 / S; W0, H = math.ceil(PW / K), math.ceil(PH / K); EXT = 14; W = W0 + EXT
@@ -77,10 +78,52 @@ def block_rect(x0, y0, x1, y1, pad=0):
         for tx in range(int(x0) // 16 - pad, int(x1) // 16 + 1 + pad): blocked.add((tx, ty))
 block_rect(cbx, cby, cbx + CBW, cby + CBH, 1); block_rect(*park)
 courts = []
-for sid, kind in [(13, "tennis"), (10, "hardcourt")]:
+for sid, kind in [(13, "tennis"), (10, "playground")]:
     x, y, w, h = by[sid]["bbox_xywh"]; r = (int(x * S), int(y * S), int((x + w) * S), int((y + h) * S))
     courts.append({"name": kind, "type": "court", "x": r[0], "y": r[1], "width": r[2] - r[0], "height": r[3] - r[1], "segId": sid}); block_rect(*r, 1)
 ring_islands = [(cx, cy, ro - 2 * R) for _, cx, cy, ro in rings]
+# ---------- area barriers (hedge/fence lines from progression.json), gates, road blocks ----------
+obj = [[-1] * W for _ in range(H)]; roof = [[-1] * W for _ in range(H)]
+HEDGE, FENCE_H, FENCE_V, BLOCK_H, BLOCK_V = 1120, 1121, 1122, 1123, 1124
+lines = []
+for b in CFG["barriers"]:
+    (x0, y0), (x1, y1) = b["from"], b["to"]; vert = x0 == x1
+    cells = [(x0, y) for y in range(min(y0, y1), max(y0, y1) + 1)] if vert else [(x, y0) for x in range(min(x0, x1), max(x0, x1) + 1)]
+    lines.append((b["type"], vert, cells))
+def crossings(cells):
+    groups, cur = [], []
+    for c in cells:
+        if road_t[c[1], c[0]] > 0.05: cur.append(c)
+        elif cur: groups.append(cur); cur = []
+    if cur: groups.append(cur)
+    return groups
+gate_cells, gates = set(), []
+for gdef in CFG["gates"]:
+    nx, ny = gdef["near"]
+    best = None
+    for typ, vert, cells in lines:
+        if gdef.get("size"):
+            if (nx, ny) in cells:
+                i = cells.index((nx, ny)); n = gdef["size"]; best = (0, cells[max(0, i - n // 2):i - n // 2 + n], vert)
+        else:
+            for gr in crossings(cells):
+                dd = min((c[0] - nx) ** 2 + (c[1] - ny) ** 2 for c in gr)
+                if best is None or dd < best[0]:
+                    i0, i1 = cells.index(gr[0]), cells.index(gr[-1]); best = (dd, cells[max(0, i0 - 1):i1 + 2], vert)
+    assert best, f"gate {gdef['id']} not on a barrier line"
+    gc, vert = best[1], best[2]; gate_cells |= set(gc)
+    xs_, ys_ = [c[0] for c in gc], [c[1] for c in gc]
+    gates.append({"name": gdef["id"], "type": "gate", "x": min(xs_) * 16, "y": min(ys_) * 16, "width": (max(xs_) - min(xs_) + 1) * 16,
+                  "height": (max(ys_) - min(ys_) + 1) * 16, "orient": "v" if vert else "h"})
+    for cx_, cy_ in gc:                                                       # keep the approach clear
+        for d in range(-2, 3): blocked.add((cx_ + d, cy_) if not vert else (cx_ + d, cy_)); blocked.add((cx_, cy_ + d))
+barrier_cells = set()
+for typ, vert, cells in lines:
+    road_cells = {c for gr in crossings(cells) for c in gr}
+    for c in cells:
+        if c in gate_cells or not (0 <= c[0] < W and 0 <= c[1] < H) or sea_t[c[1], c[0]] > 0.5: continue
+        t = (BLOCK_V if vert else BLOCK_H) if c in road_cells else HEDGE if typ == "hedge" else (FENCE_V if vert else FENCE_H)
+        obj[c[1]][c[0]] = t; barrier_cells.add(c); blocked.add(c)
 for cx, cy, ri in ring_islands: block_rect(cx - ri, cy - ri, cx + ri, cy + ri)
 
 # ---------- caravans: one per detection, snapped H/V, nudged for a 1-tile walkable gap ----------
@@ -145,6 +188,9 @@ for (x, y), name in zip(bays, ["car-red", "car-silver", None, "car-blue", "car-s
 for x in range(park[0] + 16, park[2] - 8, 32): prop("hedge", x, park[3] + 12)
 for x, y, k in [(2, 300, "deckchair"), (3, 306, "deckchair"), (1, 330, "windbreak"), (2, 880, "deckchair"), (1, 905, "windbreak"), (3, 640, "deckchair")]:
     prop(k, (W0 + x) * 16 + 8, y * S, True)
+pg = courts[1]; px0, py0, px1, py1 = pg["x"], pg["y"], pg["x"] + pg["width"], pg["y"] + pg["height"]
+for k, (x, y) in {"swings": (px0 + 44, py0 + 36), "slide": (px1 - 30, py0 + 44), "roundabout": (px0 + 50, py1 - 40), "climbing-frame": (px1 - 42, py1 - 40)}.items():
+    prop(k, x, y, True)
 f8 = by[8]["centroid"]; prop("picnic-table", f8[0] * S, f8[1] * S); prop("picnic-table", f8[0] * S + 50, f8[1] * S + 22); prop("bin", f8[0] * S + 32, f8[1] * S - 26)
 lamp_d = (dist >= R + 7) & (dist <= R + 9) & ~road                           # lamps along the roadside, spaced out
 ly, lx = np.nonzero(lamp_d[::2, ::2]); order = rng.permutation(len(lx)); lamps = []
@@ -155,7 +201,7 @@ for i in order:
 
 # ---------- woodland: dense 2x2 trees ----------
 TREES = [((280, 281), (308, 309)), ((286, 287), (314, 315)), ((288, 289), (316, 317)), ((280, 281), (308, 309))]
-obj = [[-1] * W for _ in range(H)]; roof = [[-1] * W for _ in range(H)]; trees = []
+trees = []
 wood_t = tile_frac(wood)
 for y in range(0, H - 1, 2):
     for x in range(y % 4 // 2, W - 1, 2):
@@ -227,6 +273,10 @@ for _ in range(9000):
 # courts baked at exact size
 for c in courts:
     x0, y0, x1, y1 = c["x"], c["y"], c["x"] + c["width"], c["y"] + c["height"]
+    if c["name"] == "playground":                                              # rubber play surface with a kerb
+        img[y0:y1, x0:x1] = (150, 140, 120); pn = noise(2, 13)[y0 + 4:y1 - 4, x0 + 4:x1 - 4]
+        sub = np.zeros((y1 - y0 - 8, x1 - x0 - 8, 3), np.float32); sub[:] = (178, 84, 72); sub[pn > 0.6] = (160, 74, 64); sub[pn < 0.3] = (190, 98, 84)
+        img[y0 + 4:y1 - 4, x0 + 4:x1 - 4] = sub; continue
     img[y0:y1, x0:x1] = (70, 110, 70); surf = (70, 130, 172) if c["name"] == "tennis" else (176, 98, 82)
     img[y0 + 6:y1 - 6, x0 + 6:x1 - 6] = surf
     m = 16; L = (240, 240, 236)
@@ -265,11 +315,18 @@ for y in range(H):
         if sea_t[y, x] > 0.5: ground[y][x] = 244
         elif sand_t[y, x] > 0.5: ground[y][x] = 298
         elif road_t[y, x] > 0.5: ground[y][x] = 469
-door = (cbx + CBW // 2, cby + CBH + 10)
-ry, rx = np.nonzero(road[::8, ::8] & (dist_edge[::8, ::8] > 8)); k = np.argmin((rx * 8 - door[0] + 120) ** 2 + (ry * 8 - door[1]) ** 2)
-spawn = (int(rx[k] * 8), int(ry[k] * 8))
+hn = CFG["home"]["near"]
+def _sp(c): return ((c["x"] + c["width"] // 2) // 16, (c["y"] + c["height"] + 12) // 16)
+def area_of(x, y):
+    for a in CFG["areas"]:
+        for r in a["rects"]:
+            if r[0] <= x < r[2] and r[1] <= y < r[3]: return a["id"]
+home = min([c for c in placed if c["orient"] == "h" and area_of(*_sp(c)) == "a1" and obj[_sp(c)[1]][_sp(c)[0]] < 0 and _sp(c)[1] < 78],
+           key=lambda c: (c["x"] / 16 - hn[0]) ** 2 + (c["y"] / 16 - hn[1]) ** 2)
+home["home"] = True; home["label"] = CFG["home"].get("label", "")
+spawn = (home["x"] + home["width"] // 2, home["y"] + home["height"] + 12)
 landmarks = [{"name": f"#{o['id']} {o['cls']}", "type": "landmark", "x": o["label_xy"][0] * S, "y": o["label_xy"][1] * S,
-              "width": 0, "height": 0, "segId": o["id"], "cls": o["cls"]} for o in objs if o["id"] <= 38]
+              "width": 0, "height": 0, "segId": o["id"], "cls": {10: "playground"}.get(o["id"], o["cls"])} for o in objs if o["id"] <= 38]
 buildings = [{"name": "clubhouse", "type": "building", "x": cbx, "y": cby, "width": CBW, "height": CBH, "segId": 34, "inset": 64}]
 def tobj(i, o):
     pr = [{"name": k, "type": "int" if isinstance(v, int) and not isinstance(v, bool) else "bool" if isinstance(v, bool) else "float" if isinstance(v, float) else "string", "value": v}
@@ -284,14 +341,81 @@ def group(i, name, items):
 flat = lambda gr: [t + 1 for row in gr for t in row]
 layer = lambda i, n, gr, vis=True: {"id": i, "name": n, "type": "tilelayer", "width": W, "height": H, "x": 0, "y": 0, "opacity": 1, "visible": vis, "data": flat(gr)}
 m = {"type": "map", "version": "1.10", "tiledversion": "1.10.2", "orientation": "orthogonal", "renderorder": "right-down",
-     "width": W, "height": H, "tilewidth": 16, "tileheight": 16, "infinite": False, "nextlayerid": 11,
+     "width": W, "height": H, "tilewidth": 16, "tileheight": 16, "infinite": False, "nextlayerid": 12,
      "properties": [{"name": "groundChunk", "type": "int", "value": CH_}, {"name": "groundCols", "type": "int", "value": ncx},
                     {"name": "groundRows", "type": "int", "value": ncy}, {"name": "shoreX", "type": "int", "value": (W0 + 5) * 16 - 16}],
      "layers": [layer(1, "ground", ground, False), layer(2, "objects", obj), layer(3, "roofs", roof),
                 group(4, "courts", courts), group(5, "buildings", buildings), group(6, "caravans", placed), group(7, "props", props),
-                group(8, "landmarks", landmarks), group(9, "markers", [{"name": "spawn", "type": "spawn", "x": spawn[0], "y": spawn[1], "width": 0, "height": 0}])],
-     "tilesets": [{"firstgid": 1, "name": "tiles", "image": "tiles.png", "imagewidth": 448, "imageheight": 640,
-                   "tilewidth": 16, "tileheight": 16, "columns": 28, "tilecount": 1120, "margin": 0, "spacing": 0}]}
+                group(8, "landmarks", landmarks), group(10, "gates", gates), group(9, "markers", [{"name": "spawn", "type": "spawn", "x": spawn[0], "y": spawn[1], "width": 0, "height": 0}])],
+     "tilesets": [{"firstgid": 1, "name": "tiles", "image": "tiles.png", "imagewidth": 448, "imageheight": 656,
+                   "tilewidth": 16, "tileheight": 16, "columns": 28, "tilecount": 1148, "margin": 0, "spacing": 0}]}
 m["nextobjectid"] = nid[0]
 json.dump(m, open("public/assets/map.json", "w"), separators=(",", ":"))
 print(f"{W}x{H} tiles ({WX}x{HY}px), {ncx}x{ncy} ground chunks; caravans {len(placed)}/{len(cars)} {dropped}; props {len(props)} (lamps {len(lamps)}); trees {len(trees)}; spawn {spawn}")
+
+# ---------- validation: sealed areas (flood fill with gates closed/opened) + reachability with all obstacles ----------
+from collections import deque
+def area_of(x, y):
+    for a in CFG["areas"]:
+        for r in a["rects"]:
+            if r[0] <= x < r[2] and r[1] <= y < r[3]: return a["id"]
+sea_cells = {(x, y) for y in range(H) for x in range(W) if ground[y][x] == 244}
+solid = set(sea_cells) | {(x, y) for y in range(H) for x in range(W) if obj[y][x] >= 0}
+def cover(x0, y0, x1, y1):                                                     # tiles fully inside a px rect
+    return {(tx, ty) for ty in range(math.ceil(y0 / 16), int(y1 // 16)) for tx in range(math.ceil(x0 / 16), int(x1 // 16))}
+for c in placed: solid |= cover(c["x"] + 2, c["y"] + (14 if c["orient"] == "h" else 20), c["x"] + c["width"] - 2, c["y"] + c["height"] - 2)
+solid |= cover(cbx + 4, cby + 64, cbx + CBW - 4, cby + CBH - 3)
+def gate_set(open_ids): return {c for g in gates if g["name"] not in open_ids for c in cover(g["x"], g["y"], g["x"] + g["width"], g["y"] + g["height"])}
+def flood(start, walls):
+    seen = {start}; q = deque([start])
+    while q:
+        x, y = q.popleft()
+        for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= n[0] < W and 0 <= n[1] < H and n not in seen and n not in walls: seen.add(n); q.append(n)
+    return seen
+st = (spawn[0] // 16, spawn[1] // 16); ok_all = True
+order = ["a1", "a2", "a3", "a4"]; opened = []
+for i, gid in enumerate([None, "g1", "g2", "g3"]):
+    if gid: opened.append(gid)
+    reach = flood(st, barrier_cells | sea_cells | gate_set(opened))
+    areas = {area_of(x, y) for x, y in reach} - {None}
+    want = set(order[:i + 1]); good = areas == want; ok_all &= good
+    print(f"seal test, gates open {opened or '[]'}: reaches {sorted(areas)} {'OK' if good else 'LEAK/BLOCKED (want ' + str(sorted(want)) + ')'}")
+reach_full = flood(st, solid | gate_set(["g1", "g2", "g3"]))
+def check(name, pt, area=None):
+    global ok_all
+    t = tuple(pt); r = t in reach_full and (area is None or area_of(*t) == area)
+    if not r: ok_all = False; print(f"  NOT OK: {name} {t} area={area_of(*t)} reachable={t in reach_full}")
+    return r
+for s_ in CFG["stages"]: check("spot " + s_["id"], s_["spot"], s_["area"])
+# generate collectibles (3 per area, tucked next to obstacles) and hunt items once, if missing
+def tucked(area, n, avoid, minsep=14, beach=False):
+    cand = [(x, y) for (x, y) in reach_full if area_of(x, y) == area and sum((x + dx, y + dy) in solid or (x + dx, y + dy) in barrier_cells
+            for dx in (-1, 0, 1) for dy in (-1, 0, 1)) >= (0 if beach else 3)]
+    random.shuffle(cand); out_ = []
+    for c in cand:
+        if all((c[0] - a) ** 2 + (c[1] - b) ** 2 > minsep ** 2 for a, b in out_ + avoid): out_.append(c)
+        if len(out_) == n: break
+    return [list(c) for c in out_]
+changed = False
+if not CFG["collectibles"]:
+    spots = [tuple(s_["spot"]) for s_ in CFG["stages"]]; acc = []
+    for a in order: acc += tucked(a, 3, spots + [tuple(c) for c in acc], 18)
+    CFG["collectibles"] = acc; changed = True
+if not CFG["minigames"]["hunt"]["items"]:
+    hs = CFG["stages"][3]["spot"]
+    near = [(x, y) for (x, y) in reach_full if area_of(x, y) == "a4" and abs(y - hs[1]) < 30 and x < W - 1]
+    random.shuffle(near); items = []
+    for c in near:
+        if all((c[0] - a) ** 2 + (c[1] - b) ** 2 > 7 ** 2 for a, b in items + [tuple(hs)]): items.append(c)
+        if len(items) == 5: break
+    CFG["minigames"]["hunt"]["items"] = [list(c) for c in items]; changed = True
+for i, c in enumerate(CFG["collectibles"]): check(f"collectible {i}", c)
+for i, c in enumerate(CFG["minigames"]["hunt"]["items"]): check(f"hunt item {i}", c, "a4")
+if changed:
+    txt = json.dumps(CFG, indent=2, ensure_ascii=False)
+    import re; txt = re.sub(r"\[\s*(-?\d+),\s*(-?\d+)\s*\]", r"[\1, \2]", txt)
+    txt = re.sub(r"\[\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(-?\d+)\s*\]", r"[\1, \2, \3, \4]", txt)
+    open(CFG_PATH, "w").write(txt + "\n"); print("wrote collectibles/hunt items to progression.json")
+print("gates:", [(g["name"], g["x"] // 16, g["y"] // 16, g["width"] // 16, g["height"] // 16, g["orient"]) for g in gates], "home caravan", home["segId"], "spawn tile", st)
+print("VALIDATION", "PASSED" if ok_all else "FAILED")

@@ -5,46 +5,68 @@ from PIL import Image, ImageDraw
 random.seed(1)
 src = Image.open(sys.argv[1]).convert("RGBA"); C = 28
 def tile(i): return src.crop(((i % C) * 16, (i // C) * 16, (i % C) * 16 + 16, (i // C) * 16 + 16))
-src.save("public/assets/tiles.png")
 OL = (52, 36, 46, 255)
+tiles = Image.new("RGBA", (448, 656)); tiles.paste(src, (0, 0))
+def mk(k, fn): im = Image.new("RGBA", (16, 16)); fn(ImageDraw.Draw(im), im); tiles.paste(im, ((k % C) * 16, (k // C) * 16))
+def hedge(d, im):
+    d.rectangle([0, 1, 15, 14], fill=(56, 118, 58, 255))
+    for x, y in [(1, 2), (7, 1), (11, 4), (3, 7), (9, 8), (13, 10), (5, 11)]: d.ellipse([x, y, x + 4, y + 3], fill=(92, 162, 78, 255)); d.point((x + 1, y), fill=(150, 210, 110, 255))
+    d.line([0, 14, 15, 14], fill=(36, 80, 40, 255)); d.line([0, 15, 15, 15], fill=(30, 50, 30, 120))
+def fence_h(d, im):
+    d.rectangle([0, 5, 15, 7], fill=(176, 112, 64, 255), outline=OL); d.rectangle([0, 10, 15, 12], fill=(176, 112, 64, 255), outline=OL)
+    d.rectangle([6, 2, 9, 15], fill=(150, 92, 52, 255), outline=OL)
+def fence_v(d, im):
+    d.rectangle([5, 0, 6, 15], fill=(176, 112, 64, 255)); d.rectangle([9, 0, 10, 15], fill=(176, 112, 64, 255))
+    d.line([4, 0, 4, 15], fill=OL); d.line([11, 0, 11, 15], fill=OL); d.rectangle([4, 2, 11, 8], fill=(150, 92, 52, 255), outline=OL)
+def block_h(d, im):
+    for x in range(0, 16, 4): d.rectangle([x, 4, x + 1, 9], fill=(220, 50, 50, 255)); d.rectangle([x + 2, 4, x + 3, 9], fill=(250, 250, 250, 255))
+    d.rectangle([0, 4, 15, 9], outline=OL); d.rectangle([2, 10, 3, 15], fill=(90, 90, 90, 255)); d.rectangle([12, 10, 13, 15], fill=(90, 90, 90, 255))
+def block_v(d, im):
+    for y in range(0, 16, 4): d.rectangle([5, y, 10, y + 1], fill=(220, 50, 50, 255)); d.rectangle([5, y + 2, 10, y + 3], fill=(250, 250, 250, 255))
+    d.line([4, 0, 4, 15], fill=OL); d.line([11, 0, 11, 15], fill=OL)
+for k, fn in enumerate([hedge, fence_h, fence_v, block_h, block_v]): mk(1120 + k, fn)
+tiles.save("public/assets/tiles.png")
 def new(w, h): im = Image.new("RGBA", (w, h)); return im, ImageDraw.Draw(im)
 def mix(c, f): return tuple(max(0, min(255, int(v * f))) for v in c[:3]) + (255,)
 
 # ---------- caravans (placeholders; 3 variants per sheet; swap these two PNGs for real models) ----------
-VAR = [  # roof, wall, stripe, skirt
-    ((214, 218, 222), (242, 234, 212), (190, 112, 74), (120, 110, 100)),
-    ((226, 220, 204), (246, 246, 242), (84, 150, 104), (104, 112, 104)),
-    ((206, 214, 210), (214, 228, 238), (66, 88, 150), (96, 104, 118))]
+VAR = [  # roof, wall, stripe
+    ((96, 76, 64), (240, 230, 204), (128, 84, 52)),
+    ((86, 86, 92), (246, 242, 230), (112, 70, 50)),
+    ((80, 70, 66), (232, 222, 196), (96, 110, 70))]
+FENCE, FENCED = (170, 118, 74, 255), (128, 84, 52, 255)
 def window(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(250, 250, 248, 255), outline=OL)
     d.rectangle([x + 1, y + 1, x + w - 1, y + h - 1], fill=(104, 160, 206, 255))
     d.line([x + 1, y + 1, x + w - 1, y + 1], fill=(170, 210, 236, 255))
-    d.rectangle([x + 1, y + 1, x + 2, y + h - 1], fill=(236, 226, 196, 255)); d.rectangle([x + w - 2, y + 1, x + w - 1, y + h - 1], fill=(236, 226, 196, 255))
+def bay(d, x, y, w, h):
+    d.rectangle([x - 1, y - 1, x + w + 1, y + h + 1], fill=(252, 252, 250, 255), outline=OL)
+    d.rectangle([x + 1, y + 1, x + w - 1, y + h - 1], fill=(222, 226, 228, 255))                # net curtain
+    for xx in range(x + 2, x + w - 1, 2): d.line([xx, y + 2, xx, y + h - 2], fill=(204, 210, 214, 255))
+    d.line([x + 1, y + 1, x + w - 1, y + 1], fill=(120, 160, 196, 255))
+    for xx in (x + w // 3, x + 2 * w // 3): d.line([xx, y, xx, y + h], fill=(252, 252, 250, 255))
 def caravan(w, h, v, vertical):
-    roof, wall, stripe, skirt = v
-    im, d = new(w, h); wall_h = 15; rt = h - wall_h - 2                       # roof bottom
-    d.rectangle([1, rt, w - 2, h - 2], fill=wall + (255,), outline=OL)          # wall
-    d.rectangle([2, h - 6, w - 3, h - 3], fill=skirt + (255,))                  # skirt
-    for x in range(4, w - 3, 4): d.line([x, h - 6, x, h - 3], fill=mix(skirt, 0.8))
-    d.line([2, rt + 4, w - 3, rt + 4], fill=stripe + (255,), width=2)
-    d.rectangle([w - 5, rt + 1, w - 3, h - 7], fill=mix(wall, 0.88))           # end shading
-    d.rounded_rectangle([0, 0, w - 1, rt + 1], 3, fill=roof + (255,), outline=OL)  # roof with overhang
-    for y in range(2, rt):                                                     # vertical shading: light top, darker eave
-        f = 1.1 - 0.18 * y / rt; d.line([2, y, w - 3, y], fill=mix(roof, f))
-    for y in range(5, rt - 1, 4): d.line([3, y, w - 4, y], fill=mix(roof, 0.9 - 0.1 * y / rt))
-    d.line([2, rt, w - 3, rt], fill=mix(roof, 0.6))                            # gutter
-    d.line([3, 2, 3, rt - 1], fill=mix(roof, 1.15)); d.line([w - 4, 2, w - 4, rt - 1], fill=mix(roof, 0.8))
-    if vertical:
-        for sy in (12, rt - 22): d.rectangle([w // 2 - 6, sy, w // 2 + 5, sy + 7], fill=(150, 190, 214, 255), outline=mix(roof, 0.55))
-        d.rectangle([8, rt // 2 - 2, 13, rt // 2 + 3], fill=(150, 150, 150, 255), outline=mix(roof, 0.5))
-        window(d, w // 2 - 8, rt + 3, 16, 7)
-    else:
-        d.rectangle([w // 2 - 6, 6, w // 2 + 5, 13], fill=(150, 190, 214, 255), outline=mix(roof, 0.55))
-        d.rectangle([10, 9, 15, 14], fill=(150, 150, 150, 255), outline=mix(roof, 0.5))
-        window(d, 5, rt + 2, 14, 7); window(d, w - 22, rt + 2, 14, 7)
-        dx = w // 2 - 2; d.rectangle([dx, rt + 2, dx + 8, h - 4], fill=(160, 104, 70, 255), outline=OL)
-        d.point((dx + 6, rt + 8), fill=(250, 220, 120, 255))
-        d.rectangle([dx - 3, h - 4, dx + 11, h - 1], fill=(150, 150, 146, 255), outline=OL)  # step
+    roof, wall, stripe = v
+    im, d = new(w, h); wall_h = 15; rt = h - wall_h - 2
+    d.rectangle([2, rt, w - 3, h - 2], fill=wall + (255,), outline=OL)
+    d.line([3, rt + 3, w - 4, rt + 3], fill=stripe + (255,), width=2)
+    d.rectangle([w - 6, rt + 1, w - 4, h - 3], fill=mix(wall, 0.88))
+    d.rectangle([0, 0, w - 1, rt + 1], fill=roof + (255,), outline=OL)                         # low-pitched roof, overhang
+    if vertical:                                                                                # ridge runs up the middle
+        d.rectangle([1, 1, w // 2 - 1, rt], fill=mix(roof, 1.18)); d.rectangle([w // 2, 1, w - 2, rt], fill=mix(roof, 0.92))
+        d.line([w // 2, 1, w // 2, rt], fill=mix(roof, 1.4))
+        for y in range(5, rt, 6): d.line([2, y, w - 3, y], fill=mix(roof, 0.8))
+        bay(d, w // 2 - 9, rt + 6, 18, 6)
+    else:                                                                                       # ridge runs along the length
+        d.rectangle([1, 1, w - 2, rt // 2], fill=mix(roof, 1.18)); d.rectangle([1, rt // 2 + 1, w - 2, rt], fill=mix(roof, 0.92))
+        d.line([1, rt // 2, w - 2, rt // 2], fill=mix(roof, 1.4))
+        for x in range(6, w - 3, 6): d.line([x, 2, x, rt - 1], fill=mix(roof, 0.82))
+        bay(d, 6, rt + 6, 18, 6); bay(d, w - 25, rt + 6, 16, 6)
+        dx = w // 2 - 3; d.rectangle([dx, rt + 5, dx + 7, h - 3], fill=(236, 232, 220, 255), outline=OL); d.point((dx + 5, rt + 10), fill=(200, 160, 60, 255))
+    d.line([1, rt + 1, w - 2, rt + 1], fill=mix(roof, 0.55))                                    # eave shadow
+    d.rectangle([1, h - 6, w - 2, h - 1], fill=FENCE, outline=OL)                                # slatted fence along the front
+    for x in range(3, w - 2, 3): d.line([x, h - 5, x, h - 2], fill=FENCED)
+    if not vertical: d.rectangle([w // 2 - 5, h - 6, w // 2 + 5, h - 1], fill=(150, 150, 146, 255), outline=OL)  # gap/step
     return im
 for name, (w, h, vert) in {"caravan-h": (72, 48, False), "caravan-v": (48, 80, True)}.items():
     sheet = Image.new("RGBA", (w * 3, h))
@@ -172,6 +194,40 @@ d.ellipse([0, 25, 7, 29], fill=(40, 60, 40, 255)); P["golf-flag"] = im
 im, d = new(32, 24)                                                                   # crazy-golf hut
 d.rectangle([6, 10, 25, 22], fill=(240, 200, 120, 255), outline=OL); d.polygon([(3, 11), (16, 2), (28, 11)], fill=(200, 70, 60, 255), outline=OL)
 d.rectangle([13, 16, 18, 22], fill=(40, 40, 40, 255)); P["minigolf-hut"] = im
+BLUE, RED, YEL = (60, 110, 200, 255), (220, 60, 60, 255), (240, 200, 60, 255)
+im, d = new(56, 44)                                                                   # swings
+d.line([4, 43, 10, 4], fill=BLUE, width=3); d.line([16, 43, 10, 4], fill=BLUE, width=3); d.line([40, 43, 46, 4], fill=BLUE, width=3); d.line([52, 43, 46, 4], fill=BLUE, width=3)
+d.rectangle([8, 2, 48, 5], fill=BLUE, outline=OL)
+for x in (20, 34):
+    d.line([x, 6, x, 30], fill=(150, 150, 150, 255)); d.line([x + 6, 6, x + 6, 30], fill=(150, 150, 150, 255)); d.rectangle([x - 1, 30, x + 7, 33], fill=RED, outline=OL)
+P["swings"] = im
+im, d = new(28, 50)                                                                   # slide
+d.rectangle([3, 0, 25, 10], fill=YEL, outline=OL); d.rectangle([4, 10, 7, 26], fill=(150, 150, 150, 255)); d.rectangle([21, 10, 24, 26], fill=(150, 150, 150, 255))
+for y in range(12, 26, 4): d.line([4, y, 7, y], fill=OL)
+d.polygon([(8, 10), (20, 10), (22, 49), (6, 49)], fill=RED, outline=OL); d.line([14, 12, 14, 47], fill=(250, 120, 120, 255))
+P["slide"] = im
+im, d = new(40, 30)                                                                   # roundabout
+d.ellipse([1, 6, 38, 28], fill=(60, 60, 70, 255)); d.ellipse([1, 2, 38, 24], fill=YEL, outline=OL)
+for k, c in enumerate([RED, BLUE, (60, 170, 80, 255)]): d.pieslice([1, 2, 38, 24], k * 120, k * 120 + 60, fill=c)
+d.ellipse([1, 2, 38, 24], outline=OL); d.rectangle([18, 4, 21, 14], fill=(200, 200, 200, 255), outline=OL); P["roundabout"] = im
+im, d = new(44, 40)                                                                   # climbing frame
+for x in range(4, 42, 9): d.line([x, 8, x, 39], fill=(230, 130, 40, 255), width=2)
+for y in range(8, 39, 8): d.line([4, y, 40, y], fill=(230, 130, 40, 255), width=2)
+d.polygon([(2, 8), (22, 0), (42, 8)], fill=(60, 170, 80, 255), outline=OL); P["climbing-frame"] = im
+def gate_img(vertical):
+    im, d = new(16, 16 if vertical else 22)
+    if vertical: d.rectangle([4, 0, 11, 15], fill=(196, 140, 84, 255), outline=OL); d.line([5, 2, 10, 13], fill=(140, 90, 50, 255), width=2); d.line([4, 15, 11, 15], fill=OL)
+    else:
+        d.rectangle([0, 3, 15, 6], fill=(196, 140, 84, 255), outline=OL); d.rectangle([0, 12, 15, 15], fill=(196, 140, 84, 255), outline=OL)
+        d.line([1, 14, 14, 5], fill=(140, 90, 50, 255), width=2); d.rectangle([0, 17, 15, 19], fill=(30, 40, 30, 90))
+    return im
+gate_img(False).save("public/assets/gate-h.png"); gate_img(True).save("public/assets/gate-v.png")
+im, d = new(16, 16)                                                                   # mini-game spot sparkle
+d.polygon([(8, 0), (10, 6), (16, 8), (10, 10), (8, 16), (6, 10), (0, 8), (6, 6)], fill=(255, 250, 210, 255)); d.ellipse([6, 6, 10, 10], fill=(255, 220, 90, 255)); im.save("public/assets/spot.png")
+im, d = new(12, 14)                                                                   # collectible (neutral gem)
+d.polygon([(6, 0), (11, 5), (6, 13), (1, 5)], fill=(90, 200, 230, 255), outline=(30, 70, 110, 255)); d.polygon([(6, 1), (9, 5), (6, 5)], fill=(220, 250, 255, 255)); im.save("public/assets/gem.png")
+im, d = new(14, 14)                                                                   # hunt item (neutral token)
+d.ellipse([0, 0, 13, 13], fill=(240, 196, 60, 255), outline=(140, 90, 20, 255)); d.polygon([(7, 2), (9, 6), (12, 6), (9, 8), (10, 12), (7, 9), (4, 12), (5, 8), (2, 6), (5, 6)], fill=(255, 240, 160, 255)); im.save("public/assets/token.png")
 for k, v in P.items(): v.save(f"public/assets/props/{k}.png")
 print("props:", list(P))
 if len(sys.argv) > 2:                                                                 # contact sheet, 3x
