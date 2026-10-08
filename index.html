@@ -13,6 +13,7 @@
       overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     #game { position: fixed; inset: 0; }
     canvas { image-rendering: pixelated; }
+    #osm { position: fixed; right: 4px; bottom: 2px; font: 10px sans-serif; color: rgba(255,255,255,.7); text-decoration: none; text-shadow: 0 0 2px #000; z-index: 2; }
     #stick { position: fixed; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%;
       background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.4); display: none; pointer-events: none; }
     #knob { position: absolute; left: 30px; top: 30px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.55); }
@@ -20,6 +21,7 @@
 </head>
 <body>
   <div id="game"></div>
+  <a id="osm" href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>
   <div id="stick"><div id="knob"></div></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
