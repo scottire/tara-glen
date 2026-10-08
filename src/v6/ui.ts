@@ -63,7 +63,8 @@ export class UI extends Phaser.Scene {
     else this.close();
   }
   close() {
-    const m = this.cur; this.box?.destroy(); this.box = undefined; this.cur = undefined;
+    const m = this.cur, b = this.box as any;
+    if (b) { b.removeAllListeners(); try { if (b.isTyping) b.stop(false); b.typing?.timer?.remove?.(); } catch { /* already stopped */ } b.destroy(); } this.box = undefined; this.cur = undefined;
     const next = this.queue.shift();
     if (next) { this.time.delayedCall(60, () => this.say(next)); }
     else this.time.delayedCall(150, () => { if (!this.box) G.paused = bagOpen(); });
