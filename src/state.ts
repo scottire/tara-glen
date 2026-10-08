@@ -1,9 +1,16 @@
-// Progress state + localStorage save. All text/positions come from public/progression.json (CFG).
+// Progress state + localStorage save. All text/positions come from public/progression.json (CFG) and public/mechanics.json (MECH).
+// Inventory/save shape follows Wispguard's DataManager + InventoryManager (devshareacademy, MIT), merged into one small object.
 export type Cfg = any;
-export interface Save { stage: number; collected: number[]; elapsed: number; pos?: [number, number]; done?: boolean }
-const KEY = 'tara-glen-save-v1';
-export const fresh = (): Save => ({ stage: 0, collected: [], elapsed: 0 });
-export function load(): Save { try { return { ...fresh(), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return fresh(); } }
+export interface Inv { got: string[]; abilities: string[]; ammo: Record<string, number>; items: Record<string, number> }
+export interface Save {
+  stage: number; collected: number[]; elapsed: number; pos?: [number, number]; done?: boolean;
+  room?: string | null; roomPos?: [number, number]; hp: number; inv: Inv; defeated: string[]; started?: boolean;
+}
+const KEY = 'tara-glen-save-v2'; // separate from v1 so the preview build never clobbers the live site's save
+export const fresh = (): Save => ({ stage: 0, collected: [], elapsed: 0, hp: 3, inv: { got: [], abilities: [], ammo: {}, items: {} }, defeated: [] });
+export function load(): Save {
+  try { const s = { ...fresh(), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; s.inv = { ...fresh().inv, ...s.inv }; return s; } catch { return fresh(); }
+}
 export function save(s: Save) { localStorage.setItem(KEY, JSON.stringify(s)); }
 export function reset() { localStorage.removeItem(KEY); }
 export const fmt = (t: string, v: Record<string, any> = {}) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));

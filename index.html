@@ -17,6 +17,11 @@
     #bike { position: fixed; right: 16px; bottom: 28px; width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(255,255,255,.75);
       background: rgba(30,30,40,.45); font-size: 28px; display: none; align-items: center; justify-content: center; z-index: 3; padding: 0; touch-action: none; }
     #bike.on { background: rgba(220,60,60,.75); }
+    #fire { position: fixed; right: 16px; bottom: 96px; width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(255,255,255,.75);
+      background: rgba(40,110,200,.55); font-size: 26px; display: none; align-items: center; justify-content: center; z-index: 3; padding: 0; touch-action: none; position: fixed; }
+    #fire small { position: absolute; right: -4px; bottom: -4px; background: #fff; color: #135; font: 800 13px sans-serif; border-radius: 9px; padding: 1px 6px; }
+    #fire.empty { filter: grayscale(1); opacity: .6; }
+    #hearts { letter-spacing: 1px; } #abilities, #items { font-size: 14px; }
     #toast { position: fixed; left: 50%; top: 96px; transform: translateX(-50%); padding: 6px 12px; border-radius: 8px; background: rgba(0,0,0,.65);
       color: #fff; font: 14px sans-serif; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 3; }
     #hud { position: fixed; left: 8px; top: 8px; z-index: 3; color: #fff; font: 600 14px sans-serif; text-shadow: 0 1px 2px #000; pointer-events: none; }
@@ -51,7 +56,8 @@
   <div id="game"></div>
   <div id="credit">Layout traced from aerial imagery · private joke game</div>
   <button id="bike" aria-label="Bike">🚲</button>
-  <div id="hud"><div id="objective"></div><div id="hud-row"><span id="badges"></span><span id="gems"></span></div></div>
+  <button id="fire" aria-label="Throw"></button>
+  <div id="hud"><div id="objective"></div><div id="hud-row"><span id="hearts"></span><span id="badges"></span><span id="gems"></span><span id="items"></span><span id="abilities"></span></div></div>
   <button id="menu-btn" aria-label="Menu">☰</button>
   <div id="menu"><button id="menu-reset">Reset progress</button><button id="menu-close">Close</button></div>
   <button id="prompt" aria-label="Play">A</button>

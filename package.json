@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "phaser": "^4.2.1"
+    "easystarjs": "^0.4.4",
+    "phaser": "^4.2.1",
+    "phaser4-rex-plugins": "^4.2.0"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
