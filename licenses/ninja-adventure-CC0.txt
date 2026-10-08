@@ -1,0 +1,4 @@
+Player sprite (public/assets/player.png) = "ninja_blue" from the Ninja Adventure Asset Pack by Pixel-boy
+Source: https://pixel-boy.itch.io/ninja-adventure-asset-pack  (raw file from https://github.com/pixel-boy/NinjaAdventure)
+License: Creative Commons Zero v1.0 Universal (CC0) - https://creativecommons.org/publicdomain/zero/1.0/
+"Attribution is not required but appreciated."
