@@ -76,8 +76,22 @@
       border: 2px solid #fff; border-radius: 8px; display: none; overflow: hidden; }
     #bossbar i { display: block; height: 100%; background: linear-gradient(#ff6b6b, #c0392b); }
     #bossbar span { position: absolute; left: 0; right: 0; top: -20px; text-align: center; color: #fff; font: 800 13px sans-serif; text-shadow: 0 1px 2px #000; }
-    body.moment::before, body.moment::after { content: ''; position: fixed; left: 0; right: 0; height: 9vh; background: #000; z-index: 2; animation: bars .8s ease; }
-    body.moment::before { top: 0; } body.moment::after { bottom: 0; }
+    :root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); --bar: min(6vh, 40px); }
+    /* cinematic bars sit *behind* the HUD/dialogue (canvas text is placed above them by ui.ts); they grow into the notch/home-bar areas */
+    body.moment::before, body.moment::after { content: ''; position: fixed; left: 0; right: 0; background: #000; z-index: 1; animation: bars .8s ease; pointer-events: none; }
+    body.moment::before { top: 0; height: calc(var(--bar) + var(--sat)); } body.moment::after { bottom: 0; height: calc(var(--bar) + var(--sab)); }
+    body.talking #fire, body.talking #dash, body.talking #bike, body.talking #prompt, body.talking #credit { visibility: hidden; }
+    #hud { margin-top: var(--sat); margin-left: var(--sal); } .rbtn, #menu-btn { margin-top: var(--sat); margin-right: var(--sar); }
+    #fire, #bike, #dash, #prompt { margin-bottom: var(--sab); } #fire, #bike, #dash { margin-right: var(--sar); }
+    #choices { bottom: calc(var(--dlg, 150px) + 10px) !important; max-height: calc(100dvh - var(--dlg, 150px) - var(--sat) - 70px); overflow-y: auto;
+      width: min(calc(100vw - var(--sal) - var(--sar) - 24px), 420px) !important; }
+    #end { padding: calc(var(--sat) + 10px) calc(var(--sar) + 10px) calc(var(--sab) + 10px) calc(var(--sal) + 10px); box-sizing: border-box; }
+    #end .card { max-height: 100%; overflow-y: auto; box-sizing: border-box; max-width: 100%; }
+    #end-title { font-size: clamp(24px, 9vw, 34px) !important; overflow-wrap: anywhere; } #end-sub { overflow-wrap: anywhere; }
+    @media (max-height: 520px) { #end .card { padding: 12px 18px; width: min(92vw, 560px); } #end-title { font-size: 26px !important; } #end-sub { margin: 0 0 6px; }
+      #end-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; } #end-stats div { padding: 6px 10px; margin: 4px 0; font-size: 14px; } #end button { margin-top: 8px; } }
+    #banner { max-width: calc(100vw - var(--sal) - var(--sar) - 24px); top: calc(22% + var(--sat)); }
+    #toast { max-width: calc(100vw - 32px); top: calc(96px + var(--sat)); }
     body.moment #game { filter: sepia(.35) saturate(1.2) brightness(1.05); transition: filter .8s; }
     @keyframes bars { from { height: 0; } }
     #debug { position: fixed; left: 8px; right: 8px; top: 60px; max-height: 75vh; overflow: auto; z-index: 7; display: none; background: rgba(15,18,26,.96); color: #dfe6f3;

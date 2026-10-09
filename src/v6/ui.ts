@@ -9,6 +9,15 @@ import { count, cond, apply, changed, tryCombine, showHint } from './logic';
 type Choice = { text: string; when?: string[]; effects?: any[]; reply?: string[] };
 type Msg = { lines: string[]; choices?: Choice[]; done?: () => void };
 
+let probe: HTMLElement | undefined;
+/** safe-area insets in CSS px (env() only resolves in CSS, so measure a probe element) */
+export function safeInsets() {
+  if (!probe) { probe = document.createElement('div'); probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; document.body.appendChild(probe); }
+  const c = getComputedStyle(probe); return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
+}
+/** height of one cinematic bar (must match --bar in index.html) */
+const momentBar = () => Math.min(innerHeight * 0.06, 40);
+
 export class UI extends Phaser.Scene {
   box?: any; queue: Msg[] = []; cur?: Msg;
   constructor() { super({ key: 'UI', active: true }); }
@@ -17,18 +26,26 @@ export class UI extends Phaser.Scene {
     this.input.on('pointerdown', adv);
     this.input.keyboard!.on('keydown-SPACE', adv); this.input.keyboard!.on('keydown-ENTER', adv);
     (G as any).ui = this;
+    this.scale.on('resize', () => this.time.delayedCall(50, () => this.relayout()));
   }
   say(m: Msg) {
     if (this.box || this.cur) { this.queue.push(m); return; }
-    this.cur = m; G.paused = true;
-    const dpr = 1 / this.scale.zoom, W = Math.min(this.scale.width - 24 * dpr, 520 * dpr), fs = Math.round(15 * dpr);
-    const bg = this.add.existing(new RoundRectangle(this, 0, 0, 2, 2, 10 * dpr, 0x1b2230, 0.94)) as any;
-    bg.setStrokeStyle(3 * dpr, 0xf4e7c5);
-    const text = this.add.text(0, 0, '', { fontFamily: 'monospace', fontSize: fs + 'px', color: '#ffffff', lineSpacing: 4 * dpr,
-      wordWrap: { width: W - 32 * dpr }, fixedWidth: W - 32 * dpr, fixedHeight: (fs + 4 * dpr) * 3 + 8 * dpr, maxLines: 3 });
+    this.cur = m; G.paused = true; document.body.classList.add('talking');
+    this.render(m);
+  }
+  /** Lay the box out inside the *visible* area: safe-area insets (notch / home bar), the cinematic bars of a moment, real CSS width. */
+  render(m: Msg, page = 0) {
+    const k = 1 / this.scale.zoom, ins = safeInsets(), vw = innerWidth, vh = innerHeight;
+    const bar = document.body.classList.contains('moment') ? momentBar() : 0;
+    const visW = vw - ins.l - ins.r, Wc = Math.min(visW - 16, 520), fsC = Math.max(12, Math.min(15, Math.floor((Wc - 40) / 21)));
+    const bottomC = Math.max(10, ins.b + 6) + bar + 6, W = Wc * k, fs = Math.round(fsC * k);
+    const bg = this.add.existing(new RoundRectangle(this, 0, 0, 2, 2, 10 * k, 0x1b2230, 0.94)) as any;
+    bg.setStrokeStyle(3 * k, 0xf4e7c5);
+    const text = this.add.text(0, 0, '', { fontFamily: 'monospace', fontSize: fs + 'px', color: '#ffffff', lineSpacing: 4 * k,
+      wordWrap: { width: W - 32 * k, useAdvancedWrap: true }, fixedWidth: W - 32 * k, fixedHeight: (fs + 4 * k) * 3 + 8 * k, maxLines: 3 });
     const icon = this.add.text(0, 0, '▼', { fontSize: fs + 'px', color: '#f4e7c5' });
-    const box = new TextBox(this, { x: this.scale.width / 2, y: this.scale.height - 16 * dpr, background: bg, text, action: icon,
-      space: { left: 16 * dpr, right: 16 * dpr, top: 12 * dpr, bottom: 12 * dpr, text: 8 * dpr }, page: { maxLines: 3 }, type: { speed: 22 } } as any);
+    const box = new TextBox(this, { x: (ins.l + (vw - ins.r)) / 2 * k, y: (vh - bottomC) * k, background: bg, text, action: icon,
+      space: { left: 16 * k, right: 16 * k, top: 12 * k, bottom: 12 * k, text: 8 * k }, page: { maxLines: 3 }, type: { speed: 22 } } as any);
     this.add.existing(box as any); box.setOrigin(0.5, 1).layout();
     icon.setVisible(false);
     box.on('pageend', () => {
@@ -37,7 +54,15 @@ export class UI extends Phaser.Scene {
     });
     box.on('type', () => icon.setVisible(false));
     box.start(m.lines.join('\f\n'), 22);
+    for (let i = 0; i < page && !box.isLastPage; i++) box.typeNextPage();
     this.box = box; this.scene.bringToTop();
+    document.documentElement.style.setProperty('--dlg', Math.round(bottomC + box.height / k) + 'px'); // choices sit above the box
+  }
+  /** orientation change / resize while talking: rebuild the box at the new size, on the same page */
+  relayout() {
+    const b = this.box as any, m = this.cur; if (!b || !m) return;
+    const page = b.page?.pageIndex ?? 0; b.removeAllListeners(); try { if (b.isTyping) b.stop(false); } catch { /* */ } b.destroy(); this.box = undefined;
+    this.render(m, Math.max(0, page));
   }
   showChoices(cs: Choice[]) {
     const el = $('choices'); el.innerHTML = ''; el.style.display = 'flex';
@@ -67,7 +92,7 @@ export class UI extends Phaser.Scene {
     if (b) { b.removeAllListeners(); try { if (b.isTyping) b.stop(false); b.typing?.timer?.remove?.(); } catch { /* already stopped */ } b.destroy(); } this.box = undefined; this.cur = undefined;
     const next = this.queue.shift();
     if (next) { this.time.delayedCall(60, () => this.say(next)); }
-    else this.time.delayedCall(150, () => { if (!this.box) G.paused = bagOpen(); });
+    else this.time.delayedCall(150, () => { if (!this.box) { G.paused = bagOpen(); document.body.classList.remove('talking'); } });
     m?.done?.();
   }
 }
