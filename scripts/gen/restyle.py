@@ -62,7 +62,23 @@ def pieces():
            'props/golf-flag': P.fit(flag, 14, 30), 'clubhouse': P.fit(cb, 192, 136, k=16)}
     for k, im in out.items(): im.save(os.path.join(A, k + '.png'))
 
-STEPS = {'caravans': caravans, 'trees': trees, 'repal': repal, 'pieces': pieces}
+IPROPS = ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']  # interior-props sheet, reading order
+IP_SIZE = {'sofa': (48, 26), 'tv': (28, 30), 'kitchen': (48, 34), 'bunk': (32, 42), 'wardrobe': (26, 40), 'table': (46, 26), 'lamp': (12, 30),
+           'shelf': (28, 38), 'rug': (48, 30), 'plant': (16, 22)}
+def v11():
+    """v11: the Glen rope-swing tree (rope + seat painted out: the game draws them so they can swing) and the caravan
+    furniture sheet cut into pieces, stylised to the locked palette at room scale (assets/v6/ip/*.png)"""
+    from PIL import Image as I
+    from tgstyle.keying import key
+    src = I.open(os.path.join(P.HERE, 'src/rope-swing-tree.png')).convert('RGB'); w, h = src.size; a = np.array(src)
+    bg = a[2, 2].copy(); a[int(.53 * h):int(.80 * h), int(.555 * w):int(.66 * w)] = bg   # the rope and seat
+    tmp = os.path.join(P.HERE, 'src/_tree_norope.png'); I.fromarray(a).save(tmp); tree = key(tmp); os.remove(tmp)
+    P.fit(tree, 72, 80, k=12, ramps=['leaf', 'wood', 'grass']).save(os.path.join(A, 'v6/glen-tree.png'))
+    os.makedirs(os.path.join(A, 'v6/ip'), exist_ok=True)
+    for name, im in zip(IPROPS, P.pieces('interior-props')):
+        W_, H_ = IP_SIZE[name]; P.fit(im, W_, H_, k=10).save(os.path.join(A, f'v6/ip/{name}.png'))
+
+STEPS = {'caravans': caravans, 'trees': trees, 'repal': repal, 'pieces': pieces, 'v11': v11}
 if __name__ == '__main__':
     what = sys.argv[1:] or ['all']
     for k, f in STEPS.items():

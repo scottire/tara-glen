@@ -6,6 +6,8 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SEA, ROAD, SAND, GRASS = 245, 470, 299, 331
 HEDGE, BLOCK_H, BLOCK_V = 1121, 1124, 1125
+LEGACY_BARRIERS = {1121, 1122, 1123, 1124, 1125}   # make-world.py hedge/fence/roadblock lines baked into map.json (v11 draws its own borders)
+WALL_GID = 282                                      # a transparent tile in tiles.png: collision only (v11 borders are painted into the ground)
 SOLID_PROPS = {'bench', 'picnic-table', 'bin', 'lamp', 'signpost', 'fence', 'hedge', 'car-red', 'car-blue', 'car-silver', 'windbreak', 'minigolf-hut',
                'swings', 'slide', 'roundabout', 'climbing-frame'}
 
@@ -19,7 +21,7 @@ class Grid:
         self.m, self.W, self.H = m, m['width'], m['height']
         L = {l['name']: l for l in m['layers']}
         self.L = L
-        self.ground = L['ground']['data']; self.objects = list(L['objects']['data'])
+        self.ground = L['ground']['data']; self.objects = [0 if g in LEGACY_BARRIERS else g for g in L['objects']['data']]  # v11: old hedge lines are gone
         self.caravans = [dict(o, p=props_of(o)) for o in L['caravans']['objects']]
         self.buildings = [dict(o, p=props_of(o)) for o in L['buildings']['objects']]
         self.landmarks = {props_of(o)['segId']: (int(o['x'] // 16), int(o['y'] // 16)) for o in L['landmarks']['objects']}

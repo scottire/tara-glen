@@ -97,11 +97,19 @@ export function migrateSave(): string[] {
     else if (e.give) st.items[e.give] = count(e.give) + (e.n ?? 1);
     if (e.set) setFlag(e.set);
   } };
+  if (from < 11) { // v11 renamed/moved fights: keep what an older save already won
+    if (flag('arena:arena_strand') && !flag('arena:arena_green')) setFlag('arena:arena_green');
+    if (flag('clear:m377') && !count('dashstrike')) { st.items.dashstrike = 1; granted.push('dashstrike'); }
+  }
   for (const e of G.w.entities) {
     if (e.type === 'enemy' && st.got.includes(e.id)) // beaten boss: only its fight abilities (other drops were paid at the time)
       grant((e.drops ?? []).filter((d: any) => d.give && G.w.items[d.give]?.how));
     else if (e.type === 'encounter' && !st.got.includes(e.id) && flag(e.arena ? 'arena:' + e.arena : 'clear:' + e.room)) {
       st.got.push(e.id); grant(e.effects); }
+  }
+  if (from < 11) { // v11 spine: the den fee is Sully's fiver, the clubhouse rope is a bribe (the old password counts)
+    if (flag('sully_done') && !flag('match_joined') && !count('fiver')) st.items.fiver = 1;
+    if (flag('clubhouse_open') && !flag('bribed')) setFlag('bribed');
   }
   st.v = SAVE_VERSION;
   if (granted.length || from !== SAVE_VERSION) persist();

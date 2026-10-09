@@ -1,5 +1,5 @@
 {
-  "_readme": "Global settings + zones + barriers. Tile coords (16px). Edit, then run `npm run gen`.",
+  "_readme": "Global settings + zones + borders + gates. Tile coords (16px). Edit, then run `npm run gen`. v11: zones[].poly are Scott's hand-drawn outlines (tiles = his overlay px x 0.1056); every walkable tile that touches a later zone becomes a blocker (borderStyle picks the art), gates[] are the only crossings.",
   "seed": 1987,
   "start": {
     "room": "127",
@@ -22,237 +22,906 @@
   "zones": [
     {
       "id": "z1",
-      "name": "The Top Field",
-      "rects": [
-        [
-          0,
-          0,
-          140,
-          80
-        ],
-        [
-          0,
-          81,
-          181,
-          132
-        ]
-      ],
-      "tier": 1,
-      "enemy": [
-        "dust",
-        "crab"
-      ],
-      "rooms": 8,
-      "shells": 3,
-      "coins": 2,
-      "hiders": 0,
-      "notes": 0,
-      "whispers": 0,
-      "ambient": 4,
-      "decor": 1.0
-    },
-    {
-      "id": "z2",
-      "name": "Playground Row",
-      "rects": [
-        [
-          141,
-          0,
-          181,
-          80
-        ]
-      ],
+      "name": "Glen Top",
       "tier": 1,
       "enemy": [
         "dust",
         "slime"
       ],
-      "rooms": 4,
-      "shells": 1,
+      "rooms": 5,
+      "shells": 2,
+      "coins": 2,
+      "hiders": 0,
+      "notes": 0,
+      "whispers": 0,
+      "ambient": 3,
+      "decor": 1.0,
+      "poly": [
+        [
+          58,
+          19
+        ],
+        [
+          66,
+          24
+        ],
+        [
+          76,
+          28
+        ],
+        [
+          86,
+          32
+        ],
+        [
+          95,
+          36
+        ],
+        [
+          104,
+          40
+        ],
+        [
+          110,
+          44
+        ],
+        [
+          106,
+          50
+        ],
+        [
+          103,
+          55
+        ],
+        [
+          99,
+          61
+        ],
+        [
+          96,
+          65
+        ],
+        [
+          93,
+          72
+        ],
+        [
+          92,
+          80
+        ],
+        [
+          93,
+          86
+        ],
+        [
+          84,
+          82
+        ],
+        [
+          75,
+          78
+        ],
+        [
+          65,
+          74
+        ],
+        [
+          55,
+          69
+        ],
+        [
+          45,
+          65
+        ],
+        [
+          39,
+          62
+        ],
+        [
+          42,
+          52
+        ],
+        [
+          48,
+          40
+        ],
+        [
+          52,
+          32
+        ],
+        [
+          55,
+          25
+        ]
+      ]
+    },
+    {
+      "id": "z2",
+      "name": "Playground Row",
+      "tier": 1,
+      "enemy": [
+        "dust",
+        "slime"
+      ],
+      "rooms": 5,
+      "shells": 2,
       "coins": 2,
       "hiders": 0,
       "notes": 0,
       "whispers": 0,
       "ambient": 2,
-      "decor": 1.0
+      "decor": 1.0,
+      "poly": [
+        [
+          118,
+          0
+        ],
+        [
+          181,
+          0
+        ],
+        [
+          181,
+          112
+        ],
+        [
+          176,
+          116
+        ],
+        [
+          160,
+          116
+        ],
+        [
+          150,
+          113
+        ],
+        [
+          140,
+          109
+        ],
+        [
+          130,
+          105
+        ],
+        [
+          126,
+          104
+        ],
+        [
+          122,
+          103
+        ],
+        [
+          119,
+          102
+        ],
+        [
+          116,
+          100
+        ],
+        [
+          110,
+          96
+        ],
+        [
+          100,
+          89
+        ],
+        [
+          96,
+          86
+        ],
+        [
+          97,
+          80
+        ],
+        [
+          99,
+          72
+        ],
+        [
+          101,
+          66
+        ],
+        [
+          104,
+          61
+        ],
+        [
+          108,
+          56
+        ],
+        [
+          111,
+          53
+        ],
+        [
+          118,
+          45
+        ]
+      ]
     },
     {
       "id": "z3",
-      "name": "The Pitch",
-      "rects": [
-        [
-          96,
-          133,
-          181,
-          165
-        ]
-      ],
+      "name": "The Crescent",
       "tier": 2,
       "enemy": [
         "dust",
         "wasp",
         "slime"
       ],
-      "rooms": 4,
-      "shells": 1,
+      "rooms": 5,
+      "shells": 2,
       "coins": 2,
       "hiders": 0,
       "notes": 0,
       "whispers": 0,
       "ambient": 2,
-      "decor": 0.8
-    },
-    {
-      "id": "z4",
-      "name": "The Clubhouse & Golf Links",
-      "rects": [
+      "decor": 1.0,
+      "poly": [
         [
-          0,
-          133,
-          95,
-          196
+          11,
+          62
+        ],
+        [
+          14,
+          58
+        ],
+        [
+          20,
+          56
+        ],
+        [
+          29,
+          55
+        ],
+        [
+          33,
+          57
+        ],
+        [
+          39,
+          62
+        ],
+        [
+          45,
+          65
+        ],
+        [
+          55,
+          69
+        ],
+        [
+          65,
+          74
+        ],
+        [
+          75,
+          78
+        ],
+        [
+          84,
+          82
+        ],
+        [
+          93,
+          86
+        ],
+        [
+          100,
+          89
+        ],
+        [
+          110,
+          95
+        ],
+        [
+          116,
+          100
+        ],
+        [
+          119,
+          102
+        ],
+        [
+          121,
+          104
+        ],
+        [
+          120,
+          108
+        ],
+        [
+          119,
+          113
+        ],
+        [
+          118,
+          120
+        ],
+        [
+          110,
+          120
+        ],
+        [
+          100,
+          120
         ],
         [
           95,
-          166,
-          181,
-          196
+          121
+        ],
+        [
+          90,
+          124
+        ],
+        [
+          85,
+          126
+        ],
+        [
+          80,
+          127
+        ],
+        [
+          70,
+          127
+        ],
+        [
+          60,
+          125
+        ],
+        [
+          50,
+          122
+        ],
+        [
+          40,
+          118
+        ],
+        [
+          30,
+          114
+        ],
+        [
+          20,
+          110
+        ],
+        [
+          13,
+          104
+        ],
+        [
+          11,
+          100
         ]
-      ],
+      ]
+    },
+    {
+      "id": "z4",
+      "name": "The Links",
       "tier": 3,
       "enemy": [
         "eye",
         "slime",
         "crab"
       ],
-      "rooms": 2,
-      "shells": 1,
+      "rooms": 3,
+      "shells": 2,
       "coins": 2,
       "hiders": 0,
       "notes": 0,
       "whispers": 0,
-      "ambient": 3,
-      "decor": 0.6
+      "ambient": 2,
+      "decor": 0.6,
+      "poly": [
+        [
+          11,
+          101
+        ],
+        [
+          13,
+          104
+        ],
+        [
+          20,
+          110
+        ],
+        [
+          30,
+          114
+        ],
+        [
+          40,
+          118
+        ],
+        [
+          50,
+          122
+        ],
+        [
+          60,
+          125
+        ],
+        [
+          70,
+          127
+        ],
+        [
+          80,
+          127
+        ],
+        [
+          85,
+          126
+        ],
+        [
+          90,
+          124
+        ],
+        [
+          95,
+          121
+        ],
+        [
+          100,
+          120
+        ],
+        [
+          110,
+          120
+        ],
+        [
+          118,
+          120
+        ],
+        [
+          121,
+          121
+        ],
+        [
+          123,
+          125
+        ],
+        [
+          125,
+          129
+        ],
+        [
+          127,
+          133
+        ],
+        [
+          129,
+          137
+        ],
+        [
+          131,
+          141
+        ],
+        [
+          133,
+          145
+        ],
+        [
+          135,
+          149
+        ],
+        [
+          137,
+          155
+        ],
+        [
+          140,
+          163
+        ],
+        [
+          142,
+          170
+        ],
+        [
+          143,
+          176
+        ],
+        [
+          140,
+          182
+        ],
+        [
+          134,
+          186
+        ],
+        [
+          128,
+          189
+        ],
+        [
+          120,
+          192
+        ],
+        [
+          110,
+          194
+        ],
+        [
+          100,
+          195
+        ],
+        [
+          80,
+          194
+        ],
+        [
+          60,
+          193
+        ],
+        [
+          50,
+          190
+        ],
+        [
+          40,
+          187
+        ],
+        [
+          30,
+          186
+        ],
+        [
+          20,
+          184
+        ],
+        [
+          15,
+          181
+        ],
+        [
+          12,
+          177
+        ],
+        [
+          11,
+          170
+        ]
+      ]
     },
     {
       "id": "z5",
-      "name": "The South Strand",
-      "rects": [
-        [
-          182,
-          101,
-          203,
-          196
-        ]
-      ],
+      "name": "Eighteen",
       "tier": 4,
       "enemy": [
-        "crab",
         "wasp",
+        "crab",
         "slime"
       ],
-      "outdoorEnemies": 4,
-      "rooms": 0,
+      "rooms": 3,
       "shells": 2,
-      "coins": 1,
+      "coins": 2,
       "hiders": 0,
       "notes": 0,
       "whispers": 0,
       "ambient": 2,
-      "decor": 1.2,
-      "beach": true
+      "decor": 1.0,
+      "poly": [
+        [
+          127,
+          104
+        ],
+        [
+          130,
+          105
+        ],
+        [
+          135,
+          107
+        ],
+        [
+          140,
+          109
+        ],
+        [
+          145,
+          111
+        ],
+        [
+          150,
+          113
+        ],
+        [
+          155,
+          115
+        ],
+        [
+          158,
+          118
+        ],
+        [
+          161,
+          123
+        ],
+        [
+          164,
+          128
+        ],
+        [
+          167,
+          133
+        ],
+        [
+          169,
+          139
+        ],
+        [
+          167,
+          143
+        ],
+        [
+          163,
+          146
+        ],
+        [
+          158,
+          150
+        ],
+        [
+          154,
+          154
+        ],
+        [
+          151,
+          158
+        ],
+        [
+          149,
+          163
+        ],
+        [
+          148,
+          168
+        ],
+        [
+          147,
+          173
+        ],
+        [
+          144,
+          176
+        ],
+        [
+          142,
+          170
+        ],
+        [
+          140,
+          163
+        ],
+        [
+          137,
+          155
+        ],
+        [
+          135,
+          149
+        ],
+        [
+          133,
+          145
+        ],
+        [
+          131,
+          141
+        ],
+        [
+          129,
+          137
+        ],
+        [
+          127,
+          133
+        ],
+        [
+          125,
+          129
+        ],
+        [
+          123,
+          125
+        ],
+        [
+          121,
+          121
+        ],
+        [
+          121,
+          117
+        ],
+        [
+          121,
+          113
+        ],
+        [
+          122,
+          108
+        ],
+        [
+          124,
+          105
+        ]
+      ]
     },
     {
       "id": "z6",
-      "name": "The North Strand",
-      "rects": [
-        [
-          182,
-          0,
-          203,
-          100
-        ]
+      "name": "The Clubhouse",
+      "tier": 5,
+      "enemy": [
+        "eye",
+        "crab",
+        "gull"
       ],
+      "rooms": 0,
+      "shells": 2,
+      "coins": 2,
+      "hiders": 0,
+      "notes": 0,
+      "whispers": 0,
+      "ambient": 2,
+      "decor": 0.6,
+      "outdoorEnemies": 3,
+      "poly": [
+        [
+          150,
+          148
+        ],
+        [
+          160,
+          145
+        ],
+        [
+          170,
+          144
+        ],
+        [
+          178,
+          148
+        ],
+        [
+          181,
+          155
+        ],
+        [
+          181,
+          185
+        ],
+        [
+          176,
+          191
+        ],
+        [
+          165,
+          193
+        ],
+        [
+          152,
+          191
+        ],
+        [
+          146,
+          183
+        ],
+        [
+          145,
+          170
+        ],
+        [
+          146,
+          158
+        ]
+      ]
+    },
+    {
+      "id": "z7",
+      "name": "The Strand",
       "tier": 5,
       "enemy": [
         "gull",
-        "crab",
-        "eye"
+        "crab"
       ],
-      "outdoorEnemies": 4,
-      "rooms": 1,
-      "shells": 1,
-      "coins": 1,
+      "rooms": 0,
+      "shells": 2,
+      "coins": 2,
       "hiders": 0,
       "notes": 0,
       "whispers": 0,
       "ambient": 1,
-      "decor": 1.0,
-      "beach": true
+      "decor": 1.2,
+      "xmin": 182,
+      "beach": true,
+      "outdoorEnemies": 2
     }
   ],
-  "barriers": [
+  "gates": [
     {
-      "id": "b1",
-      "type": "hedge",
-      "from": [
-        96,
-        132
+      "id": "road70",
+      "from": "z2",
+      "to": "z3",
+      "near": [
+        119,
+        102
       ],
-      "to": [
-        180,
-        132
+      "width": 3,
+      "kind": "dash",
+      "req": [
+        "skateboard"
       ],
-      "lockAt": [
-        136,
-        132
-      ],
-      "lock": "pole",
-      "elseBlock": "roadworks"
+      "art": "roadclosed",
+      "text": "ROAD CLOSED. The barrier pole is too low to duck under. You'd need to slide under it on a board."
     },
     {
-      "id": "groyne",
-      "type": "rocks",
-      "from": [
-        182,
-        100
+      "id": "chasm",
+      "from": "z3",
+      "to": "z4",
+      "near": [
+        110,
+        119
       ],
-      "to": [
-        193,
-        100
-      ]
+      "width": 3,
+      "kind": "jump",
+      "req": [
+        "bike"
+      ],
+      "art": "chasm",
+      "text": "The road's washed out into a gully, and the bank drops away either side. Too far to jump on foot. On a bike, off the ramp, maybe."
+    },
+    {
+      "id": "match",
+      "from": "z4",
+      "to": "z5",
+      "near": [
+        130,
+        141
+      ],
+      "width": 3,
+      "kind": "crowd",
+      "req": [
+        "@match_joined"
+      ],
+      "art": "crowd",
+      "text": "The football match has the whole road blocked. Nobody's moving till full time."
+    },
+    {
+      "id": "guard",
+      "from": "z5",
+      "to": "z6",
+      "near": [
+        157,
+        149
+      ],
+      "width": 3,
+      "kind": "guard",
+      "req": [
+        "@bribed"
+      ],
+      "art": "rope",
+      "text": "Tadhg's on the rope. 'Clubhouse is members only tonight.'"
+    },
+    {
+      "id": "terrace",
+      "from": "z6",
+      "to": "z7",
+      "near": [
+        181,
+        170
+      ],
+      "width": 3,
+      "kind": "solid",
+      "req": [
+        "@gerry_beaten"
+      ],
+      "art": "terrace",
+      "text": "The terrace gate down to the strand. Chained shut. Somebody inside has the key."
     }
   ],
-  "tide": {
-    "flag": "tide_out",
-    "shallows": [
-      [
-        194,
-        96,
-        197,
-        105
-      ]
-    ],
-    "sandbar": [
-      [
-        194,
-        38,
-        198,
-        42
-      ]
-    ],
-    "rock": [
-      200,
-      34,
-      202,
-      46
-    ]
-  },
-  "gates": {
-    "g1": "gate_g1",
-    "g2": "gate_g2",
-    "g3": "gate_g3"
-  },
   "density": {
     "interestRadius": 12,
     "minCoverage": 0.0
@@ -346,18 +1015,17 @@
       ]
     },
     {
-      "id": "arena_strand",
+      "id": "arena_green",
       "zone": "z5",
-      "name": "The Dunes",
+      "name": "The Green",
       "waves": [
         [
           "crab",
-          "wasp"
+          "slime"
         ],
         [
-          "slime",
-          "crab",
-          "wasp"
+          "wasp",
+          "crab"
         ]
       ],
       "reward": [
@@ -370,7 +1038,7 @@
   "_readme_arenas": "v9: outdoor arenas. build.py finds an open size (default 9x7 tiles) rectangle in the zone; waves list enemy types (count = 2 + tier//2 each). Reward effects apply once.",
   "encounters": [
     {
-      "room": "m377",
+      "zone": "z3",
       "reward": [
         {
           "give": "dashstrike"
@@ -378,7 +1046,7 @@
       ]
     },
     {
-      "room": "m370",
+      "zone": "z4",
       "reward": [
         {
           "give": "combo4"
@@ -386,5 +1054,55 @@
       ]
     }
   ],
-  "_readme_encounters": "v10: clearing a room (all enemies down) or an arena applies its reward once; the solver models it as an entity in that room/arena."
+  "_readme_encounters": "Room clears that award a fight ability. {zone} = the first procedural mobile in that zone (deterministic), or {room: id}.",
+  "forest": {
+    "_readme": "Segmentation woodland ids that are solid outdoors (the forest behind 127). The only way through is the Glen room.",
+    "seg": [
+      1
+    ],
+    "open": [
+      "z1"
+    ],
+    "glenDoor": [
+      112,
+      40
+    ],
+    "glenExit": [
+      140,
+      42
+    ]
+  },
+  "borderStyle": {
+    "z1|z2": "thicket",
+    "z1|z3": "fence",
+    "z2|z3": "fence",
+    "z2|z5": "hedge",
+    "z3|z4": "bank",
+    "z3|z5": "fence",
+    "z4|z5": "fence",
+    "z4|z6": "wall",
+    "z5|z6": "wall",
+    "z2|z7": "dune",
+    "z5|z7": "dune",
+    "z6|z7": "wall",
+    "default": "fence"
+  },
+  "blockers": [
+    {
+      "id": "choke",
+      "pair": [
+        "z1",
+        "z3"
+      ],
+      "near": [
+        92,
+        86
+      ],
+      "decor": [
+        "skip",
+        "van"
+      ],
+      "text": "Roadworks. A skip, a van and a trench right across the road. Nobody's getting out this way."
+    }
+  ]
 }

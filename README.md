@@ -16,15 +16,38 @@ and by sundown the gulls have the Tara Glen flag out on the Rock.
 - ⛳ Chip Shot once earned (small secondary button; before that it throws 💦 water balloons; L / X / F) · 🚲 bike (B; not on sand).
 - 🎯 objective line top-left (tap to fold) · 🎒 bag (combine items) · 📻 walkie hints · ☰ reset. Saved in localStorage (`tara-glen-save-v6`).
 
-## Fight abilities (v10): the world opens through combat
-| Ability | Earned by | What it does | What it opens |
-|---|---|---|---|
-| 🏌️ Power Drive | beating the Big Dust Bunny (Mobile 131) | hold ⚔️, release for a 360° drive swing; cracks armour | the rotten gate into Playground Row (`gate_g1`, lock kind `crack`) |
-| ⛳ Chip Shot | the Back Field arena | ranged golf ball on the small button | the lifeguard's key in the whitethorn (`key_hook`), which leads to the beach gate |
-| ⚡ Dash Strike | clearing Mobile 377 | ⚔️ during a dodge = a lunge through enemies | the low wardrobe gaps in secret back rooms (`secretLocks` dash) |
-| 🔁 Putt Parry | the Ninth Hole arena | tap ⚔️ as a shot arrives to send it back; returned shots stun | Big Gerry, whose guard turns the club until a returned shot stuns him |
-| ➕ Long Game | clearing Mobile 370 | a 4th, heavier combo hit | (combat only) |
-| ❤️ Heart | the Dunes arena | +1 max heart | (combat only) |
+## The map in v11: seven zones, one road through them
+Zones come from Scott's drawing (`content/world.json` `zones`, rasterised to `zoneGrid`, one digit per tile). Every walkable tile that touches a later zone
+becomes a solid border tile with art baked into the ground (fence, hedge, thicket, bank, wall, dune, roadworks); staircase corners are filled too so the line reads
+continuous. The only ways across are the `gates`, each a thing you can see:
+
+| Border | Blocker | Opens with |
+|---|---|---|
+| 1 → 2 | the forest (solid outdoors). One bramble-choked gap behind 127 leads into **the Glen**, an indoor-style forest room: steep hill down (you slide), enemies, a chest + carved note, a rope swing over the stream, exit by the playground | 🏌️ Power Drive on the brambles (`glen_brambles`) |
+| 1 → 3 | fence; the road is blocked by roadworks, a skip and a van | never (3 is reached from 2) |
+| 2 → 3 | ROAD CLOSED pole across road 70 | 🛹 skateboard (slide under it) |
+| 3 → 4 | the impassable bank; a chasm with a ramp | 🚲 bike jump |
+| 4 → 5 | a football crowd | 3 golf balls → Sully's fiver → Shauna's den fee |
+| 5 → 6 | Tadhg on the clubhouse rope | 2 cans from the Groundsman's Shed (⚡ Dash Strike door) as a bribe; night falls |
+| 6 → 7 | the clubhouse terrace | beat Big Gerry (🔁 Putt Parry) in the clubhouse → bonfire on the Strand |
+
+`build.py` proves the order: the solver reaches z1..z7 in spheres 0,1,2,3,6,7,8, and a seal check shuts every gate into zone ≥ k (all else open, all abilities)
+and fails if any tile of zone ≥ k is reachable. The outdoor forest is a wall; the Glen room is the only route through it.
+
+## Fight abilities: the world opens through combat
+| Ability | Earned by | What it opens |
+|---|---|---|
+| 🏌️ Power Drive | beating the Big Dust Bunny (Mobile 131) | the Glen brambles behind 127 |
+| ⛳ Chip Shot | the Back Field arena (z2) | the golf ball in the whin bush on the Links |
+| ⚡ Dash Strike | the Crescent encounter (z3) | the Groundsman's Shed door, low wardrobe gaps in secret rooms |
+| 🔁 Putt Parry | the Ninth Hole arena (z4) | Big Gerry: his guard turns the club until a returned shot stuns him |
+| ➕ Long Game | the Links encounter (z4) | (combat only) |
+| ❤️ Heart | the Eighteen arena (z5), the Glen chest | +1 max heart |
+
+## Interiors (v11)
+Rooms are ASCII chambers in `content/rooms.json`. Furniture letters (S sofa, V tv, K kitchen, U bunk, C wardrobe, T table, L lamp, H shelf, r rug, P plant)
+become sprites cut from the AI sheet `interior-props.png` by `restyle.py` (`public/assets/v6/ip/`), with invisible collision matching each footprint. The tileset
+adds wall panelling, lace-curtain windows, lino, carpet, posters and clutter. Templates: living/kitchen, bedroom, messy teen bunk room. Lit windows cast daylight pools.
 
 Rewards live in `content/world.json` (`arenas[].reward`, `encounters[]`) and in boss `drops` (`content/story.json`). build.py turns each room or arena clear into an
 `encounter` entity the solver collects once the room or arena is reachable. The validator fails if a fight ability (an item with `how`) is never earned, is earned
@@ -38,8 +61,9 @@ It writes `public/assets/v10/player.png` and `player.json` (anim → dir → fra
 ## Tests
 `tests/e2e/*.mjs` (playwright-core + system Chrome, iPhone 13 emulation, real touch events):
 - `freeze.mjs`: room clear with a boss, the empty-dialogue regression, and recovery from an error inside a frame (`node freeze.mjs webkit` for WebKit).
-- `v10.mjs`: Power Drive unlock, breaking the gate and walking through, then Chip Shot, Dash Strike, Putt Parry and Gerry's guard.
-- `save.mjs`: a fresh 131 clear moves the objective on; a v9 save gets its fight rewards on load (idempotent).
+- `v11.mjs`: the whole v11 spine with touch input: borders hold, Glen (slide, swing, out to 2), road 70, chasm, match, shed + bribe + night, Gerry, bonfire; FPS.
+- `v10.mjs`: Power Drive unlock, breaking the Glen brambles and walking through, then Chip Shot, Dash Strike, Putt Parry and Gerry's guard.
+- `save.mjs`: a fresh 131 clear moves the objective on; a v9 save gets its fight rewards on load and migrates to v11 (idempotent).
 - `v9.mjs`: combo, charge, dodge, telegraphs, room lock, checkpoints, arena.
 
 ## Combat and structure (v9)

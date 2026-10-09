@@ -52,6 +52,9 @@ export class World extends Phaser.Scene implements Host {
     this.load.spritesheet('items', V('assets/v6/items.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('interior6', V('assets/v6/interior.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.image('interior6img', V('assets/v6/interior.png'));
+    // v11: Glen rope-swing tree + caravan furniture cut from the AI props sheet (scripts/gen/restyle.py v11)
+    this.load.image('glen-tree', V('assets/v6/glen-tree.png'));
+    for (const k of ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']) this.load.image('ip-' + k, V(`assets/v6/ip/${k}.png`));
     this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', V('assets/balloon.png'));
     // caravan art overhangs its 72x48 / 48x80 footprint (frame sizes + offsets in art.json, written by scripts/gen/restyle.py)
@@ -88,7 +91,8 @@ export class World extends Phaser.Scene implements Host {
     const map = this.make.tilemap({ key: 'map' }), tiles = map.addTilesetImage('tiles', 'tiles')!;
     const ground = this.ground = map.createLayer('ground', tiles)!.setVisible(false) as Phaser.Tilemaps.TilemapLayer;
     const objects = map.createLayer('objects', tiles)! as Phaser.Tilemaps.TilemapLayer;
-    for (const [x, y, gid] of G.w.barrierTiles) objects.putTileAt(gid, x, y); // generated hedge line + roadworks
+    objects.forEachTile((t) => { if (t.index >= 1121 && t.index <= 1125) objects.removeTileAt(t.x, t.y); }); // v11: the old make-world hedge lines are gone
+    for (const [x, y, gid] of G.w.barrierTiles) objects.putTileAt(gid, x, y); // v11 zone borders: collision only, the art is baked into the ground
     // trees: trunks are baked into the ground chunks, canopies into a deduplicated tileset drawn above the player
     // (scripts/gen/ground.py); the old roofs layer is empty and the trunk tiles in `objects` keep the collision
     const cj = this.cache.json.get('canopy') as { w: number; h: number; data: number[] }, rowsC: number[][] = [];
@@ -128,7 +132,7 @@ export class World extends Phaser.Scene implements Host {
       if (prop(o, 'label')) this.label(o.x!, o.y! - 10, prop(o, 'label'));
     }
     const gateSolids = this.gateSolids = this.physics.add.staticGroup();
-    for (const o of map.getObjectLayer('gates')!.objects) {
+    for (const o of G.w.legacyGates ? map.getObjectLayer('gates')!.objects : []) { // v11: the old posts/gates are gone (gates[] in world.json)
       const v = prop(o, 'orient') === 'v';
       const img = this.add.tileSprite(o.x! + o.width! / 2, o.y! + o.height! / 2, o.width!, v ? o.height! : 22, v ? 'gate-v' : 'gate-h').setDepth(o.y! + o.height!);
       this.gates[o.name!] = { img, body: this.add.zone(o.x! + o.width! / 2, o.y! + o.height! / 2, o.width!, o.height!) };
@@ -208,8 +212,19 @@ export class World extends Phaser.Scene implements Host {
         if (!l.silent) o.body = this.add.zone(x + w / 2, y + h / 2, w + 8, h + 8); // talk zone only (no collision)
       } else {
         if (l.gate) { const g = this.gates[l.gate]; o.body = g.body; if (l.kind === 'ride') { g.img.setVisible(false); for (const [tx, ty] of l.tiles) o.sprites.push(this.add.image(tx * 16 + 8, ty * 16 + 8, 'd-cattlegrid').setDepth(-2)); } else o.sprites.push(g.img as any); }
-        else { o.body = this.add.zone(x + w / 2, y + h / 2, w, h); for (const [tx, ty] of l.tiles) o.sprites.push(this.add.image(tx * 16 + 8, ty * 16 + 8, 'd-pole').setDepth(ty * 16 + 12)); }
-        if (l.kind === 'crack') o.sprites.forEach((sp: any) => sp.setTint?.(0xc09070)); // rotten wood reads warmer/duller
+        else {
+          o.body = this.add.zone(x + w / 2, y + h / 2, w, h);
+          const art = ({ brambles: 'd-brambles', roadclosed: 'd-roadclosed', chasm: 'd-chasm', crowd: 'd-crowd', rope: 'd-rope', terrace: 'd-terrace' } as any)[l.art] ?? 'd-pole';
+          for (const [tx, ty] of l.tiles) {
+            const sp = this.add.sprite(tx * 16 + 8, ty * 16 + 16, art).setOrigin(0.5, 1).setDepth(l.kind === 'jump' ? -3 : ty * 16 + 12);
+            if (art === 'd-crowd') sp.play({ key: 'd-crowd', startFrame: (tx + ty) % 2 });
+            o.sprites.push(sp as any);
+          }
+          if (l.kind === 'jump') { // a ramp on the near side of the gully (the gully stays: it's the landscape, not a gate)
+            const t = l.tiles[Math.floor(l.tiles.length / 2)], up = this.zoneIdx(t[0], t[1] - 1) < this.zoneIdx(t[0], t[1] + 1);
+            this.add.image(t[0] * 16 + 8, (t[1] + (up ? -1 : 1)) * 16 + 8, 'd-ramp').setFlipY(!up).setDepth(-2);
+          }
+        }
         this.gateSolids.add(o.body);
         this.physics.add.collider(this.player, o.body, () => this.bump(o), () => this.passable(o));
       }
@@ -220,7 +235,7 @@ export class World extends Phaser.Scene implements Host {
     if (o.open) return false;
     if (o.l.kind === 'dash') return !(this.player.dashing && cond(o.l.req));
     if (o.l.kind === 'ride') return !(this.riding && cond(o.l.req));
-    return true;
+    return true; // jump/crowd/guard/solid: bump() decides
   }
   sayOnce(id: string, rect: Phaser.Geom.Rectangle, lines: string[], toastOnly = false) {
     if (this.said.has(id)) return; this.said.set(id, Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(rect), 40, 40));
@@ -233,6 +248,8 @@ export class World extends Phaser.Scene implements Host {
     if (l.kind === 'crack' && has) return this.sayOnce(l.id, r, ['Hold ⚔️ and let go when the ring glows to drive through it.'], true);
     if (l.kind === 'dash' && has) return this.sayOnce(l.id, r, [S('dashHint')], true);
     if (l.kind === 'ride' && has) return this.sayOnce(l.id, r, [S('rideHint')], true);
+    if (l.kind === 'jump' && has) { if (this.riding) return this.hop(o, true); return this.sayOnce(l.id + 'r', r, ['Get on the bike 🚲 and hit the ramp.'], true); }
+    if ((l.kind === 'crowd' || l.kind === 'guard') && has) return this.openLock(o, l.kind === 'crowd' ? 'Full time. The crowd drifts off.' : 'Tadhg lifts the rope.');
     this.sayOnce(l.id, r, [l.text]);
   }
   openLock(o: (typeof this.lockObjs)[number], msg: string) {
@@ -248,20 +265,25 @@ export class World extends Phaser.Scene implements Host {
       this.openLock(o, 'The rotten gate gives way.');
     }
   }
-  hop(o: (typeof this.lockObjs)[number]) {
+  hop(o: (typeof this.lockObjs)[number], jump = false) {
     if ((this.player as any).hopping) return; (this.player as any).hopping = true;
-    const r = o.body!.getBounds(), p = this.player, v = r.width > r.height;
-    const tx = v ? p.x : (p.x < r.centerX ? r.right + 10 : r.left - 10), ty = v ? (p.y < r.centerY ? r.bottom + 12 : r.top - 12) : p.y;
-    p.body.enable = false; toast(S('hop'));
-    this.tweens.add({ targets: p, x: tx, y: ty, duration: 420, ease: 'Sine.inOut', onComplete: () => { p.body.enable = true; (p as any).hopping = false; } });
-    this.tweens.add({ targets: p, scaleY: 1.2, duration: 210, yoyo: true });
+    const r = o.body!.getBounds(), p = this.player, v = r.width > r.height, d = jump ? 22 : 10;
+    const tx = v ? p.x : (p.x < r.centerX ? r.right + d : r.left - d), ty = v ? (p.y < r.centerY ? r.bottom + d + 2 : r.top - d - 2) : p.y;
+    p.body.enable = false; toast(jump ? '🚲 Wheee!' : S('hop'));
+    if (jump) { this.cameras.main.shake(120, 0.004); G.st.flags.includes('jumped:' + o.l.id) || (G.st.flags.push('jumped:' + o.l.id), persist()); }
+    this.tweens.add({ targets: p, x: tx, y: ty, duration: jump ? 620 : 420, ease: 'Sine.inOut', onComplete: () => { p.body.enable = true; (p as any).hopping = false; if (jump) this.cameras.main.shake(90, 0.006); } });
+    this.tweens.add({ targets: p, scaleY: jump ? 1.35 : 1.2, scaleX: jump ? 1.15 : 1, duration: jump ? 310 : 210, yoyo: true });
   }
+  zoneIdx(tx: number, ty: number) { return +(G.w.zoneGrid[ty * G.w.mapW + tx] ?? 0); }
   applyWorld(first = false) {
     const eve = flag('evening'), tide = flag('tide_out');
+    if (!G.st.room) $('bike').style.display = count('bike') ? 'flex' : 'none'; // also on load (a save outdoors with the bike had no button)
     this.night.setVisible(eve); this.glows.forEach((g) => g.setVisible(eve));
     for (const o of this.lockObjs) {
       if (o.l.kind !== 'water') {
-        if (first && (o.l.kind === 'solid' || o.l.kind === 'crack') && flag('open:' + o.l.id)) { o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false; o.sprites.forEach((s) => s.setVisible(false)); }
+        const auto = o.l.kind === 'crowd' || o.l.kind === 'guard'; // v11: the match ends / Tadhg steps aside the moment the flag is set
+        if (first && (o.l.kind === 'solid' || o.l.kind === 'crack' || auto) && (flag('open:' + o.l.id) || (auto && cond(o.l.req)))) { o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false; o.sprites.forEach((s) => s.setVisible(false)); }
+        else if (auto && !o.open && cond(o.l.req)) this.openLock(o, o.l.kind === 'crowd' ? 'Full time. The crowd drifts off.' : 'Tadhg lifts the rope.');
         continue; }
       const open = cond(o.l.req);
       if (open === o.open && !first) continue; o.open = open;
@@ -272,16 +294,16 @@ export class World extends Phaser.Scene implements Host {
   }
 
   // ---------- rooms ----------
-  enterRoom(id: string, resume = false) {
+  enterRoom(id: string, resume = false, side?: string) {
     if (this.riding) this.toggleBike(); bossBar(null);
     this.player.setVelocity(0, 0); ['bike', 'prompt', 'arrow'].forEach((k) => ($(k).style.display = 'none'));
-    const go = () => { this.scene.sleep(); this.scene.launch('Room', { id, resume }); };
+    const go = () => { this.scene.sleep(); this.scene.launch('Room', { id, resume, side }); };
     if (resume) return go();
     this.cameras.main.fadeOut(200); this.cameras.main.once('camerafadeoutcomplete', go);
   }
   goRoom(id: string) { this.enterRoom(id); }
-  exitRoom(id: string) {
-    const d = G.w.doors.find((x: any) => x.room === id);
+  exitRoom(id: string, side?: string) { // v11: the Glen has two doors (top = behind 127, bottom = Playground Row)
+    const d = G.w.doors.find((x: any) => x.room === id && (!side || (x.side ?? 'bottom') === side)) ?? G.w.doors.find((x: any) => x.room === id);
     if (d) { this.player.setPosition(d.out[0], d.out[1]); this.lastSafe = [d.out[0], d.out[1]]; this.cps.setAt(d.out[0], d.out[1]); }
     this.player.facing = 'down'; this.doorArmed = false; this.input.keyboard!.resetKeys(); bossBar(null);
     this.cameras.main.fadeIn(250); $('bike').style.display = count('bike') ? 'flex' : 'none'; changed(); this.checkZone();
@@ -323,6 +345,8 @@ export class World extends Phaser.Scene implements Host {
     const z = zoneAt(Math.floor(this.player.x / 16), Math.floor(this.player.y / 16)); if (!z || (z.id === this.zone && !force)) return;
     this.zone = z.id; const first = !G.st.seenZones.includes(z.id);
     if (first) { G.st.seenZones.push(z.id); persist(); }
+    // the hints and the solver both key on visited_<zone> (it was never set at runtime before v11, so "!@visited_z2" hints stuck)
+    if (!flag('visited_' + z.id)) { G.st.flags.push('visited_' + z.id); persist(); changed(); }
     banner(z.name, first ? 'New area!' : '');
   }
 
@@ -361,11 +385,11 @@ export class World extends Phaser.Scene implements Host {
     // doors: walk up into a mobile's front door
     const p = this.player, door = G.w.doors.find((d: any) => Math.abs(p.x - d.x) < 7 && p.y + 4 > d.y - 6 && p.y + 4 < d.y + 4);
     if (!door) this.doorArmed = true;
-    else if (this.doorArmed && p.body.velocity.y < 0) {
+    else if (this.doorArmed && (p.body.velocity.y < 0 || p.readInput().y < -0.3)) { // pushing up into it counts (a solid shed stops the body dead)
       this.doorArmed = false;
       if (door.knock) return this.sayOnce('door' + door.x, new Phaser.Geom.Rectangle(door.x - 8, door.y - 8, 16, 16), [door.knock]);
       if (!cond(door.req)) return this.sayOnce('door' + door.x, new Phaser.Geom.Rectangle(door.x - 8, door.y - 8, 16, 16), [door.locked]);
-      return this.enterRoom(door.room);
+      return this.enterRoom(door.room, false, door.side);
     }
     for (const o of this.lockObjs) if (o.l.kind === 'water' && !o.open && o.body && Phaser.Geom.Rectangle.Contains(o.body.getBounds(), p.x, p.y)) this.sayOnce(o.l.id, o.body.getBounds(), [o.l.text]);
     if (!this.overview) for (const t of this.labels) t.setAlpha(Phaser.Math.Distance.Between(t.x, t.y, p.x, p.y) < 64 ? 1 : 0);

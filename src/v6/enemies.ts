@@ -47,7 +47,7 @@ export class Enemy extends Character implements Foe {
   }
   hitBy(_c: Combat | null, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }) {
     if (this.invuln.invulnerable || this.sm.current === 'dead') return;
-    if (this.s.guard && this.scene.time.now > this.stunUntil && !(from as any).reflected) { // wings turn the club: needs a parried shot first
+    if (this.s.guard && this.ai === 'spitter' && this.scene.time.now > this.stunUntil && !(from as any).reflected) { // wings turn the club while he hovers and spits: parry a shot first (v11: a charging Gerry is open, so no phase is unwinnable)
       flash(this, 0xd6f0ff, 80); popup(this.scene, this.x, this.y, 'GUARD', '#d6f0ff'); burst(this.scene, this.x, this.y, 0xd6f0ff, 4, 25); return; }
     if (this.armor > 0) { // armour soaks the hit; heavy hits crack a plate and still stagger
       this.armor = heavy ? Math.max(0, this.armor - 2) : this.armor - 1;

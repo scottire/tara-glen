@@ -115,13 +115,13 @@
       "@evening"
      ],
      "lines": [
-      "Mr Doyle: The tide's well out tonight. You could walk to the Rock."
+      "Mr Doyle: There's a bonfire on the strand tonight. Half the park's down there."
      ]
     },
     {
      "lines": [
-      "Mr Doyle: The sea goes out a long way after dark.",
-      "Watch for the sandbar off the North Strand."
+      "Mr Doyle: They've the road dug up at the bottom again.",
+      "Only way out of here now is through the Glen, and that's all briars."
      ]
     }
    ]
@@ -130,52 +130,57 @@
    "name": "Shauna",
    "sprite": 12,
    "at": {
-    "zone": "z1",
-    "near": "lm:1",
+    "zone": "z4",
+    "near": "gate:match",
     "off": [
-     0,
-     2
+     -1,
+     0
     ]
    },
    "talk": [
     {
      "when": [
-      "can"
+      "@match_joined"
      ],
      "lines": [
-      "Shauna: A Club Orange? Sound.",
-      "Here, take Deco's batteries. He won't miss them."
-     ],
-     "effects": [
-      {
-       "take": "can"
-      },
-      {
-       "give": "batteries"
-      },
-      {
-       "set": "teens_done"
-      }
+      "Shauna: You're on Deco's team. Go on through, they're moving the goals."
      ]
     },
     {
      "when": [
-      "@teens_done"
+      "fiver"
      ],
      "lines": [
-      "Shauna: Go on, we're grand here."
+      "Shauna: Is that a fiver? Den fee's five to get in the match."
+     ],
+     "choices": [
+      {
+       "text": "Pay the den fee (💶)",
+       "effects": [
+        {
+         "take": "fiver"
+        },
+        {
+         "set": "match_joined"
+        }
+       ],
+       "reply": [
+        "Shauna: Sound. You're in.",
+        "You play the last ten minutes. Final whistle goes, everyone drifts off to the chipper and the road clears."
+       ]
+      },
+      {
+       "text": "Not yet",
+       "reply": [
+        "Shauna: Suit yourself."
+       ]
+      }
      ]
     },
     {
      "lines": [
-      "Shauna: This is our den. What do you want?",
-      "Batteries? Bring us a Club Orange from Tony's van and they're yours.",
-      "The van's down by the pitch."
-     ],
-     "effects": [
-      {
-       "set": "teens_asked"
-      }
+      "Shauna: This is the den's match. Den fee's a fiver to play, notes only.",
+      "Nobody's moving off this road till full time. Sully pays for lost golf balls, if you're skint."
      ]
     }
    ]
@@ -184,17 +189,17 @@
    "name": "Deco",
    "sprite": 7,
    "at": {
-    "zone": "z1",
-    "near": "lm:1",
+    "zone": "z4",
+    "near": "gate:match",
     "off": [
-     2,
-     2
+     1,
+     1
     ]
    },
    "talk": [
     {
      "lines": [
-      "Deco: Shauna does the talking."
+      "Deco: Shauna does the money."
      ]
     }
    ]
@@ -292,10 +297,10 @@
    "sprite": 6,
    "at": {
     "zone": "z3",
-    "near": "lm:25",
+    "near": "lm:14",
     "off": [
-     2,
-     0
+     4,
+     -1
     ]
    },
    "talk": [
@@ -324,7 +329,7 @@
       "@evening"
      ],
      "at": {
-      "zone": "z5",
+      "zone": "z7",
       "near": [
        187,
        128
@@ -334,9 +339,10 @@
     {
      "at": {
       "zone": "z3",
-      "near": [
-       150,
-       148
+      "near": "lm:14",
+      "off": [
+       -3,
+       5
       ]
      }
     }
@@ -344,48 +350,8 @@
    "talk": [
     {
      "lines": [
-      "Tony: Tony's Ices. What'll it be?"
-     ],
-     "choices": [
-      {
-       "text": "Club Orange (2🪙)",
-       "when": [
-        "coin>=2"
-       ],
-       "effects": [
-        {
-         "take": "coin",
-         "n": 2
-        },
-        {
-         "give": "can"
-        }
-       ],
-       "reply": [
-        "Tony: There you go."
-       ]
-      },
-      {
-       "text": "A 99 (3🪙)",
-       "when": [
-        "coin>=3"
-       ],
-       "effects": [
-        {
-         "take": "coin",
-         "n": 3
-        },
-        {
-         "give": "cone"
-        }
-       ],
-       "reply": [
-        "Tony: One 99, flake and all."
-       ]
-      },
-      {
-       "text": "Just looking"
-      }
+      "Tony: Tony's Ices. Out of Club Orange, the groundsman bought the lot.",
+      "Out of cones too. It's been that kind of a day."
      ]
     }
    ],
@@ -401,11 +367,8 @@
       "@biscuit_fed"
      ],
      "at": {
-      "zone": "z3",
-      "near": [
-       168,
-       146
-      ],
+      "zone": "z4",
+      "near": "lm:31",
       "off": [
        3,
        2
@@ -414,11 +377,8 @@
     },
     {
      "at": {
-      "zone": "z3",
-      "near": [
-       168,
-       146
-      ]
+      "zone": "z4",
+      "near": "lm:31"
      }
     }
    ],
@@ -474,13 +434,19 @@
       "golf_ball>=3"
      ],
      "lines": [
-      "Sully: All three. Thanks.",
-      "Take the torch. Mind the cellar under the clubhouse; there's eyes down there."
+      "Sully: All three! Two quid a ball, that's six.",
+      "Here's a fiver and a euro. And take the torch, the clubhouse cellar's black as your hat."
      ],
      "effects": [
       {
        "take": "golf_ball",
        "n": 3
+      },
+      {
+       "give": "fiver"
+      },
+      {
+       "give": "coin"
       },
       {
        "give": "torch"
@@ -500,13 +466,8 @@
     },
     {
      "lines": [
-      "Sully: Three of my golf balls are gone.",
-      "Bring them back and I'll give you my torch."
-     ],
-     "effects": [
-      {
-       "set": "sully_asked"
-      }
+      "Sully: I've lost three balls with my name on them. Two quid each if you find them.",
+      "Biscuit's lying on one, one's at the crazy golf, and one went in the whin."
      ]
     }
    ]
@@ -515,58 +476,57 @@
    "name": "Tadhg on the door",
    "sprite": 13,
    "at": {
-    "zone": "z4",
-    "near": "door:clubhouse",
+    "zone": "z5",
+    "near": "gate:guard",
     "off": [
-     -2,
-     1
+     0,
+     -1
     ]
    },
    "talk": [
     {
      "when": [
-      "@clubhouse_open"
+      "@bribed"
      ],
      "lines": [
-      "Tadhg: In you go."
+      "Tadhg: I never saw you."
      ]
     },
     {
      "when": [
-      "@knows_password"
+      "can>=2"
      ],
      "lines": [
-      "Tadhg: Members only. Unless you know the word."
+      "Tadhg: Is that two Club Oranges? ...Members only. But I'm parched."
      ],
      "choices": [
       {
-       "text": "\"Spuds.\"",
+       "text": "Give him the cans",
        "effects": [
         {
-         "set": "clubhouse_open"
+         "take": "can",
+         "n": 2
+        },
+        {
+         "set": "bribed"
         }
        ],
        "reply": [
-        "Tadhg: Right so. In you go."
+        "Tadhg: Go on so. Be quick."
        ]
       },
       {
-       "text": "\"Please?\"",
+       "text": "Keep them",
        "reply": [
-        "Tadhg: No."
+        "Tadhg: Members only, then."
        ]
       }
      ]
     },
     {
      "lines": [
-      "Tadhg: Members only.",
-      "Not without the password."
-     ],
-     "effects": [
-      {
-       "set": "tadhg_asked"
-      }
+      "Tadhg: Clubhouse is members only tonight.",
+      "I'd murder a Club Orange, mind. Tony's sold out, the groundsman's hoarding them in his shed."
      ]
     }
    ]
@@ -588,41 +548,15 @@
    "talk": [
     {
      "when": [
-      "cone"
+      "@evening"
      ],
      "lines": [
-      "Róisín: A 99? You're a star.",
-      "Take my spare fins. You'll get across the shallows with them."
-     ],
-     "effects": [
-      {
-       "take": "cone"
-      },
-      {
-       "give": "fins"
-      },
-      {
-       "set": "roisin_done"
-      }
-     ]
-    },
-    {
-     "when": [
-      "@roisin_done"
-     ],
-     "lines": [
-      "Róisín: Big Gerry has the flag out on the Rock. At low tide you can reach it."
+      "Róisín: Bonfire's lit. Your mam's down there looking for you."
      ]
     },
     {
      "lines": [
-      "Róisín: Stay off the Rock. The gulls are vicious this year.",
-      "I'd do anything for a 99. Tony brings the van down at dusk."
-     ],
-     "effects": [
-      {
-       "set": "roisin_asked"
-      }
+      "Róisín: Strand's closed till the function's over. Gerry's been at the bins all day."
      ]
     }
    ]
@@ -631,7 +565,7 @@
    "name": "Sandy Acres kid",
    "sprite": 8,
    "at": {
-    "zone": "z5",
+    "zone": "z7",
     "near": [
      186,
      104
@@ -648,8 +582,7 @@
     },
     {
      "lines": [
-      "Sandy Acres kid: Your flag's out on the Rock.",
-      "Big Gerry took it. Biggest gull in Wexford."
+      "Sandy Acres kid: Big Gerry robbed your flag and flew into the clubhouse with it."
      ]
     }
    ]
@@ -658,7 +591,7 @@
    "name": "Sandy Acres kid",
    "sprite": 24,
    "at": {
-    "zone": "z5",
+    "zone": "z7",
     "near": [
      187,
      106
@@ -667,7 +600,7 @@
    "talk": [
     {
      "lines": [
-      "Sandy Acres kid: Beat our challenge first."
+      "Sandy Acres kid: Tara Glen without a flag. Shame."
      ]
     }
    ]
@@ -696,7 +629,7 @@
       "@evening"
      ],
      "at": {
-      "zone": "z5",
+      "zone": "z7",
       "near": [
        188,
        158
@@ -763,7 +696,7 @@
       "@evening"
      ],
      "at": {
-      "zone": "z5",
+      "zone": "z7",
       "near": [
        188,
        158

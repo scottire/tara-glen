@@ -5,7 +5,7 @@ Deterministic (world.seed). Never hand-edit the outputs: edit content/ and run `
 `--check` regenerates in memory and fails if the committed outputs differ (CI)."""
 import json, os, sys, random, math
 from collections import deque
-from grid import Grid, ROOT, ROAD, SAND, SEA, HEDGE, BLOCK_H, BLOCK_V
+from grid import Grid, ROOT, ROAD, SAND, SEA, HEDGE, BLOCK_H, BLOCK_V, WALL_GID
 import rooms as RG
 from logic import ok, apply, mentions
 from art import DECOR, ANIM, ITEM_SPRITES, MONSTER_ORDER
@@ -23,61 +23,91 @@ def T(x, y): return y * W + x
 def px(t): return [t[0] * 16 + 8, t[1] * 16 + 8]
 
 ZONES = {z['id']: z for z in WD['zones']}
-def rects_of(z): return z['rects'] if isinstance(z['rects'][0], list) else [z['rects']]
-ZMAP = bytearray(W * H)  # zone index+1 per tile
-for i, z in enumerate(WD['zones']):
-    for r in rects_of(z):
-        for y in range(r[1], min(H, r[3] + 1)):
-            for x in range(r[0], min(W, r[2] + 1)):
-                if not ZMAP[T(x, y)]: ZMAP[T(x, y)] = i + 1
+ZIDX = {z['id']: i + 1 for i, z in enumerate(WD['zones'])}
+import zones as ZN
+ZMAP = ZN.zone_map(WD['zones'], W, H)  # v11: Scott's outlines, nearest outline for everything else
 def zone_at(x, y): k = ZMAP[T(x, y)]; return WD['zones'][k - 1]['id'] if k else None
 
-# ---------------- barriers + locks ----------------
-barrier_tiles, decor, locks = [], [], []
+# ---------------- v11: solid outdoor forest, zone borders, gates ----------------
+barrier_tiles, decor, locks, BORDERS = [], [], [], []   # BORDERS: [x, y, style] painted by ground.py
 LOCK_OF = {}
-def line(a, b):
-    (x0, y0), (x1, y1) = a, b
-    if y0 == y1: return [(x, y0) for x in range(min(x0, x1), max(x0, x1) + 1)]
-    return [(x0, y) for y in range(min(y0, y1), max(y0, y1) + 1)]
-lock_tiles_named = {}
-for b in WD['barriers']:
-    ts = line(b['from'], b['to'])
-    if b['type'] == 'hedge':
-        free = [t for t in ts if G.free(*t)]
-        runs, cur = [], []
-        for t in free:
-            if G.g(*t) == ROAD and (not cur or abs(t[0] - cur[-1][0]) + abs(t[1] - cur[-1][1]) == 1): cur.append(t)
-            else:
-                if cur: runs.append(cur)
-                cur = [t] if G.g(*t) == ROAD else []
-        if cur: runs.append(cur)
-        la = tuple(b['lockAt'])
-        lockrun = min(runs, key=lambda r: min(abs(t[0] - la[0]) + abs(t[1] - la[1]) for t in r)) if runs else []
-        lock_tiles_named[b['id']] = lockrun
-        vert = b['from'][0] == b['to'][0]
-        for t in free:
-            if t in lockrun: continue
-            gid = (BLOCK_V if vert else BLOCK_H) if G.g(*t) == ROAD else HEDGE
-            barrier_tiles.append([t[0], t[1], gid]); G.block[T(*t)] = 1
-    elif b['type'] == 'rocks':
-        for t in ts:
-            if G.free(*t): decor.append({'sprite': 'groyne', 'x': t[0], 'y': t[1], 'solid': True}); G.block[T(*t)] = 1
+SEG = {o['id']: o for o in J('content/segmentation.json')['objects']}
+FD = WD['forest']; FOREST = set()
+open_poly = bytearray(W * H)
+for zid in FD['open']:
+    m = ZN.raster(ZONES[zid]['poly'], W, H)
+    for j in range(W * H): open_poly[j] |= m[j]
+for sid in FD['seg']:
+    m = ZN.raster(SEG[sid]['polygon'], W, H, 2.5 / 16)
+    for j in range(W * H):
+        if m[j] and not open_poly[j] and not G.block[j]: FOREST.add(j); G.block[j] = 1
+def forest_edge(zid):  # forest tiles with a walkable 4-neighbour in zone zid -> [(forest tile, free neighbour)]
+    out = []
+    for j in FOREST:
+        x, y = j % W, j // W
+        for nx, ny in ((x, y + 1), (x - 1, y), (x + 1, y), (x, y - 1)):
+            if G.free(nx, ny) and zone_at(nx, ny) == zid: out.append(((x, y), (nx, ny))); break
+    return out
+EDGE_Z = {zid: forest_edge(zid) for zid in ('z1', 'z2')}
+for zid, es in EDGE_Z.items():
+    for (t, _) in es: BORDERS.append([t[0], t[1], 'thicket'])
+def pick_edge(zid, near):  # a forest-edge tile whose free neighbour is directly below it (a gap you walk up into)
+    cand = [(t, n) for t, n in EDGE_Z[zid] if n == (t[0], t[1] + 1) and G.free(n[0], n[1] + 1)]
+    return min(cand, key=lambda c: (c[0][0] - near[0]) ** 2 + (c[0][1] - near[1]) ** 2)
+GLEN_GAP, GLEN_OUT = pick_edge('z1', FD['glenDoor'])
+GLEN_EXIT_GAP, GLEN_EXIT = pick_edge('z2', FD['glenExit'])
+BORDERS[:] = [b for b in BORDERS if (b[0], b[1]) not in (GLEN_GAP, GLEN_EXIT_GAP)]
+BORDERS += [[GLEN_GAP[0], GLEN_GAP[1], 'gap'], [GLEN_EXIT_GAP[0], GLEN_EXIT_GAP[1], 'gap']]  # the two paths into the trees
+# v11.1: the outdoor forest was only solid to the solver (G.block); the game had no collision there, so you could walk
+# between the trunks under the canopy (Scott went 1 -> 3 that way). Every forest tile now gets the invisible wall tile,
+# except the two gap tiles that hold the Glen doors.
+for j in sorted(FOREST):
+    t = (j % W, j // W)
+    if t not in (GLEN_GAP, GLEN_EXIT_GAP): barrier_tiles.append([t[0], t[1], WALL_GID])
 
+# v11.1: borders use the runtime notion of solid. G.free also treats a tile as blocked when a caravan/building/prop body
+# merely clips it, but the game's body can leave a strip of up to ~12px there that the 10x8 player fits through, so a
+# border that skipped such a tile leaked. Only whole-tile collision (sea, objects layer, forest) counts as a wall here.
+OBJ = G.objects
+def hard_free(x, y): return G.inb(x, y) and G.ground[T(x, y)] != SEA and not OBJ[T(x, y)] and T(x, y) not in FOREST
+BORDER = ZN.border_tiles(ZMAP, hard_free, W, H)
+GATE_TILES = {}
+for gd in WD['gates']:
+    ts = ZN.gate_tiles(BORDER, ZIDX[gd['from']], ZIDX[gd['to']], gd['near'], gd.get('width', 3))
+    if not ts: err(f"gate {gd['id']}: no {gd['from']}|{gd['to']} border near {gd['near']}"); continue
+    for t in ts: GATE_TILES[t] = gd['id']
+BLOCKER_TILES = {}
+for bd in WD.get('blockers', []):
+    for t in ZN.gate_tiles(BORDER, ZIDX[bd['pair'][0]], ZIDX[bd['pair'][1]], bd['near'], 4): BLOCKER_TILES[t] = bd['id']
+# staircase corners: art + collision so the line reads continuous (never next to a gate, so gates stay straight cuts)
+_near_gate = {(x + dx, y + dy) for (x, y) in list(GATE_TILES) + list(BLOCKER_TILES) for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+BORDER.update(ZN.corner_tiles(BORDER, ZMAP, hard_free, W, H, skip=_near_gate))
+def style_of(t, pair):
+    a, b = (WD['zones'][k - 1]['id'] for k in pair)
+    if G.g(*t) == ROAD and WD['borderStyle'].get(f'{a}|{b}') != 'bank': return 'road'
+    if G.g(*t) == SAND: return 'dune'
+    return WD['borderStyle'].get(f'{a}|{b}', WD['borderStyle']['default'])
+for t, pair in sorted(BORDER.items()):
+    if t in GATE_TILES: continue
+    G.block[T(*t)] = 1; barrier_tiles.append([t[0], t[1], WALL_GID])
+    BORDERS.append([t[0], t[1], 'choke' if t in BLOCKER_TILES else style_of(t, pair)])
+for bd in WD.get('blockers', []):  # skip + van parked across the choke road (drawn, the tiles are already solid)
+    ts = sorted(t for t, i in BLOCKER_TILES.items() if i == bd['id'])
+    for k, spr in enumerate(bd['decor']):
+        t = ts[min(len(ts) - 1, k * 2)]; decor.append({'sprite': spr, 'x': t[0], 'y': t[1], 'solid': False, 'lines': [bd['text']] if k == 0 else []})
+
+TIDE = WD.get('tide')
+lock_defs = list(C['story']['locks'])
+for gd in WD['gates']:
+    ts = [t for t, i in GATE_TILES.items() if i == gd['id']]
+    if ts: lock_defs.append(dict({k: v for k, v in gd.items() if k not in ('near', 'width')}, tiles_=ts))
+lock_defs.append({'id': 'glen_brambles', 'kind': 'crack', 'req': ['drive'], 'art': 'brambles', 'tiles_': [GLEN_OUT],
+                  'text': "Brambles choke the gap into the trees behind 127. A charged drive would clear them."})
 def rect_tiles(r): return [(x, y) for y in range(r[1], r[3] + 1) for x in range(r[0], r[2] + 1)]
-def gate_tiles(name):
-    g = G.gates[name]
-    return [(tx, ty) for ty in range(int(g['y'] // 16), int((g['y'] + g['height'] - 1) // 16) + 1) for tx in range(int(g['x'] // 16), int((g['x'] + g['width'] - 1) // 16) + 1)]
-TIDE = WD['tide']
-lock_defs = list(C['story']['locks']) + [
-    {'id': 'sandbar', 'tide': 'sandbar', 'kind': 'water', 'req': ['@' + TIDE['flag']], 'silent': True},
-    {'id': 'rock', 'rect': TIDE['rock'], 'kind': 'water', 'req': ['@' + TIDE['flag']], 'silent': True}]
 for L in lock_defs:
-    if 'gate' in L: tiles = gate_tiles(L['gate'])
-    elif 'barrier' in L: tiles = lock_tiles_named[L['barrier']]
-    elif 'tide' in L: tiles = [t for r in TIDE[L['tide']] for t in rect_tiles(r)]
-    else: tiles = rect_tiles(L['rect'])
+    tiles = L.pop('tiles_') if 'tiles_' in L else rect_tiles(L['rect'])
     tiles = [t for t in tiles if t not in LOCK_OF]
-    for t in tiles: LOCK_OF[T(*t)] = L['id']
+    for t in tiles: LOCK_OF[T(*t)] = L['id']; G.block[T(*t)] = 0
     xs, ys = [t[0] for t in tiles], [t[1] for t in tiles]
     locks.append(dict({k: v for k, v in L.items() if k not in ('rect', 'tide', 'barrier')}, tiles=[list(t) for t in tiles],
                       rect=[min(xs) * 16, min(ys) * 16, (max(xs) - min(xs) + 1) * 16, (max(ys) - min(ys) + 1) * 16]))
@@ -108,7 +138,9 @@ start_c = G.caravan(int(C['rooms']['rooms'][START_ROOM]['door'].split(':')[1]))
 START_T = ALL_DOORS[start_c['p']['segId']]['tile']
 
 ALL_OPEN = set(LOCKS)
-OPEN = G.flood(START_T, passable_fn(ALL_OPEN))
+def open_all():  # everything walkable with every lock open; the Glen room is the only link from the start area to Playground Row
+    return G.flood(START_T, passable_fn(ALL_OPEN)) | G.flood(GLEN_EXIT, passable_fn(ALL_OPEN))
+OPEN = open_all()
 if len(OPEN) < 1000: err(f'start {START_T} is enclosed ({len(OPEN)} tiles)')
 
 # ---------------- placement ----------------
@@ -142,6 +174,8 @@ def ref_tile(ref):
         c = G.caravan(int(v)); cx, by = G.door_px(c); return (int(cx // 16), int((by + 10) // 16))
     if kind == 'lm': return G.landmarks[int(v)]
     if kind == 'decor': d = CURATED_DECOR[v]; return (d['x'], d['y'] + 1)
+    if kind == 'gate':  # v11: the middle of a gate (callers give a zone, so snap lands on the right side of it)
+        ts = sorted(t for t, i in GATE_TILES.items() if i == v); return ts[len(ts) // 2]
     raise ValueError(ref)
 def resolve(at, sep=1, **kw):
     t = ref_tile(at['near']); o = at.get('off', [0, 0]); t = (t[0] + o[0], t[1] + o[1])
@@ -165,7 +199,7 @@ for d in C['decor']['curated']:
     decor.append(e); CURATED_DECOR[d['id']] = e
     for f in foot or [(0, 0)]: occupy((t[0] + f[0], t[1] + f[1])); G.block[T(t[0] + f[0], t[1] + f[1])] = 1 if d.get('solid') else 0
     if d.get('solid'): DOOR_TILES.add(T(t[0], t[1] + 1))
-OPEN = G.flood(START_T, passable_fn(ALL_OPEN))
+OPEN = open_all()
 
 # ---------------- rooms ----------------
 RC = C['rooms']; CH = RC['chambers']
@@ -182,14 +216,19 @@ for rid, r in RC['rooms'].items():
     if 'door' in r:
         ref = r['door']
         if ref == 'clubhouse': door = {k: CLUB_DOOR[k] for k in ('x', 'y', 'out')}
+        elif ref == 'glen':  # v11: two gaps in the solid forest; the top one (behind 127) lands you on the ledge, the bottom one in Playground Row
+            door = {'x': GLEN_GAP[0] * 16 + 8, 'y': GLEN_GAP[1] * 16 + 16, 'out': px(GLEN_OUT), 'side': 'top'}
         elif ref.startswith('caravan:'): d = ALL_DOORS[int(ref.split(':')[1])]; door = {k: d[k] for k in ('x', 'y', 'out')}; d['used'] = True
         elif ref.startswith('decor:'):
             dd = CURATED_DECOR[ref.split(':')[1]]; door = {'x': dd['x'] * 16 + 8, 'y': dd['y'] * 16 + 16, 'out': [dd['x'] * 16 + 8, dd['y'] * 16 + 26]}
         if r.get('req'): door.update(req=r['req'], locked=r.get('locked', ''))
-    extra = {k: r[k] for k in ('dark', 'heal', 'exitTo') if k in r}
+    extra = {k: r[k] for k in ('dark', 'heal', 'exitTo', 'kind') if k in r}
     if r.get('req'): extra['req'] = r['req']
     mkroom(rid, r['name'], r['chambers'], r['zone'], door, **extra)
     if door: door['tileOut'] = (int(door['out'][0] // 16), int(door['out'][1] // 16)); DOOR_TILES.add(T(*door['tileOut']))
+    if ref == 'glen':
+        d2 = {'x': GLEN_EXIT_GAP[0] * 16 + 8, 'y': GLEN_EXIT_GAP[1] * 16 + 16, 'out': px(GLEN_EXIT), 'side': 'bottom', 'room': rid, 'tileOut': GLEN_EXIT}
+        DOORS.append(d2); DOOR_TILES.add(T(*GLEN_EXIT))
 
 P = RC['procedural']
 proc_rooms = {}
@@ -356,7 +395,8 @@ for ad in WD.get('arenas', []):
 for a in ARENAS:
     if a['reward']: ENT.append({'id': 'enc_' + a['id'], 'type': 'encounter', 'arena': a['id'], 'effects': a['reward'], 'x': (a['rect'][0] + a['rect'][2]) // 2, 'y': (a['rect'][1] + a['rect'][3]) // 2, 'zone': a['zone']})
 for enc in WD.get('encounters', []):
-    rid = enc['room']
+    rid = enc.get('room') or next((r for r in proc_rooms.get(enc['zone'], [])), None)
+    if not rid: err(f"encounter: no procedural room in {enc.get('zone')}"); continue
     if rid not in ROOMS: err(f"encounter room {rid} does not exist"); continue
     if not any(e['type'] == 'enemy' and e.get('room') == rid for e in ENT): err(f"encounter room {rid} has no enemies to clear")
     sx, sy = ROOMS[rid]['spawn']
@@ -442,7 +482,7 @@ while c0 < WD['density']['minCoverage'] and unc and fills < 200:
 if c0 < WD['density']['minCoverage']: err(f'interest coverage {c0:.2%} < {WD["density"]["minCoverage"]:.0%}')
 
 # re-validate reachability after decor
-OPEN2 = G.flood(START_T, passable_fn(ALL_OPEN))
+OPEN2 = open_all()
 for e in ENT:
     if 'room' in e: continue
     t = (e['x'] // 16, e['y'] // 16)
@@ -457,9 +497,8 @@ def room_access(rid, st, reach):
     if 'exitTo' in r:  # reached through a door entity inside another room
         door = next((e for e in ENT if e['type'] == 'door' and e.get('to') == rid), None)
         return door is not None and room_access(door['room'], st, reach) and ok(door.get('req'), st) and chamber_open(door['room'], door, st)
-    d = next((d for d in DOORS if d.get('room') == rid), None)
-    if not d or T(int(d['out'][0] // 16), int(d['out'][1] // 16)) not in reach: return False
-    return ok(d.get('req'), st)
+    ds = [d for d in DOORS if d.get('room') == rid and T(int(d['out'][0] // 16), int(d['out'][1] // 16)) in reach]
+    return any(ok(d.get('req'), st) for d in ds)
 def chamber_open(rid, e, st):
     ch = chamber_of(rid, (e['x'], e['y']))
     for lk in ROOMS[rid]['locks']:
@@ -473,6 +512,16 @@ def accessible(e, st, reach, rooms_ok):
 def npc_pos(n, st):
     for p in n['at']:
         if ok(p.get('when'), st): return p
+def reach_of(opened, st, portals=True):
+    """outdoor tiles reachable with these locks open; a room with two outdoor doors (the Glen) links both ends"""
+    pas = passable_fn(opened); reach = G.flood(START_T, pas)
+    multi = {d['room'] for d in DOORS if d.get('side')}
+    while portals:
+        outs = [(int(d['out'][0] // 16), int(d['out'][1] // 16)) for d in DOORS if d.get('room') in multi and room_access(d['room'], st, reach)]
+        add = [t for t in outs if T(*t) not in reach and pas(*t)]
+        if not add: break
+        for t in add: reach |= G.flood(t, pas)
+    return reach
 matched = set()
 def solve(record=True):
     st = {'items': {}, 'flags': set(), 'maxhp': WD['start']['hp']}
@@ -486,7 +535,7 @@ def solve(record=True):
         return any(item in mentions(l['req']) for l in locks) or any(item in (r['a'], r['b']) for r in RECIPES)
     for sphere in range(60):
         opened = {l['id'] for l in locks if ok(l['req'], st)}
-        reach = G.flood(START_T, passable_fn(opened))
+        reach = reach_of(opened, st)
         rooms_ok = {rid for rid in ROOMS if room_access(rid, st, reach)}
         log = []
         for z in WD['zones']:
@@ -525,8 +574,10 @@ def solve(record=True):
                     for ch in tk.get('choices', []):
                         if not ch.get('effects') or not ok(ch.get('when'), st): continue
                         buys = [x['give'] for x in ch['effects'] if 'give' in x]
-                        if any(x.get('take') == 'coin' for x in ch['effects']):
-                            if not any(st['items'].get(b, 0) == 0 and demanded(b) for b in buys): continue
+                        sets = [x['set'] for x in ch['effects'] if 'set' in x]
+                        if any(x.get('take') == 'coin' for x in ch['effects']):  # buy only what's needed; a fee (v11 den fee) is paid once
+                            if buys and not any(st['items'].get(b, 0) == 0 and demanded(b) for b in buys): continue
+                            if not buys and all(f in st['flags'] for f in sets): continue
                         elif all(x.get('set') in st['flags'] for x in ch['effects'] if 'set' in x) and not buys: continue
                         apply(ch['effects'], st, ITEMS); changed = True; log.append(f"choose {nid_}: {ch['text']}"); first_at = first_at or dict(p, id=nid_)
                     break
@@ -552,6 +603,23 @@ for z in WD['zones']:
     if z['id'] not in zone_sphere: err(f"zone {z['id']} never reachable")
 for rid in ROOMS:
     if rid not in room_sphere: err(f'room {rid} never reachable')
+# v11: Scott's order, exactly: every zone is first entered in its own sphere, in zone order
+ZORDER = [z['id'] for z in WD['zones']]
+_sp = [zone_sphere.get(z) for z in ZORDER]
+if None not in _sp and any(_sp[i] >= _sp[i + 1] for i in range(len(_sp) - 1)): err(f'zone order is not {ZORDER}: {zone_sphere}')
+# v11 seal: shut every gate into zone k or later and open everything else (all items, all flags): no tile of zone k+ may be reachable.
+# The borders follow the outlines, so this is the proof that nobody walks round the end of a fence; the Glen room counts as the way into z2.
+ST_ALL = {'items': {k: 99 for k in ITEMS}, 'flags': {t[1:] for l in locks for t in l['req'] if t.startswith('@')}, 'maxhp': 99}
+GATE_TO = {gd['id']: ZIDX[gd['to']] for gd in WD['gates']}
+SEAL = {}
+for k in range(2, len(ZORDER) + 1):
+    shut = {g for g, to in GATE_TO.items() if to >= k}
+    rch = reach_of(set(LOCKS) - shut, ST_ALL, portals=k > 2)
+    leak = [i for i in rch if ZMAP[i] >= k]
+    SEAL[ZORDER[k - 1]] = len(leak)
+    if leak: err(f'zone {ZORDER[k - 1]} leaks: {len(leak)} tiles reachable with its way in shut, e.g. {(leak[0] % W, leak[0] // W)}')
+if any(j in OPEN2 for j in FOREST): err('outdoor forest tiles are walkable')
+
 never = [e['id'] for e in ENT if e['id'] not in got and e['type'] in ('pickup', 'chest', 'activity', 'interact', 'hider', 'whisper', 'note', 'vista')]
 if never: err(f'{len(never)} entities never collectable: {never[:12]}')
 for nid_, n in NPCS.items():
@@ -640,7 +708,8 @@ for i, s in enumerate(spheres):
     tag = next((l.split(' ', 1)[1].split(' ')[0] for l in s['log'] if l.startswith(('combine', 'event'))), None) or next((l[6:].replace('The ', '').split(' ')[0].lower() for l in s['log'] if l.startswith('enter')), None) or next((l.split(' ', 1)[1].split(' ')[0].rstrip(':').lower() for l in s['log'] if l.startswith(('choose', 'chest', 'interact', 'enemy', 'talk'))), 'step')
     SNAPS[f'{name}-{tag}'[:28]] = dict(prev_state, **snap_pos(s['at'])) if i else dict(SNAPS['start'])
     prev_state = {k: s['state'][k] for k in ('items', 'flags', 'maxhp', 'got')}
-SNAPS['night'] = next(dict({k: s['state'][k] for k in ('items', 'flags', 'maxhp', 'got')}, room=None, x=NPCS['nana']['at'][0]['x'], y=NPCS['nana']['at'][0]['y'] + 16) for s in spheres if 'evening' in s['state']['flags'])
+_tad = NPCS['tadhg']['at'][0]
+SNAPS['night'] = next((dict({k: s['state'][k] for k in ('items', 'flags', 'maxhp', 'got')}, room=None, x=_tad['x'], y=_tad['y'] + 16) for s in spheres if 'evening' in s['state']['flags']), SNAPS['start'])
 last = spheres[-2]['state'] if len(spheres) > 1 else spheres[-1]['state']
 mam = NPCS['mam']['at'][0]
 SNAPS['end-ready'] = dict({k: last[k] for k in ('items', 'flags', 'maxhp', 'got')}, room=None, x=mam['x'] + 16, y=mam['y'] + 16)
@@ -653,13 +722,13 @@ counts = {}
 for e in ENT: counts.setdefault(e['zone'], {}).setdefault(e['type'], 0); counts[e['zone']][e['type']] += 1
 stats = {'tilesOpen': len(OPEN2), 'coverage': round(c0, 4), 'fills': fills, 'entities': len(ENT), 'npcs': len(NPCS), 'ambient': len(AMB), 'decor': len(decor),
          'rooms': len(ROOMS), 'knockDoors': sum(1 for d in DOORS if d.get('knock')), 'hiders': kids, 'shells': shells, 'coinSupply': coin_supply, 'coinSpend': coin_spend,
-         'maxhpEnd': st['maxhp'], 'arenas': len(ARENAS), 'spheres': len(spheres), 'zoneSphere': zone_sphere, 'perZone': counts, 'errors': errors, 'warnings': warns}
+         'maxhpEnd': st['maxhp'], 'arenas': len(ARENAS), 'seal': SEAL, 'borders': len(BORDERS), 'spheres': len(spheres), 'zoneSphere': zone_sphere, 'perZone': counts, 'errors': errors, 'warnings': warns}
 world = {'v': 6, 'seed': WD['seed'], 'title': WD['title'], 'strings': WD['strings'], 'minigames': WD['minigames'], 'progression': [s['log'] for s in spheres], 'start': dict(WD['start'], out=px(START_T)), 'player': WD['player'], 'items': ITEMS, 'itemSprites': ITEM_SPRITES,
-         'recipes': RECIPES, 'zones': [{'id': z['id'], 'name': z['name'], 'tier': z['tier'], 'rects': rects_of(z), 'beach': bool(z.get('beach'))} for z in WD['zones']],
-         'tide': TIDE, 'entities': ENT, 'npcs': NPCS, 'ambient': AMB, 'decor': decor, 'decorSizes': DECOR, 'locks': locks, 'barrierTiles': barrier_tiles, 'doors': DOORS, 'arenas': ARENAS,
+         'recipes': RECIPES, 'zones': [{'id': z['id'], 'name': z['name'], 'tier': z['tier'], 'beach': bool(z.get('beach'))} for z in WD['zones']], 'zoneGrid': ''.join(str(k) for k in ZMAP), 'mapW': W,
+         'entities': ENT, 'npcs': NPCS, 'ambient': AMB, 'decor': decor, 'decorSizes': DECOR, 'locks': locks, 'barrierTiles': barrier_tiles, 'borders': BORDERS, 'doors': DOORS, 'arenas': ARENAS,
          'rooms': ROOMS, 'events': STORY['events'], 'hints': STORY['hints'], 'end': STORY['end'], 'snapshots': SNAPS, 'monsters': MONSTER_ORDER,
          'enemyTypes': {k: v.get('bark') for k, v in C['enemies']['types'].items() if v.get('bark')}, 'stats': stats}
-rooms_out = {rid: {k: d[k] for k in ('w', 'h', 'floor', 'walls', 'furn')} for rid, d in ROOM_DATA.items()}
+rooms_out = {rid: dict({k: d[k] for k in ('w', 'h', 'floor', 'walls', 'furn')}, props=d.get('props', []), **({'marks': d['marks'], 'slots': d['slots']} if d.get('marks') else {})) for rid, d in ROOM_DATA.items()}
 
 rep = ['# Tara Glen generator report', '', f"seed {WD['seed']} · {len(ENT)} entities · {len(NPCS)} NPCs · {len(AMB)} ambient walkers · {len(decor)} decor · {len(ROOMS)} interiors · {stats['knockDoors']} knock doors",
        f"coverage {c0:.1%} (radius {R}, {fills} fill items) · hiders {kids} · shells {shells} · coins {coin_supply} (shop {coin_spend}) · max hearts at end {st['maxhp']}", '',

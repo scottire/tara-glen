@@ -270,6 +270,61 @@ def step_down(mask, k=1):
 grassy = ~(road | sand | sea | dirt | apr | mini)
 for c in LY['courts']['objects']: grassy[int(c['y']):int(c['y'] + c['height']), int(c['x']):int(c['x'] + c['width'])] = False
 step_down(grassy & near(~grassy, 2), 1)                                                         # contact trim
+# ---------------- v11 borders: diegetic blockers painted on every sealed border tile (build.py borders[]) ----------------
+def C(r, i): return tuple(int(v) for v in RAMP[r][i])
+BS = {(b[0], b[1]): b[2] for b in WJ.get('borders', [])}
+bov = Image.new('RGBA', (WX, HY), (0, 0, 0, 0)); bd = ImageDraw.Draw(bov)
+def hsh(x, y, k=0): return (((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xffff) / 65535
+def nb(x, y, st): return [(dx, dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if BS.get((x + dx, y + dy)) == st]
+for (tx, ty), st in sorted(BS.items(), key=lambda kv: kv[0][1]):
+    x0, y0 = tx * 16, ty * 16; cx, cy = x0 + 8, y0 + 8; n = nb(tx, ty, st)
+    if st == 'fence':  # post and rail, rails run to fence neighbours
+        for dx, dy in n:
+            if dx: bd.rectangle([min(cx, cx + dx * 8), cy - 3, max(cx, cx + dx * 8), cy - 2], fill=C('wood', 4)); bd.rectangle([min(cx, cx + dx * 8), cy + 2, max(cx, cx + dx * 8), cy + 3], fill=C('wood', 3))
+            else: bd.rectangle([cx - 1, min(cy, cy + dy * 8), cx + 1, max(cy, cy + dy * 8)], fill=C('wood', 3))
+        for dx, dy in ((1, 1), (1, -1)):  # staircase borders: rails run diagonally so the line reads as one fence
+            if BS.get((tx + dx, ty + dy)) == st and not n:
+                pass
+            if BS.get((tx + dx, ty + dy)) == st and BS.get((tx + dx, ty)) != st and BS.get((tx, ty + dy)) != st:
+                bd.line([cx, cy - 2, cx + 16 * dx, cy - 2 + 16 * dy], fill=C('wood', 4), width=2); bd.line([cx, cy + 3, cx + 16 * dx, cy + 3 + 16 * dy], fill=C('wood', 3), width=2)
+        bd.rectangle([cx - 2, cy - 7, cx + 1, cy + 5], fill=C('wood', 2), outline=C('wood', 0)); bd.line([cx - 1, cy - 6, cx - 1, cy + 3], fill=C('wood', 5))
+    elif st in ('hedge', 'thicket', 'wall', 'bank', 'dune') and False: pass
+    elif st in ('hedge', 'thicket'):
+        r0 = 'leaf'; base = 1 if st == 'thicket' else 2
+        bd.rectangle([x0, y0 + 1, x0 + 15, y0 + 15], fill=C(r0, base))
+        for k in range(5 if st == 'thicket' else 3):
+            ex, ey = x0 + int(hsh(tx, ty, k) * 12), y0 + int(hsh(tx, ty, k + 9) * 10); rr = 4 + int(hsh(tx, ty, k + 3) * 3)
+            bd.ellipse([ex - rr + 2, ey - rr + 3, ex + rr + 2, ey + rr + 3], fill=C(r0, base + 1)); bd.ellipse([ex - rr + 3, ey - rr + 3, ex + rr - 1, ey + rr - 1], fill=C(r0, base + 2))
+        if st == 'thicket':  # brambles: thorny strokes and the odd blackberry
+            for k in range(3):
+                ax, ay = x0 + int(hsh(tx, ty, k + 20) * 14), y0 + int(hsh(tx, ty, k + 30) * 14); bd.line([ax, ay, ax + 4, ay - 3], fill=C('wood', 1))
+            if hsh(tx, ty, 40) > 0.6: bd.point((x0 + 5, y0 + 9), fill=C('pink', 0)); bd.point((x0 + 11, y0 + 4), fill=C('pink', 0))
+    elif st == 'bank':  # the hill face: grass lip, earth strata, rocks; reads as a drop you can't climb
+        bd.rectangle([x0, y0, x0 + 15, y0 + 15], fill=C('wood', 2))
+        for k, yy_ in enumerate((3, 8, 13)): bd.line([x0, y0 + yy_ + int(hsh(tx, ty, k) * 2), x0 + 15, y0 + yy_], fill=C('wood', 1))
+        bd.rectangle([x0, y0, x0 + 15, y0 + 3], fill=C('grass', 2)); [bd.point((x0 + i, y0 + 4), fill=C('grass', 1)) for i in range(0, 16, 3)]
+        if hsh(tx, ty, 7) > 0.5: rx, ry = x0 + 3 + int(hsh(tx, ty, 8) * 8), y0 + 8; bd.ellipse([rx, ry, rx + 5, ry + 4], fill=C('stone', 3), outline=C('stone', 1))
+    elif st == 'wall':  # low stone wall
+        bd.rectangle([x0, y0 + 3, x0 + 15, y0 + 14], fill=C('stone', 3), outline=C('stone', 1))
+        for j, yy_ in enumerate((3, 8)):
+            for xx_ in range(-(j * 4), 16, 8): bd.rectangle([x0 + max(0, xx_), y0 + yy_, x0 + min(15, xx_ + 7), y0 + yy_ + 5], outline=C('stone', 1))
+        bd.line([x0, y0 + 3, x0 + 15, y0 + 3], fill=C('stone', 5))
+    elif st == 'dune':  # a marram-grass dune ridge
+        bd.ellipse([x0 - 4, y0 + 1, x0 + 19, y0 + 17], fill=C('sand', 1)); bd.ellipse([x0 - 2, y0, x0 + 17, y0 + 12], fill=C('sand', 2))
+        for k in range(4):
+            gx = x0 + 2 + int(hsh(tx, ty, k) * 12); bd.line([gx, y0 + 9, gx - 2, y0 + 2], fill=C('meadow', 1)); bd.line([gx, y0 + 9, gx + 2, y0 + 3], fill=C('meadow', 0))
+    elif st == 'gap':  # a worn path into the trees: the way into the Glen
+        bd.rectangle([x0 + 2, y0, x0 + 13, y0 + 15], fill=C('wood', 3)); bd.rectangle([x0 + 3, y0, x0 + 12, y0 + 8], fill=C('wood', 1)); bd.rectangle([x0 + 4, y0, x0 + 11, y0 + 4], fill=C('leaf', 0))
+        for k in range(4): bd.point((x0 + 4 + int(hsh(tx, ty, k) * 8), y0 + 9 + int(hsh(tx, ty, k + 5) * 6)), fill=C('wood', 2))
+        bd.ellipse([x0 - 5, y0 - 4, x0 + 5, y0 + 10], fill=C('leaf', 1)); bd.ellipse([x0 + 11, y0 - 4, x0 + 21, y0 + 10], fill=C('leaf', 1))
+    elif st in ('road', 'choke'):  # roadworks: red/white plank barrier on legs, a cone; the choke adds the dug trench
+        if st == 'choke': bd.rectangle([x0, y0 + 9, x0 + 15, y0 + 15], fill=C('wood', 1)); bd.line([x0, y0 + 9, x0 + 15, y0 + 9], fill=C('wood', 3))
+        bd.line([x0 + 2, y0 + 4, x0 + 2, y0 + 10], fill=C('tarmac', 0)); bd.line([x0 + 13, y0 + 4, x0 + 13, y0 + 10], fill=C('tarmac', 0))
+        bd.rectangle([x0, y0 + 2, x0 + 15, y0 + 6], fill=C('white', 1), outline=C('tarmac', 0))
+        for k in range(0, 16, 6): bd.polygon([(x0 + k, y0 + 3), (x0 + k + 3, y0 + 3), (x0 + k + 1, y0 + 6), (x0 + k - 2, y0 + 6)], fill=C('red', 2))
+        if (tx + ty) % 2: bd.polygon([(x0 + 8, y0 + 7), (x0 + 5, y0 + 14), (x0 + 11, y0 + 14)], fill=C('red', 2), outline=C('red', 0)); bd.line([x0 + 6, y0 + 11, x0 + 10, y0 + 11], fill=C('white', 1))
+bov_a = np.array(bov); m_ = bov_a[..., 3] > 0; img[m_] = bov_a[m_][:, :3]
+print(f'borders painted: {len(BS)} tiles', flush=True)
 sh = Image.new('L', (WX, HY), 0); sd = ImageDraw.Draw(sh); sh2 = Image.new('L', (WX, HY), 0); sd2 = ImageDraw.Draw(sh2)
 for c in GR.caravans:                                                                             # light from the top-left
     sd2.rectangle([c['x'] + 4, c['y'] + c['height'] - 8, c['x'] + c['width'] + 4, c['y'] + c['height'] + 3], fill=255)
@@ -289,9 +344,7 @@ for p in LY['props']['objects']:
 for d in WJ['decor']:
     dw = WJ['decorSizes'][d['sprite']][0]; x, y = d['x'] * 16 + 8, d['y'] * 16 + 16
     sd2.ellipse([x - dw / 2 + 1, y - 4, x + dw / 2 + 2, y + 2], fill=255)
-for bx, by_, gid in WJ['barrierTiles']: sd2.rectangle([bx * 16 + 2, by_ * 16 + 14, bx * 16 + 18, by_ * 16 + 19], fill=255)
-for i, gid in enumerate(LY['objects']['data']):
-    if gid in (1121, 1122, 1123): x, y = (i % W) * 16, (i // W) * 16; sd2.rectangle([x + 2, y + 14, x + 18, y + 19], fill=255)
+for bx, by_, gid in WJ['barrierTiles'] + [b[:2] + [0] for b in WJ.get('borders', []) if b[2] == 'thicket']: sd2.rectangle([bx * 16 + 2, by_ * 16 + 14, bx * 16 + 18, by_ * 16 + 19], fill=255)
 s1 = (np.array(sh) > 0) & ~sea; s2 = (np.array(sh2) > 0) & ~sea
 step_down(s1 & ~s2, 1); step_down(s2, 2)
 print('shading done', flush=True)
