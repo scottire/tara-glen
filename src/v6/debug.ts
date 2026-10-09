@@ -87,4 +87,5 @@ export const testApi = {
   give: (k: string, n = 1) => { give(k, n, true); changed(); return G.st.items[k]; },
   state: () => ({ items: G.st.items, flags: G.st.flags.filter((f) => !f.startsWith('ev:') && !f.startsWith('visited')), hp: G.st.hp, maxhp: G.st.maxhp, room: G.st.room }),
 };
+(testApi as any).G = G; // v9 tests inspect combat/room state
 (window as any).tgTest = testApi;

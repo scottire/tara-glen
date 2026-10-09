@@ -4,7 +4,7 @@ export interface Save {
   items: Record<string, number>; flags: string[]; got: string[]; defeated: string[];
   maxhp: number; hp: number; elapsed: number; done?: boolean; started?: boolean;
   pos?: [number, number]; room?: string | null; roomPos?: [number, number];
-  hintTier: Record<string, number>; seenZones: string[];
+  hintTier: Record<string, number>; seenZones: string[]; cp?: [number, number];
 }
 const params = new URLSearchParams(location.search);
 // URL-driven states (?snap, ?state, ?give, ?flag) use a scratch save so testing never clobbers a real playthrough

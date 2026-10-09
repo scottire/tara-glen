@@ -96,21 +96,26 @@ export class Player extends Character {
       { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.anims.stop(); this.setAngle(90); this.scene.time.delayedCall(700, () => this.scene.events.emit('player-dead')); } });
     this.sm.set('idle');
   }
-  onDamage() { G.st.hp = this.life.life; persist(); toast(S('ouch')); this.scene.events.emit('hud'); }
+  onDamage() { G.st.hp = this.life.life; persist(); this.scene.cameras.main.shake(140, 0.006); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
   revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); persist(); }
-  dashing = false; dashReady = 0;
-  /** skateboard dash: burst in the facing direction, i-frames, passes dash locks, hurts enemies */
-  dash() {
-    const P = G.w.player, now = this.scene.time.now;
-    if (this.dashing || this.busy || now < this.dashReady || G.paused) return false;
-    this.dashing = true; this.dashReady = now + P.dashCooldownMs;
-    const [vx, vy] = DIRV[this.facing]; this.setVelocity(vx * P.dashSpeed, vy * P.dashSpeed);
-    const ghost = () => { if (!this.active) return; const g = this.scene.add.image(this.x, this.y, this.texture.key, this.frame.name).setAlpha(0.45).setDepth(this.depth - 1);
-      this.scene.tweens.add({ targets: g, alpha: 0, duration: 220, onComplete: () => g.destroy() }); };
-    const t = this.scene.time.addEvent({ delay: 45, repeat: Math.floor(P.dashMs / 45), callback: ghost });
-    this.scene.time.delayedCall(P.dashMs, () => { this.dashing = false; t.remove(); });
+  dashing = false; dashReady = 0; slow = 1;
+  /** v9 dodge-roll: always available; burst along `angle` with i-frames (the `dashing` flag). With the skateboard it goes
+   *  further, passes dash locks and hurts enemies on contact. Cooldown is enforced by Combat. */
+  dodge(angle: number) {
+    const P = G.w.player, board = (G.st.items.skateboard ?? 0) > 0;
+    if (this.dashing || this.busy || G.paused) return false;
+    const sp = board ? P.dashSpeed : P.dodgeSpeed ?? 210, ms = board ? P.dashMs : P.dodgeMs ?? 220;
+    this.dashing = true; this.setVelocity(Math.cos(angle) * sp, Math.sin(angle) * sp);
+    this.facing = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle)) ? (Math.cos(angle) > 0 ? 'right' : 'left') : (Math.sin(angle) > 0 ? 'down' : 'up');
+    this.setFrame(DIRS.indexOf(this.facing)); this.scene.tweens.add({ targets: this, scaleY: 0.8, duration: ms / 2, yoyo: true });
+    const ghost = () => { if (!this.active) return; const g = this.scene.add.image(this.x, this.y, this.texture.key, this.frame.name).setAlpha(0.4).setTint(0x9fd0ff).setDepth(this.depth - 1);
+      this.scene.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }); };
+    const t = this.scene.time.addEvent({ delay: 40, repeat: Math.floor(ms / 40), callback: ghost });
+    this.scene.time.delayedCall(ms, () => { this.dashing = false; t.remove(); if (this.active && !this.busy) this.setVelocity(0, 0); });
     return true;
   }
+  /** legacy entry (keyboard Z/C): dodge in the facing/stick direction */
+  dash() { const c = (this.scene as any).combat; return c ? c.dodge() : this.dodge(Math.atan2(DIRV[this.facing][1], DIRV[this.facing][0])); }
   readInput() {
     if (G.paused) return new Phaser.Math.Vector2(0, 0);
     const k = this.keys;
@@ -122,7 +127,8 @@ export class Player extends Character {
   /** move + face + animate; ignored while hurt/dead. Returns whether moving. */
   drive(v: Phaser.Math.Vector2, speed: number) {
     if (this.busy || this.dashing) return this.dashing;
-    this.setVelocity(v.x * speed, v.y * speed);
+    speed *= this.slow; this.setVelocity(v.x * speed, v.y * speed);
+    if ((this.scene as any).combat?.swingUntil > this.scene.time.now) return true; // facing locked mid-swing
     const moving = v.length() >= 0.01;
     if (moving) this.facing = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 'right' : 'left') : (v.y > 0 ? 'down' : 'up');
     if (moving) this.anims.play(this.facing, true); else { this.anims.stop(); this.setFrame(DIRS.indexOf(this.facing)); }

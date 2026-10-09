@@ -20,8 +20,21 @@ const game = new Phaser.Game({
 });
 const active = () => (game.scene.isActive('Room') ? game.scene.getScene('Room') : game.scene.getScene('World')) as any;
 const btn = (id: string, f: () => void) => $(id).addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); f(); });
+// v9 controls. Touch: left floating stick, right big Attack (tap = combo, hold = charge; Interact when something is in
+// range and no enemy is close) and big Dodge; small balloon button. Keys: J/Space attack, K/Shift dodge, L/X/F balloon, E/Enter talk.
 btn('fire', () => active().fire());
 btn('dash', () => active().dash());
 btn('prompt', () => !G.paused && active().interact());
-addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !G.paused) active().interact?.(); });
+const atk = $('atk');
+atk.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); atk.setPointerCapture?.(e.pointerId); if (!G.paused) active().combat?.press(); });
+const atkUp = (e: Event) => { e.stopPropagation(); active().combat?.release(); };
+atk.addEventListener('pointerup', atkUp); atk.addEventListener('pointercancel', atkUp);
+addEventListener('keydown', (e) => {
+  if (e.repeat || G.paused) return; const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'j') { e.preventDefault(); active().combat?.press(); }
+  else if (k === 'k' || k === 'shift') active().dash();
+  else if (k === 'l') active().fire();
+  else if (k === 'e' || k === 'enter') active().interact?.();
+});
+addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); if (k === ' ' || k === 'j') active().combat?.release(); });
 addEventListener('resize', () => game.scale.resize(innerWidth * DPR, innerHeight * DPR));

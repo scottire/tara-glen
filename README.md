@@ -6,12 +6,22 @@ A tiny SNES-style top-down adventure set in the caravan park next to Tara Glen G
 You wake up in mobile 127. Mam's at the clubhouse quiz, manhunt has been going since lunch, there's moving dust in 131,
 and by sundown the gulls have the Tara Glen flag out on the Rock.
 
-## Controls (touch first)
-- Move: touch-and-drag anywhere (floating joystick), or arrows / WASD.
-- **A** (red, bottom centre): talk / look / open / play, whichever is nearest (Space / Enter).
-- 💦 throw a water balloon (X / F) · 🛹 dash (Z / C) · 🚲 hop on/off the bike (B / Shift; not on sand).
-- 🎒 bag: tap an item to read it, tap two to combine them · 📻 walkie hints (once fixed; ask again for bigger hints) · ☰ reset.
-- Saved in localStorage (`tara-glen-save-v6`).
+## Controls (touch first, v9 action layout)
+- Move: floating joystick on the **left** 60% of the screen, or arrows / WASD.
+- **⚔️ Attack** (big red, bottom right): tap for a 3-hit combo (taps during a swing are buffered); **hold** to charge,
+  the ring fills round you, then release for a spin attack. Swings snap to the nearest enemy in a wide cone.
+  Near someone or something with no enemy close, the same button becomes **Interact** (✋ 💬 🔓 🚪 ▶, turns green). Keys: J / Space (hold to charge), E / Enter = talk.
+- **💨 Dodge** (big blue, left of Attack): roll with i-frames, short cooldown. With the skateboard 🛹 it goes further, passes dash locks and hurts enemies. Keys: K / Shift (Z / C still work).
+- 💦 water balloon (small, optional secondary; L / X / F) · 🚲 bike (B; not on sand).
+- 🎯 objective line top-left (tap to fold) · 🎒 bag (combine items) · 📻 walkie hints · ☰ reset. Saved in localStorage (`tara-glen-save-v6`).
+
+## Combat and structure (v9)
+- `src/v9/combat.ts`: combo, charge, dodge, auto-aim, input buffer, hit-stop, flash, knockback, particles, shake, enemy projectiles, and attack tokens (at most 3 enemies close in and 2 wind up at once; the rest circle).
+- `src/v6/enemies.ts`: archetypes from `content/enemies.json` (`ai`): **chaser** (dust bunny), **charger** (crab, gull: flash + ground line, then a dash, dizzy after), **spitter** (wasp, cellar eye: keeps distance, glowing orb), **tank** (slime: blue armour soaks normal hits; the combo finisher or spin cracks it). Mini-bosses (`ai: boss`, `phases`): The Big Dust Bunny (chaser → charger → spitter + calls 2 dust bunnies), Big Gerry (charger → spitter → charger). Contact damage only lands mid-attack.
+- Enterable mobiles are combat rooms: the door is barred until every enemy is down, and they stay cleared (`clear:<room>` flag). Fainting puts you back outside at the last checkpoint (enterable caravan doors and benches), and an uncleared room resets.
+- Outdoor arenas (`content/world.json` → `arenas`): build.py finds an open rectangle in each listed zone with no canopy overhang. Posts close the ring until every wave is cleared (`arena:<id>`).
+- Attention cues (`src/v6/entities.ts`, `src/v9/arena.ts`): bobbing glints on things you can use, a "!" over the one in range, bouncing and shining pickups, NPC speech bubbles (yellow means they have something for you), idle breathing, and warm door light plus chimney smoke on enterable caravans only. All of these are culled off-screen.
+- Content was trimmed for v9 by `scripts/content/v9_cleanup.py` + `v9_rewrite.json` (one-off; already applied): no knock-door gags, whispers, filler notes or barks; dialogue is short and to the point.
 
 ## The content pipeline (data → generator → validated output)
 Never edit generated files by hand. Edit `content/`, then run `npm run gen` (needs Python 3 + Pillow).

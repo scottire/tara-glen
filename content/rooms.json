@@ -1,163 +1,324 @@
 {
-  "_readme": "Interior chambers (ASCII). Rooms stack chambers top->bottom; the generator adds walls, doorways between chambers and the exit mat in the bottom wall. Legend: # void, w wall, o window, . floor, , stone, ; lino, r rug, B/b bed, T table, S/s sofa, K counter, V telly, C cupboard, P plant, H shelf, X crate, O barrel, L ladder, q quiz table, R bar, t toilet, u bath, y cobweb, U bunk, F trophies, 1-9 slots, x enemy slot.",
-  "chambers": {
-    "living127": { "rows": [
-      "wwowwwwwwwowww",
-      "K.V....rr...SC",
-      "K......rr...s.",
-      "...1...rr.....",
-      "..TT......2...",
-      "P...........5P" ] },
-    "bed127": { "rows": [
-      "wwwwwowwwwwoww",
-      "BU......;;;;tu",
-      "bU......;;3;;u",
-      "........;;;;;;",
-      "C......4......",
-      "H............P" ] },
-    "loft127": { "rows": [
-      "wwwwwwwwwwwwww",
-      ",yXX,,,,,,,OO,",
-      ",,,,,,6,,,,,,,",
-      ",,,,,,,,,,,,y,",
-      "X,,,,,,,,,,,XX" ] },
-    "front131": { "rows": [
-      "wwowwwwwwwowww",
-      "KKV.....C...SC",
-      "........C...s.",
-      "..TT..x.......",
-      "..TT......x...",
-      "P.............",
-      "......1......P" ] },
-    "hall131": { "rows": [
-      "wwwwwwwwwwwwww",
-      "H...y.....y..H",
-      ".....x..2.....",
-      "...........x..",
-      "C............C" ] },
-    "back131": { "rows": [
-      "wwwowwwwwwowww",
-      "BU..........UB",
-      "bU....9.....Ub",
-      "..............",
-      "...y......y...",
-      ".....3........",
-      "P............P" ] },
-    "lobby": { "rows": [
-      "wwwwowwwwwwwwowwwwww",
-      "F..FF........FF...FF",
-      "....................",
-      "P......1............",
-      "..................P.",
-      "P..................P" ] },
-    "quizhall": { "rows": [
-      "wwowwwwwowwwwwowwwww",
-      "......4.........V...",
-      "....................",
-      ".qq...qq...qq...qq..",
-      ".qq.5.qq.6.qq...qq..",
-      "....................",
-      ".qq...qq...qq...qq..",
-      ".qq...qq...qq...qq..",
-      "P..................P" ] },
-    "bar": { "rows": [
-      "wwwwwwwwwwwwwwwwwwww",
-      "RRRRRRRRRR....HHHH..",
-      "..........,,,,......",
-      "....2.....,7,,......",
-      "..........,,,,..3...",
-      "O..................O" ] },
-    "cellar2": { "rows": [
-      "wwwwwwwwwwwwww",
-      "OO,,,,,,,,,,XX",
-      ",,,,x,,,,,,,,X",
-      ",,,,,,,,1,,,,,",
-      "X,,,,,,,,,,x,,",
-      "XX,,,,y,,,,,OO" ] },
-    "cellar1": { "rows": [
-      "wwwwwwwwwwwwww",
-      "y,,,,,XX,,,,,y",
-      ",,x,,,,,,,,,,,",
-      ",,,,,,,,,,,,,,",
-      "O,,,,,2,,,,,,O",
-      ",,,,,,,,,x,,,,",
-      "OO,,,,,,,,,,OO" ] },
-    "shed": { "rows": [
-      "wwwwwwwwwwwwww",
-      "HHHH,,,,,,XXOO",
-      ",,,,,,,,,,,,,X",
-      ",,1,,,,,,2,,,,",
-      ",,,,,,,,,,,,,,",
-      "X,,,,,,,,,,,,O" ] },
-    "hut": { "rows": [
-      "wwwowwwwwwowww",
-      "H....C....HH..",
-      "......1.......",
-      "..T......2....",
-      "..............",
-      "P............P" ] },
-    "p_living": { "pool": "entry", "rows": [
-      "wwowwwwwwwowww",
-      "K.V....rr...SC",
-      "K......rr...s.",
-      "....1..rr.....",
-      "..TT......x...",
-      "P....2.......P" ] },
-    "p_kitchen": { "pool": "entry", "rows": [
-      "wwwowwwwwwowww",
-      "KKKK;;;;;;;;CC",
-      ";;;;;;;1;;;;;;",
-      ";;TT;;;;;;x;;;",
-      ";;TT;;;;;;;;;;",
-      "P;;;;;;2;;;;;P" ] },
-    "p_bedroom": { "pool": "mid", "rows": [
-      "wwwwwowwwwwoww",
-      "B......C....UB",
-      "b..1........Ub",
-      ".......r......",
-      "...x...r...2..",
-      "H............P" ] },
-    "p_bunk": { "pool": "mid", "rows": [
-      "wwowwwwwwwwoww",
-      "UUUU....UUUU..",
-      ".....1........",
-      "...x......x...",
-      "C......2.....C" ] },
-    "p_bath": { "pool": "mid", "rows": [
-      "wwwwwwowwwwwww",
-      "tu;;;;;;;;;;ut",
-      ";;;;;;1;;;;;;;",
-      ";;;;;;;;;;x;;;",
-      "C;;;;;;;;;;;;C" ] },
-    "p_games": { "pool": "mid", "rows": [
-      "wwowwwwwwwwoww",
-      "V..S.s..TT...F",
-      "...........x..",
-      "..1....rr.....",
-      "......2rr.....",
-      "P............P" ] },
-    "p_store": { "pool": "secret", "rows": [
-      "wwwwwwwwwwwwww",
-      "XX,,,,,,,,,,OO",
-      ",,,,,,x,,,,,,,",
-      ",,1,,,,,,,2,,,",
-      "OX,,,,,,,,,,XX" ] },
-    "p_crawl": { "pool": "secret", "rows": [
-      "wwwwwwwwwwwwww",
-      "y,,,,XX,,,,,,y",
-      ",,,,,,,,,1,,,,",
-      ",,x,,,,,,,,,,,",
-      "OO,,,,2,,,,,OO" ] }
+ "_readme": "Interior chambers (ASCII). Rooms stack chambers top->bottom; the generator adds walls, doorways between chambers and the exit mat in the bottom wall. Legend: # void, w wall, o window, . floor, , stone, ; lino, r rug, B/b bed, T table, S/s sofa, K counter, V telly, C cupboard, P plant, H shelf, X crate, O barrel, L ladder, q quiz table, R bar, t toilet, u bath, y cobweb, U bunk, F trophies, 1-9 slots, x enemy slot.",
+ "chambers": {
+  "living127": {
+   "rows": [
+    "wwowwwwwwwowww",
+    "K.V....rr...SC",
+    "K......rr...s.",
+    "...1...rr.....",
+    "..TT......2...",
+    "P...........5P"
+   ]
   },
-  "rooms": {
-    "127":       { "name": "Mobile 127", "chambers": ["loft127", "bed127", "living127"], "door": "caravan:127", "heal": true, "zone": "z1" },
-    "131":       { "name": "Mobile 131", "chambers": ["back131", "hall131", "front131"], "door": "caravan:131", "zone": "z1" },
-    "clubhouse": { "name": "Tara Glen Clubhouse", "chambers": ["bar", "quizhall", "lobby"], "door": "clubhouse", "zone": "z4", "req": ["@clubhouse_open"], "locked": "Tadhg's arms are folded across the door. 'Members only.'" },
-    "cellar":    { "name": "The Cellar", "chambers": ["cellar2", "cellar1"], "exitTo": { "room": "clubhouse", "slot": 7 }, "dark": true, "zone": "z4" },
-    "shed":      { "name": "Sully's Shed", "chambers": ["shed"], "door": "decor:shed", "zone": "z4" },
-    "hut":       { "name": "Lifeguard Hut", "chambers": ["hut"], "door": "decor:hut", "zone": "z5" }
+  "bed127": {
+   "rows": [
+    "wwwwwowwwwwoww",
+    "BU......;;;;tu",
+    "bU......;;3;;u",
+    "........;;;;;;",
+    "C......4......",
+    "H............P"
+   ]
   },
-  "procedural": { "pools": { "entry": ["p_living", "p_kitchen"], "mid": ["p_bedroom", "p_bunk", "p_bath", "p_games"], "secret": ["p_store", "p_crawl"] },
-    "secretLocks": [ { "kind": "dark", "req": ["torch"], "text": "Pitch black in there. You'd want a torch." }, { "kind": "dash", "req": ["skateboard"], "text": "A gap under a wardrobe. Too low to crawl. You could zip through on a board." } ],
-    "secretChance": 0.5 }
+  "loft127": {
+   "rows": [
+    "wwwwwwwwwwwwww",
+    ",yXX,,,,,,,OO,",
+    ",,,,,,6,,,,,,,",
+    ",,,,,,,,,,,,y,",
+    "X,,,,,,,,,,,XX"
+   ]
+  },
+  "front131": {
+   "rows": [
+    "wwowwwwwwwowww",
+    "KKV.....C...SC",
+    "........C...s.",
+    "..TT..x.......",
+    "..TT......x...",
+    "P.............",
+    "......1......P"
+   ]
+  },
+  "hall131": {
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "H...y.....y..H",
+    ".....x..2.....",
+    "...........x..",
+    "C............C"
+   ]
+  },
+  "back131": {
+   "rows": [
+    "wwwowwwwwwowww",
+    "BU..........UB",
+    "bU....9.....Ub",
+    "..............",
+    "...y......y...",
+    ".....3........",
+    "P............P"
+   ]
+  },
+  "lobby": {
+   "rows": [
+    "wwwwowwwwwwwwowwwwww",
+    "F..FF........FF...FF",
+    "....................",
+    "P......1............",
+    "..................P.",
+    "P..................P"
+   ]
+  },
+  "quizhall": {
+   "rows": [
+    "wwowwwwwowwwwwowwwww",
+    "......4.........V...",
+    "....................",
+    ".qq...qq...qq...qq..",
+    ".qq.5.qq.6.qq...qq..",
+    "....................",
+    ".qq...qq...qq...qq..",
+    ".qq...qq...qq...qq..",
+    "P..................P"
+   ]
+  },
+  "bar": {
+   "rows": [
+    "wwwwwwwwwwwwwwwwwwww",
+    "RRRRRRRRRR....HHHH..",
+    "..........,,,,......",
+    "....2.....,7,,......",
+    "..........,,,,..3...",
+    "O..................O"
+   ]
+  },
+  "cellar2": {
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "OO,,,,,,,,,,XX",
+    ",,,,x,,,,,,,,X",
+    ",,,,,,,,1,,,,,",
+    "X,,,,,,,,,,x,,",
+    "XX,,,,y,,,,,OO"
+   ]
+  },
+  "cellar1": {
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "y,,,,,XX,,,,,y",
+    ",,x,,,,,,,,,,,",
+    ",,,,,,,,,,,,,,",
+    "O,,,,,2,,,,,,O",
+    ",,,,,,,,,x,,,,",
+    "OO,,,,,,,,,,OO"
+   ]
+  },
+  "shed": {
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "HHHH,,,,,,XXOO",
+    ",,,,,,,,,,,,,X",
+    ",,1,,,,,,2,,,,",
+    ",,,,,,,,,,,,,,",
+    "X,,,,,,,,,,,,O"
+   ]
+  },
+  "hut": {
+   "rows": [
+    "wwwowwwwwwowww",
+    "H....C....HH..",
+    "......1.......",
+    "..T......2....",
+    "..............",
+    "P............P"
+   ]
+  },
+  "p_living": {
+   "pool": "entry",
+   "rows": [
+    "wwowwwwwwwowww",
+    "K.V....rr...SC",
+    "K......rr...s.",
+    "....1..rr.....",
+    "..TT......x...",
+    "P....2.......P"
+   ]
+  },
+  "p_kitchen": {
+   "pool": "entry",
+   "rows": [
+    "wwwowwwwwwowww",
+    "KKKK;;;;;;;;CC",
+    ";;;;;;;1;;;;;;",
+    ";;TT;;;;;;x;;;",
+    ";;TT;;;;;;;;;;",
+    "P;;;;;;2;;;;;P"
+   ]
+  },
+  "p_bedroom": {
+   "pool": "mid",
+   "rows": [
+    "wwwwwowwwwwoww",
+    "B......C....UB",
+    "b..1........Ub",
+    ".......r......",
+    "...x...r...2..",
+    "H............P"
+   ]
+  },
+  "p_bunk": {
+   "pool": "mid",
+   "rows": [
+    "wwowwwwwwwwoww",
+    "UUUU....UUUU..",
+    ".....1........",
+    "...x......x...",
+    "C......2.....C"
+   ]
+  },
+  "p_bath": {
+   "pool": "mid",
+   "rows": [
+    "wwwwwwowwwwwww",
+    "tu;;;;;;;;;;ut",
+    ";;;;;;1;;;;;;;",
+    ";;;;;;;;;;x;;;",
+    "C;;;;;;;;;;;;C"
+   ]
+  },
+  "p_games": {
+   "pool": "mid",
+   "rows": [
+    "wwowwwwwwwwoww",
+    "V..S.s..TT...F",
+    "...........x..",
+    "..1....rr.....",
+    "......2rr.....",
+    "P............P"
+   ]
+  },
+  "p_store": {
+   "pool": "secret",
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "XX,,,,,,,,,,OO",
+    ",,,,,,x,,,,,,,",
+    ",,1,,,,,,,2,,,",
+    "OX,,,,,,,,,,XX"
+   ]
+  },
+  "p_crawl": {
+   "pool": "secret",
+   "rows": [
+    "wwwwwwwwwwwwww",
+    "y,,,,XX,,,,,,y",
+    ",,,,,,,,,1,,,,",
+    ",,x,,,,,,,,,,,",
+    "OO,,,,2,,,,,OO"
+   ]
+  }
+ },
+ "rooms": {
+  "127": {
+   "name": "Mobile 127",
+   "chambers": [
+    "loft127",
+    "bed127",
+    "living127"
+   ],
+   "door": "caravan:127",
+   "heal": true,
+   "zone": "z1"
+  },
+  "131": {
+   "name": "Mobile 131",
+   "chambers": [
+    "back131",
+    "hall131",
+    "front131"
+   ],
+   "door": "caravan:131",
+   "zone": "z1"
+  },
+  "clubhouse": {
+   "name": "Tara Glen Clubhouse",
+   "chambers": [
+    "bar",
+    "quizhall",
+    "lobby"
+   ],
+   "door": "clubhouse",
+   "zone": "z4",
+   "req": [
+    "@clubhouse_open"
+   ],
+   "locked": "Tadhg blocks the door. 'Members only.'"
+  },
+  "cellar": {
+   "name": "The Cellar",
+   "chambers": [
+    "cellar2",
+    "cellar1"
+   ],
+   "exitTo": {
+    "room": "clubhouse",
+    "slot": 7
+   },
+   "dark": true,
+   "zone": "z4"
+  },
+  "shed": {
+   "name": "Sully's Shed",
+   "chambers": [
+    "shed"
+   ],
+   "door": "decor:shed",
+   "zone": "z4"
+  },
+  "hut": {
+   "name": "Lifeguard Hut",
+   "chambers": [
+    "hut"
+   ],
+   "door": "decor:hut",
+   "zone": "z5"
+  }
+ },
+ "procedural": {
+  "pools": {
+   "entry": [
+    "p_living",
+    "p_kitchen"
+   ],
+   "mid": [
+    "p_bedroom",
+    "p_bunk",
+    "p_bath",
+    "p_games"
+   ],
+   "secret": [
+    "p_store",
+    "p_crawl"
+   ]
+  },
+  "secretLocks": [
+   {
+    "kind": "dark",
+    "req": [
+     "torch"
+    ],
+    "text": "Pitch black. You need a torch."
+   },
+   {
+    "kind": "dash",
+    "req": [
+     "skateboard"
+    ],
+    "text": "A low gap under a wardrobe. You could slide through on a board."
+   }
+  ],
+  "secretChance": 0.5
+ }
 }

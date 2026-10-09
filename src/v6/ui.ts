@@ -1,4 +1,5 @@
 // UI: Rex TextBox dialogue (typewriter, paged, queued) with DOM choice buttons, HUD, bag/combine panel, zone banner, boss bar, end card.
+import { objectiveText } from '../v9/arena';
 import Phaser from 'phaser';
 import TextBox from 'phaser4-rex-plugins/templates/ui/textbox/TextBox.js';
 import RoundRectangle from 'phaser4-rex-plugins/plugins/roundrectangle.js';
@@ -113,11 +114,9 @@ export function hud() {
   $('abilities').textContent = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map((k) => I[k].icon).join('');
   const f = $('fire'); f.style.display = count('throw') ? 'flex' : 'none';
   f.innerHTML = `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !count('balloons'));
-  $('dash').style.display = count('skateboard') ? 'flex' : 'none';
+  $('dash').textContent = count('skateboard') ? '🛹' : '💨';
   $('hint-btn').style.display = count('walkie') || document.body.classList.contains('hints') ? 'flex' : 'none';
-  if (document.body.classList.contains('hints')) {
-    const h = G.w.hints.find((h: any) => cond(h.when)); $('objective').textContent = h ? '🎯 ' + h.tiers[0] : '🎯 Explore!';
-  }
+  $('objective').textContent = '🎯 ' + objectiveText(); // v9: short current objective, tap to fold
 }
 
 // ---------- bag / combine ----------

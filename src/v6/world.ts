@@ -9,6 +9,8 @@ import { Ents, Walker, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, zoneAt } from './fx';
 import { applyUrlState, debugPanel } from './debug';
+import { Combat } from '../v9/combat';
+import { Arenas, Checkpoints, LivingDoors, wireObjective } from '../v9/arena';
 import CARAVAN_ART from '../../public/assets/art.json';
 
 const BIKE_SPEED = 165;
@@ -35,6 +37,7 @@ export class World extends Phaser.Scene implements Host {
   labels: Phaser.GameObjects.Text[] = []; zone = ''; zoneT = 0; saveT = 0; inMini = false;
   night!: Phaser.GameObjects.Rectangle; glows: Phaser.GameObjects.Arc[] = [];
   hunt: { e: any; items: Phaser.GameObjects.Image[]; left: number } | null = null;
+  combat!: Combat; arenas!: Arenas; cps!: Checkpoints; living!: LivingDoors; benches: [number, number][] = [];
 
   preload() {
     this.load.json('world', V('world.json')); this.load.json('rooms', V('rooms.json'));
@@ -118,6 +121,7 @@ export class World extends Phaser.Scene implements Host {
       img.setDepth(img.y + img.height / 2);
       if (SOLID.has(o.name)) { const bh = Math.min(10, img.height * 0.6); body(img.x - img.displayWidth / 2 + 1, img.y + img.height / 2 - bh, img.displayWidth - 2, bh); }
       if (o.name === 'lamp') lamps.push([o.x!, o.y! - 10]);
+      if (o.name === 'bench') this.benches.push([o.x!, o.y!]);
       if (prop(o, 'label')) this.label(o.x!, o.y! - 10, prop(o, 'label'));
     }
     const gateSolids = this.gateSolids = this.physics.add.staticGroup();
@@ -150,22 +154,23 @@ export class World extends Phaser.Scene implements Host {
     this.ents = new Ents(this);
     for (const d of G.w.decor) if (d.lines) this.ents.things.push({ kind: 'decor', e: { ...d, x: d.x * 16 + 8, y: d.y * 16 + 8 }, obj: (d as any).obj });
     for (const a of G.w.ambient) { const wk = new Walker(this, a, this.pather); this.physics.add.collider(wk, [objects, solids]);
-      this.ents.things.push({ kind: 'decor', e: { lines: [a.barks[Math.floor(Math.random() * a.barks.length)] ?? 'Lovely day.'] }, obj: wk }); }
+      if (a.barks?.length) this.ents.things.push({ kind: 'decor', e: { lines: [a.barks[Math.floor(Math.random() * a.barks.length)]] }, obj: wk }); } // v9: no filler barks
+    this.combat = new Combat(this); this.arenas = new Arenas(this); this.cps = new Checkpoints(this, this.benches); this.living = new LivingDoors(this);
     // night + lamps (world event: evening)
     this.night = this.add.rectangle(0, 0, 4000, 4000, 0x101a50, 0.5).setDepth(9e5).setVisible(false); // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
     for (const [x, y] of lamps) this.glows.push(this.add.circle(x, y, 26, 0xffd27a, 0.22).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
     const fire = G.w.entities.find((e: any) => e.id === 'bonfire');
     if (fire) this.glows.push(this.add.circle(fire.x, fire.y, 46, 0xff9a3a, 0.3).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
-    onChange(() => this.applyWorld()); this.applyWorld(true);
+    onChange(() => { this.applyWorld(); this.living?.refresh(); }); this.applyWorld(true);
 
     this.input.keyboard!.on('keydown-X', () => this.fire()); this.input.keyboard!.on('keydown-F', () => this.fire());
     this.input.keyboard!.on('keydown-Z', () => this.dash()); this.input.keyboard!.on('keydown-C', () => this.dash());
     this.bike = this.add.sprite(0, 0, 'bike', 0).setVisible(false);
     DIRS.forEach((d, c) => this.anims.create({ key: 'bike-' + d, frameRate: 10, repeat: -1, frames: this.anims.generateFrameNumbers('bike', { frames: [c, c + 4] }) }));
     $('bike').addEventListener('pointerdown', (e) => { e.stopPropagation(); this.toggleBike(); });
-    this.input.keyboard!.on('keydown-B', () => this.toggleBike()); this.input.keyboard!.on('keydown-SHIFT', () => this.toggleBike());
+    this.input.keyboard!.on('keydown-B', () => this.toggleBike());
     this.input.keyboard!.on('keydown-I', () => $('bag-btn').dispatchEvent(new Event('pointerdown')));
-    this.events.on('player-dead', () => { toast(S('fainted')); if (this.riding) this.toggleBike(); this.player.revive(...this.lastSafe); hud(); });
+    this.events.on('player-dead', () => { toast(S('fainted')); if (this.riding) this.toggleBike(); this.arenas.reset(); this.player.revive(...this.cps.respawn()); this.cameras.main.fadeIn(300); hud(); });
     this.events.on('hud', hud);
     const cam = this.cameras.main; cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     if (this.overview) {
@@ -173,10 +178,12 @@ export class World extends Phaser.Scene implements Host {
       document.body.classList.add('overview');
     } else {
       cam.startFollow(this.player, true);
-      const fit = () => cam.setZoom(Math.max(1, Math.round(Math.min(this.scale.width, this.scale.height) / 288)));
+      // v9: keep the action in the upper-middle, clear of the thumbs (player sits ~12% above centre on portrait screens)
+      const fit = () => { const z = Math.max(1, Math.round(Math.min(this.scale.width, this.scale.height) / 288)); cam.setZoom(z);
+        cam.setFollowOffset(0, this.scale.height > this.scale.width ? -Math.round(this.scale.height / z * 0.12) : 0); };
       fit(); this.scale.on('resize', fit);
     }
-    document.title = G.w.title; wireButtons(); debugPanel(this);
+    document.title = G.w.title; wireButtons(); wireObjective(); debugPanel(this);
     (window as any).tg = this;
     if (!G.st.started) { G.st.started = true; if (!at && !this.overview && G.st.room === undefined) G.st.room = G.w.start.room; }
     if (params.get('room')) G.st.room = params.get('room');
@@ -257,12 +264,13 @@ export class World extends Phaser.Scene implements Host {
   goRoom(id: string) { this.enterRoom(id); }
   exitRoom(id: string) {
     const d = G.w.doors.find((x: any) => x.room === id);
-    if (d) { this.player.setPosition(d.out[0], d.out[1]); this.lastSafe = [d.out[0], d.out[1]]; }
+    if (d) { this.player.setPosition(d.out[0], d.out[1]); this.lastSafe = [d.out[0], d.out[1]]; this.cps.setAt(d.out[0], d.out[1]); }
     this.player.facing = 'down'; this.doorArmed = false; this.input.keyboard!.resetKeys(); bossBar(null);
     this.cameras.main.fadeIn(250); $('bike').style.display = count('bike') ? 'flex' : 'none'; changed(); this.checkZone();
   }
   fire() { throwBalloon(this, this.player, [this.ground, ...this.walls.slice(1)], this.enemies); }
-  dash() { if (count('skateboard') && !this.riding && !this.inMini) this.player.dash(); }
+  dash() { if (!this.riding && !this.inMini) this.combat.dodge(); }
+  onEnemyDeath(en: Enemy) { this.arenas?.onDeath(en); }
   interact() { if (!this.inMini && !this.hunt) this.ents.interact(); }
 
   // ---------- activities ----------
@@ -324,7 +332,7 @@ export class World extends Phaser.Scene implements Host {
     if ((this.zoneT += dt) > 500) { this.zoneT = 0; this.checkZone(); }
     if (document.body.classList.contains('hints') && (this.arrowT += dt) > 100) { this.arrowT = 0; this.pointArrow(); }
     for (const [id, r] of this.said) if (!r.contains(this.player.x, this.player.y)) this.said.delete(id);
-    this.ents.update();
+    this.ents.update(); this.arenas.update(); this.cps.update(dt); this.living.update(dt);
     if (this.hunt) {
       const h = this.hunt; h.left -= dt / 1000;
       h.items = h.items.filter((t) => Phaser.Math.Distance.Between(t.x, t.y, this.player.x, this.player.y) < 14 ? (t.destroy(), false) : true);
