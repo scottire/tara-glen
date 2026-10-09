@@ -54,9 +54,25 @@ courts, beach, clubhouse, and one entry per detected caravan, each with an id). 
 
 - `python3 scripts/make-art.py <ninja-adventure tileset.png> [props-sheet.png]` builds `tiles.png`, caravan sheets, clubhouse,
   bike, sea overlays and `public/assets/props/*.png`.
-- `python scripts/make-world.py <tara-glen-objects.json>` (needs numpy, scipy, scikit-image, pillow) writes `public/assets/map.json`
-  and bakes the ground (grass, smooth roads from the road skeleton, fields, courts, beach, sea, shadows) into 1024px chunks in
-  `public/assets/ground/` (1 photo px = 2.5 world px, 16px tiles; 14 extra columns on the right for beach and sea).
+- `python scripts/make-world.py <tara-glen-objects.json>` (legacy v5; needs `public/progression.json`, which is gone) wrote `public/assets/map.json`.
+  The map layout and every collision footprint are unchanged since then; v7 only restyles the art on top of it.
+
+### v7 house style (scripts/gen/tgstyle, rules in `scripts/gen/tgstyle/STYLE.md`)
+Locked palette ramps, selective outline (darkest step of each material's own ramp), light from the top-left, shadows as
+palette steps. Local only (numpy, scipy, scikit-image, pillow); outputs are committed and CI never runs these:
+- `python3 scripts/gen/restyle.py [caravans|trees|repal|all]`: caravan-v4 source → `caravan-h.png` (80x60) / `caravan-v.png`
+  (52x90), 3 palette variants each; tree-v4 → `trees.png` (48x45, 3 leaf variants; the old tree tiles in `tiles.png` are blanked,
+  trunk tiles keep the collision and `world.ts` draws the sprites); everything else (props, decor, characters, monsters, items,
+  gates, bike, clubhouse, sea overlays, tiles) is snapped to the palette + outline from the pre-restyle originals at commit `ORIG`.
+  Frame sizes, overhang offsets and door positions go to `public/assets/art.json` (read by `world.ts` and `grid.py`).
+- `python3 scripts/gen/ground.py [full.png]`: bakes the ground into 1024px palette PNG chunks in `public/assets/ground/` from
+  `content/segmentation.json` + `map.json` + `public/world.json` (rich grass with tufts/flowers/meadow patches, woodland floor and
+  tall-grass fringe, tarmac with kerbs and a dashed centre line, car-park bays, sand with wet edge and bank, sea bands, courts,
+  door aprons, palette-step shadows under caravans/trees/props/decor/hedges). Run it after `build.py` (it reads decor positions).
+- Caravan scale: the art overhangs the unchanged 72x48 / 48x80 footprints (roof above, a few px each side), bottom-aligned,
+  so bodies, doors and the solver are untouched. Horizontal caravans with an odd `segId` are mirrored (same rule in `grid.py`
+  `Grid.art` and `world.ts`); the knock door follows the door drawn on the sprite.
+- Interiors (`assets/v6/interior.png`) are not restyled yet.
 
 `map.json` layers: tile layers `ground` (hidden; sea collision + sand lookup), `objects` (tree trunks, collide), `roofs` (canopies, drawn above
 the player); object layers `courts`, `buildings` (clubhouse), `caravans`, `props`, `landmarks`, `markers` (spawn). Every caravan and landmark has a `segId` property = the
@@ -66,7 +82,9 @@ segmentation id, so places can be named by number later. Caravans use the placeh
 ## Credits (all CC0)
 - Tiles + player: [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy, via the
   [Superpowers asset packs](https://github.com/sparklinlabs/superpowers-asset-packs) (CC0, `licenses/superpowers-asset-packs-CC0-LICENSE.txt`,
-  `licenses/ninja-adventure-CC0.txt`). Trees and grass texture come from it; the baked ground, caravans, clubhouse, bike, props and sea overlays are drawn by script.
+  `licenses/ninja-adventure-CC0.txt`). The pack's art is palette-snapped by `restyle.py`; the baked ground is drawn by script.
+- `scripts/gen/tgstyle/src/caravan-v4.png`, `tree-v4.png`: AI-generated sources made for this project (Scott's mock-up as the style reference),
+  reduced to the house palette at game scale. `bin-*.png`: drawn by script in the art prototype.
 
 - Code patterns (state machine, components, hurt/invulnerability, chests/inventory, door transitions) adapted from
   [Legend of the Wispguard](https://github.com/devshareacademy/phaser-zelda-like-tutorial) by Dev Share Academy (MIT, `licenses/wispguard-MIT.txt`).

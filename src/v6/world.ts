@@ -9,6 +9,7 @@ import { Ents, Walker, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, zoneAt } from './fx';
 import { applyUrlState, debugPanel } from './debug';
+import CARAVAN_ART from '../../public/assets/art.json';
 
 const BIKE_SPEED = 165;
 const PROPS = ['goal', 'tennis-net', 'bench', 'picnic-table', 'bin', 'lamp', 'fence', 'hedge', 'flowerbed',
@@ -44,8 +45,10 @@ export class World extends Phaser.Scene implements Host {
     this.load.image('interior6img', 'assets/v6/interior.png');
     this.load.spritesheet('chest', 'assets/chest.png', { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', 'assets/balloon.png');
-    this.load.spritesheet('caravan-h', 'assets/caravan-h.png', { frameWidth: 72, frameHeight: 48 });
-    this.load.spritesheet('caravan-v', 'assets/caravan-v.png', { frameWidth: 48, frameHeight: 80 });
+    // caravan art overhangs its 72x48 / 48x80 footprint (frame sizes + offsets in art.json, written by scripts/gen/restyle.py)
+    this.load.spritesheet('caravan-h', 'assets/caravan-h.png', { frameWidth: CARAVAN_ART.h.fw, frameHeight: CARAVAN_ART.h.fh });
+    this.load.spritesheet('caravan-v', 'assets/caravan-v.png', { frameWidth: CARAVAN_ART.v.fw, frameHeight: CARAVAN_ART.v.fh });
+    this.load.spritesheet('trees', 'assets/trees.png', { frameWidth: CARAVAN_ART.tree.fw, frameHeight: CARAVAN_ART.tree.fh });
     PROPS.forEach((p) => this.load.image(p, `assets/props/${p}.png`));
     ['clubhouse', 'waves', 'foam', 'gate-h', 'gate-v', 'spot'].forEach((k) => this.load.image(k, `assets/${k}.png`));
     this.load.spritesheet('bike', 'assets/bike.png', { frameWidth: 24, frameHeight: 24 });
@@ -77,7 +80,15 @@ export class World extends Phaser.Scene implements Host {
     const ground = this.ground = map.createLayer('ground', tiles)!.setVisible(false) as Phaser.Tilemaps.TilemapLayer;
     const objects = map.createLayer('objects', tiles)! as Phaser.Tilemaps.TilemapLayer;
     for (const [x, y, gid] of G.w.barrierTiles) objects.putTileAt(gid, x, y); // generated hedge line + roadworks
-    map.createLayer('roofs', tiles)!.setDepth(5e5);
+    map.createLayer('roofs', tiles)!.setDepth(5e5); // tree canopy tiles are blank now (restyle.py); trees are sprites below
+    const TREE: Record<number, number> = { 309: 0, 317: 1, 315: 2 }; // left trunk tile gid -> leaf variant; trunk tiles keep the collision
+    const tw = CARAVAN_ART.tree.fw, th = CARAVAN_ART.tree.fh;
+    const treeImgs: Phaser.GameObjects.Image[] = [];
+    objects.forEachTile((t) => { const v = TREE[t.index]; if (v === undefined) return;
+      const h = ((t.x * 73856093) ^ (t.y * 19349663)) >>> 0, jx = (h % 7) - 3, jy = ((h >> 3) % 5) - 2; // small fixed jitter breaks up the tile grid
+      treeImgs.push(this.add.image(t.pixelX + 16 - tw / 2 + jx, t.pixelY + 16 - th + jy, 'trees', v).setOrigin(0).setDepth(t.pixelY + 16 + jy)); });
+    const cullTrees = () => { const v = this.cameras.main.worldView, m = 64; for (const im of treeImgs) im.setVisible(im.x < v.right + m && im.x + tw > v.x - m && im.y < v.bottom + m && im.y + th > v.y - m); };
+    this.time.addEvent({ delay: 200, loop: true, callback: cullTrees }); this.events.once('postupdate', cullTrees); // ~1100 trees, only a few dozen on screen
     ground.setCollision([245]); objects.setCollisionByExclusion([-1]);
     const waves = this.add.tileSprite(shoreX + 24, 0, map.widthInPixels - shoreX, map.heightInPixels, 'waves').setOrigin(0).setDepth(-5).setAlpha(0.7);
     const foam = this.add.tileSprite(shoreX, 0, 32, map.heightInPixels, 'foam').setOrigin(0).setDepth(-4);
@@ -91,7 +102,8 @@ export class World extends Phaser.Scene implements Host {
     }
     for (const o of map.getObjectLayer('caravans')!.objects) {
       const key = prop(o, 'orient') === 'v' ? 'caravan-v' : 'caravan-h', inset = key === 'caravan-v' ? 20 : 14;
-      this.add.image(o.x!, o.y!, key, prop(o, 'variant')).setOrigin(0).setDepth(o.y! + o.height!);
+      const a = CARAVAN_ART[key === 'caravan-v' ? 'v' : 'h'], flip = key === 'caravan-h' && prop(o, 'segId') % 2 === 1; // same rule as grid.py Grid.art
+      this.add.image(o.x! - a.ox, o.y! + o.height! - a.fh, key, prop(o, 'variant')).setOrigin(0).setFlipX(flip).setDepth(o.y! + o.height!);
       body(o.x! + 2, o.y! + inset, o.width! - 4, o.height! - inset - 2);
       const lab = prop(o, 'label') ?? (params.has('ids') ? String(prop(o, 'segId')) : null);
       if (prop(o, 'home') || [127, 131].includes(prop(o, 'segId'))) this.add.text(o.x! + o.width! / 2, o.y! + o.height! - 3, lab ?? String(prop(o, 'segId')), { fontFamily: 'monospace', fontSize: '24px', color: '#fff', stroke: '#3a2a20', strokeThickness: 4 })

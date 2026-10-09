@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "gen": "python3 scripts/gen/art.py && python3 scripts/gen/build.py",
+    "gen": "python3 scripts/gen/art.py && python3 scripts/gen/restyle.py && python3 scripts/gen/build.py && python3 scripts/gen/ground.py",
     "validate": "python3 scripts/gen/build.py --check"
   },
   "dependencies": {
