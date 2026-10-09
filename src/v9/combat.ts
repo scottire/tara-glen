@@ -1,11 +1,12 @@
 // v9 action combat: 3-hit combo, hold-to-charge spin, dodge-roll, input buffer, auto-aim (wide cone), hit-stop/flash/knockback/
 // particles/shake, enemy attack tokens (only a few threats commit at once) and a visible enemy projectile.
 import Phaser from 'phaser';
+import { F, sfx, squash, slashTrail, vibrate } from '../v12/feel';
 import { G, DIRV, toast, type Dir, type Player, type Character } from '../mech/core';
 
 const COMBO = [{ dmg: 1, push: 110, reach: 22, arc: 1.25 }, { dmg: 1, push: 120, reach: 22, arc: 1.25 }, { dmg: 2, push: 210, reach: 25, arc: 1.5 }, { dmg: 3, push: 260, reach: 27, arc: 1.7 }];
 const has = (k: string) => (G.st.items[k] ?? 0) > 0;
-const SWING_MS = 190, CHAIN_MS = 420, BUFFER_MS = 220, CHARGE_START = 260, CHARGE_FULL = 700, AIM_CONE = 1.25, AIM_RANGE = 56;
+const CHARGE_START = 260, CHARGE_FULL = 700, AIM_CONE = 1.25, AIM_RANGE = 56;
 const MAX_ATTACKERS = 2, MAX_ENGAGED = 3;
 export interface Foe extends Character { attacking: boolean; windup: boolean; armor?: number; s: any; hitBy(c: Combat | null, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }): void; stun?(ms: number): void }
 
@@ -74,7 +75,7 @@ export function spit(scene: Phaser.Scene & { player: Player; walls: any[]; enemi
 
 type HostLike = Phaser.Scene & { player: Player; enemies: Foe[]; walls: any[]; interact(): void; ents?: any; driveHit?(x: number, y: number, r: number): void; shots?: Shot[] };
 export class Combat {
-  step = 0; chainUntil = 0; swingUntil = 0; buffered = 0; holdAt = 0; holding = false; charged = false; ring: Phaser.GameObjects.Graphics;
+  queue: number[] = []; finisher = false; swingStart = 0; step = 0; chainUntil = 0; swingUntil = 0; buffered = 0; holdAt = 0; holding = false; charged = false; ring: Phaser.GameObjects.Graphics;
   dodgeReady = 0; chipReady = 0; dodgeEnd = 0; attackers = new Set<Foe>(); engaged = new Set<Foe>();
   stats = { swings: 0, hits: 0, spins: 0, dodges: 0, dashStrikes: 0, parries: 0, chips: 0 };
   constructor(public h: HostLike) {
@@ -102,12 +103,12 @@ export class Combat {
   }
   attack() {
     const now = this.h.time.now;
-    if (now < this.swingUntil) { this.buffered = now + BUFFER_MS; return; } // buffer: queue the next hit
+    if (now < this.swingUntil) { this.queue = this.queue.filter((t) => t >= now); if (this.queue.length < F.bufferMax) this.queue.push(now + F.bufferMs * (this.queue.length + 1)); return; } // v12: multi-press buffer queue
     const n = has('combo4') ? 4 : 3;
     if (now > this.chainUntil || this.step >= n) this.step = 0;
-    const c = COMBO[this.step], a = this.aim();
+    const c = COMBO[this.step], a = this.aim(); this.finisher = this.step === n - 1; this.swingStart = now;
     this.swing(a, c.reach, c.arc, c.dmg, c.push, this.step >= 2, Math.min(3, this.step + 1));
-    this.swingUntil = now + SWING_MS; this.chainUntil = now + SWING_MS + CHAIN_MS; this.step = (this.step + 1) % n; this.stats.swings++;
+    this.swingUntil = now + F.swingMs; this.chainUntil = now + F.swingMs + F.chainMs; this.step = (this.step + 1) % n; this.stats.swings++;
   }
   /** auto-aim: nearest enemy inside a wide cone around the stick/facing direction snaps the swing */
   aim() {
@@ -129,8 +130,8 @@ export class Combat {
     this.h.tweens.add({ targets: o, alpha: 0, delay: 110, duration: 90, onComplete: () => o.destroy() });
   }
   swing(a: number, reach: number, arc: number, dmg: number, push: number, heavy: boolean, anim: number) {
-    const p = this.p; p.setVelocity(Math.cos(a) * 60, Math.sin(a) * 60); // small lunge
-    p.pose('swing' + anim, SWING_MS + 40); this.swoosh(a, heavy);
+    const p = this.p; p.setVelocity(Math.cos(a) * F.lungeSpeed, Math.sin(a) * F.lungeSpeed); sfx('swing'); squash(p, 1.15, 0.88); // small lunge
+    p.pose('swing' + anim, F.swingMs + 40); this.swoosh(a, heavy); slashTrail(this.h, p.x, p.y, a, reach, arc, heavy, p.depth);
     this.hitArc(a, reach, arc, dmg, push, heavy);
   }
   spin() {
@@ -196,17 +197,22 @@ export class Combat {
       const r = reach + (e.displayWidth / 2 - 4);
       if (d < r && (arc > 6 || Math.abs(Phaser.Math.Angle.Wrap(ea - a)) < arc / 2 + 0.3)) { e.hitBy(this, dmg, push, heavy, this.p); hit++; }
     }
-    if (hit) { this.stats.hits += hit; hitStop(this.h, heavy ? 85 : 55); this.h.cameras.main.shake(heavy ? 90 : 50, heavy ? 0.005 : 0.0025); }
+    if (hit) { this.stats.hits += hit; const fin = this.finisher && arc < 6; this.finisher = false;
+      if (fin) { hitStop(this.h, F.finisherHitstopMs); this.h.cameras.main.shake(F.finisherShakeMs, F.finisherShake); sfx('finisher'); vibrate(F.vibrateFinisherMs); (this.stats as any).finishers = ((this.stats as any).finishers ?? 0) + 1; }
+      else { hitStop(this.h, heavy ? F.hitstopHeavyMs : F.hitstopMs); this.h.cameras.main.shake(heavy ? 90 : 50, heavy ? F.shakeHeavy : F.shake); vibrate(F.vibrateMs); }
+      const k = heavy ? 0.6 : 0.35; this.p.setVelocity(-Math.cos(a) * F.lungeSpeed * k, -Math.sin(a) * F.lungeSpeed * k); } // recoil on our side too
   }
   dodge() {
     const now = this.h.time.now, p = this.p;
     if (G.paused || p.busy || p.dashing || now < this.dodgeReady) return false;
-    this.release(); this.step = 0;
+    if (now < this.swingUntil && now - this.swingStart < F.rollCancelAfterMs) return false; // the hit frames commit; recovery can be rolled out of
+    const cancelled = now < this.swingUntil; this.swingUntil = now; this.queue = []; p.poseUntil = 0; p.slow = 1;
+    this.release(); this.step = 0; if (cancelled) (this.stats as any).rollCancels = ((this.stats as any).rollCancels ?? 0) + 1;
     const v = p.readInput(), a = v.length() > 0.3 ? Math.atan2(v.y, v.x) : Math.atan2(DIRV[p.facing][1], DIRV[p.facing][0]);
     if (!p.dodge(a)) return false;
-    const ms = has('skateboard') ? G.w.player.dashMs : G.w.player.dodgeMs ?? 220; this.dodgeEnd = now + ms;
-    this.dodgeReady = now + G.w.player.dashCooldownMs; this.stats.dodges++;
-    const b = document.getElementById('dash'); b?.classList.add('cool'); this.h.time.delayedCall(G.w.player.dashCooldownMs, () => b?.classList.remove('cool'));
+    const ms = has('skateboard') ? G.w.player.dashMs : F.dodgeMs; this.dodgeEnd = now + ms;
+    this.dodgeReady = now + F.dodgeCooldownMs; this.stats.dodges++;
+    const b = document.getElementById('dash'); b?.classList.add('cool'); this.h.time.delayedCall(F.dodgeCooldownMs, () => b?.classList.remove('cool'));
     return true;
   }
   /** attack tokens: only MAX_ATTACKERS may wind up at once; only MAX_ENGAGED close in, the rest hang back */
@@ -218,8 +224,8 @@ export class Combat {
   update(dt: number) {
     if (hitStopStuck()) endHitStop();
     const now = this.h.time.now, p = this.p; if (!p?.active) return;
-    if (this.buffered && now >= this.swingUntil) { if (now <= this.buffered && !G.paused && !p.busy) this.attack(); this.buffered = 0; }
-    if (now < this.swingUntil) p.slow = 0.25; else p.slow = this.holding ? 0.55 : 1;
+    if (this.queue.length && now >= this.swingUntil) { const t = this.queue.shift()!; if (now <= t + F.swingMs && !G.paused && !p.busy && !p.dashing) this.attack(); else this.queue = []; }
+    if (now < this.swingUntil) p.slow = F.swingSlow; else p.slow = this.holding ? 0.55 : 1;
     if (this.holding && has('drive') && now - this.holdAt > CHARGE_START && now >= this.swingUntil && !G.paused) {
       const k = Math.min(1, (now - this.holdAt - CHARGE_START) / (CHARGE_FULL - CHARGE_START)), g = this.ring.clear();
       p.pose('charge', 120);

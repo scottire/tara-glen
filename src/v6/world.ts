@@ -10,6 +10,7 @@ import { Ents, Walker, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, zoneAt } from './fx';
 import { applyUrlState, debugPanel } from './debug';
+import { practiceYard, feelOverlay, cameraLead } from '../v12/feel';
 import { Combat, abilityMoment } from '../v9/combat';
 import { Arenas, Checkpoints, LivingDoors, wireObjective } from '../v9/arena';
 import CARAVAN_ART from '../../public/assets/art.json';
@@ -32,7 +33,7 @@ export class World extends Phaser.Scene implements Host {
   overview = params.has('overview');
   migrated: string[] = [];
   solids!: Phaser.Physics.Arcade.StaticGroup; gateSolids!: Phaser.Physics.Arcade.StaticGroup;
-  ground!: Phaser.Tilemaps.TilemapLayer; bike!: Phaser.GameObjects.Sprite; riding = false;
+  camBaseY = 0; ground!: Phaser.Tilemaps.TilemapLayer; bike!: Phaser.GameObjects.Sprite; riding = false;
   gates: Record<string, { img: Phaser.GameObjects.TileSprite; body: Phaser.GameObjects.Zone }> = {};
   lockObjs: { l: any; body?: Phaser.GameObjects.Zone; sprites: Phaser.GameObjects.Image[]; open: boolean }[] = [];
   said = new Map<string, Phaser.Geom.Rectangle>(); doorArmed = true; lastSafe: [number, number] = [0, 0];
@@ -84,6 +85,7 @@ export class World extends Phaser.Scene implements Host {
   }
 
   build(chunk: number, cols: number, rows: number, shoreX: number) {
+    (this as any).groundChunk = chunk;
     const anims = this.anims;
     for (const k of ['sparkle', 'bush', 'cat', 'gullsit', 'bonfire']) if (!anims.exists('d-' + k)) anims.create({ key: 'd-' + k, frames: anims.generateFrameNumbers('d-' + k, {}), frameRate: k === 'bonfire' ? 6 : 2, repeat: -1 });
     if (!anims.exists('dog-idle')) anims.create({ key: 'dog-idle', frames: anims.generateFrameNumbers('dog', {}), frameRate: 2, repeat: -1 });
@@ -163,7 +165,7 @@ export class World extends Phaser.Scene implements Host {
     for (const d of G.w.decor) if (d.lines) this.ents.things.push({ kind: 'decor', e: { ...d, x: d.x * 16 + 8, y: d.y * 16 + 8 }, obj: (d as any).obj });
     for (const a of G.w.ambient) { const wk = new Walker(this, a, this.pather); this.physics.add.collider(wk, [objects, solids]);
       if (a.barks?.length) this.ents.things.push({ kind: 'decor', e: { lines: [a.barks[Math.floor(Math.random() * a.barks.length)]] }, obj: wk }); } // v9: no filler barks
-    this.combat = new Combat(this); this.arenas = new Arenas(this); this.cps = new Checkpoints(this, this.benches); this.living = new LivingDoors(this);
+    this.combat = new Combat(this); practiceYard(this); feelOverlay(); this.arenas = new Arenas(this); this.cps = new Checkpoints(this, this.benches); this.living = new LivingDoors(this);
     // night + lamps (world event: evening)
     this.night = this.add.rectangle(0, 0, 4000, 4000, 0x101a50, 0.5).setDepth(9e5).setVisible(false); // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
     for (const [x, y] of lamps) this.glows.push(this.add.circle(x, y, 26, 0xffd27a, 0.22).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
@@ -188,7 +190,7 @@ export class World extends Phaser.Scene implements Host {
       cam.startFollow(this.player, true);
       // v9: keep the action in the upper-middle, clear of the thumbs (player sits ~12% above centre on portrait screens)
       const fit = () => { const z = Math.max(1, Math.round(Math.min(this.scale.width, this.scale.height) / 288)); cam.setZoom(z);
-        cam.setFollowOffset(0, this.scale.height > this.scale.width ? -Math.round(this.scale.height / z * 0.12) : 0); };
+        this.camBaseY = this.scale.height > this.scale.width ? -Math.round(this.scale.height / z * 0.12) : 0; cam.setFollowOffset(0, this.camBaseY); };
       fit(); this.scale.on('resize', fit);
     }
     document.title = G.w.title; wireButtons(); wireObjective(); debugPanel(this);
@@ -405,7 +407,7 @@ export class World extends Phaser.Scene implements Host {
     if (this.riding && this.onSand()) { this.toggleBike(); toast(S('offSand')); }
     if ((p as any).hopping) return;
     const moving = p.drive(p.readInput(), this.riding ? BIKE_SPEED : G.w.start.walk * (count('trainers') ? 1.15 : 1));
-    const f = p.facing;
+    const f = p.facing; if (!this.overview) cameraLead(this, this.camBaseY, this.riding);
     if (this.riding) {
       this.bike.setPosition(p.x, p.y + 2).setDepth(p.depth - 0.5); p.setDisplayOrigin(12, 17);
       if (moving) this.bike.anims.play('bike-' + f, true); else { this.bike.anims.stop(); this.bike.setFrame(DIRS.indexOf(f)); }
