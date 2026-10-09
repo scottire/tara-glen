@@ -67,5 +67,15 @@ class Grid:
     def caravan(self, seg):
         return next(c for c in self.caravans if c['p'].get('segId') == seg)
 
-    def door_px(self, c):  # outside the front door: bottom centre of the caravan
-        return (c['x'] + c['width'] / 2, c['y'] + c['height'])
+    ART = None
+    def art(self, c):
+        """caravan art: (variant, flip). Variant comes from map.json; h caravans flip on odd segIds for variety."""
+        return (c['p'].get('variant', 0), c['p'].get('orient') == 'h' and c['p'].get('segId', 0) % 2 == 1)
+
+    def door_px(self, c):  # outside the front door, under the door drawn on the sprite (public/assets/art.json)
+        if Grid.ART is None:
+            f = os.path.join(ROOT, 'public/assets/art.json'); Grid.ART = json.load(open(f)) if os.path.exists(f) else {}
+        m = Grid.ART.get(c['p'].get('orient', 'h'))
+        if not m: return (c['x'] + c['width'] / 2, c['y'] + c['height'])
+        fx = 1 - m['doorFx'] if self.art(c)[1] else m['doorFx']
+        return (round(c['x'] - m['ox'] + fx * m['fw']), c['y'] + c['height'])

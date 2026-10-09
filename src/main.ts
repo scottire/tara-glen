@@ -7,7 +7,11 @@ import { World, params } from './v6/world';
 import { Room } from './v6/room';
 import { UI } from './v6/ui';
 
-const DPR = params.has('overview') ? 1 : Math.min(window.devicePixelRatio || 1, 3);
+// Render resolution: the world is drawn with an integer number of device px per world px (camera zoom 4 on a 3x phone).
+// When that number is even we render the canvas at half the device resolution and let CSS (image-rendering: pixelated)
+// double it: identical pixels on screen, a quarter of the fill cost. Text in the canvas is then 1.5x instead of 3x.
+const DEV = Math.min(window.devicePixelRatio || 1, 3), ZD = Math.max(1, Math.round(Math.min(innerWidth, innerHeight) * DEV / 288));
+const DPR = params.has('overview') ? 1 : params.has('fullres') || ZD % 2 || DEV < 2 ? DEV : DEV / 2;
 const game = new Phaser.Game({
   type: Phaser.AUTO, parent: 'game', backgroundColor: '#000000', pixelArt: true, roundPixels: true,
   scale: { mode: Phaser.Scale.NONE, width: innerWidth * DPR, height: innerHeight * DPR, zoom: 1 / DPR },

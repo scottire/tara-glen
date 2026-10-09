@@ -16,7 +16,8 @@ DECOR = {'washing': (32, 24), 'bbq': (16, 16), 'kidbike': (16, 16), 'gas': (16, 
          'chairs': (16, 16), 'cat': (16, 16), 'flowers': (16, 16), 'windbreak2': (32, 16), 'castle': (16, 16), 'towel': (16, 16), 'gullsit': (16, 16),
          'shed': (32, 32), 'hut': (32, 32), 'van': (32, 24), 'sign': (16, 16), 'groyne': (16, 16), 'bonfire': (32, 24), 'flipflop': (16, 16),
          'ball': (16, 16), 'crisps': (16, 16), 'pole': (16, 16), 'cattlegrid': (16, 16), 'roadworks': (16, 16), 'bush': (16, 16), 'sparkle': (16, 16),
-         'curtain': (16, 16), 'wardrobe': (16, 16), 'sandbar': (16, 16), 'tap': (16, 16), 'whitethorn': (16, 16)}
+         'curtain': (16, 16), 'wardrobe': (16, 16), 'sandbar': (16, 16), 'tap': (16, 16), 'whitethorn': (16, 16),
+         'bins': (16, 16), 'flowerbush': (16, 16)}  # last two are drawn by restyle.py (house style)
 ANIM = {'cat', 'gullsit', 'bonfire', 'bush', 'sparkle'}  # 2 frames side by side
 
 

@@ -9,6 +9,7 @@ import { Ents, Walker, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, zoneAt } from './fx';
 import { applyUrlState, debugPanel } from './debug';
+import CARAVAN_ART from '../../public/assets/art.json';
 
 const BIKE_SPEED = 165;
 const PROPS = ['goal', 'tennis-net', 'bench', 'picnic-table', 'bin', 'lamp', 'fence', 'hedge', 'flowerbed',
@@ -44,8 +45,10 @@ export class World extends Phaser.Scene implements Host {
     this.load.image('interior6img', 'assets/v6/interior.png');
     this.load.spritesheet('chest', 'assets/chest.png', { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', 'assets/balloon.png');
-    this.load.spritesheet('caravan-h', 'assets/caravan-h.png', { frameWidth: 72, frameHeight: 48 });
-    this.load.spritesheet('caravan-v', 'assets/caravan-v.png', { frameWidth: 48, frameHeight: 80 });
+    // caravan art overhangs its 72x48 / 48x80 footprint (frame sizes + offsets in art.json, written by scripts/gen/restyle.py)
+    this.load.spritesheet('caravan-h', 'assets/caravan-h.png', { frameWidth: CARAVAN_ART.h.fw, frameHeight: CARAVAN_ART.h.fh });
+    this.load.spritesheet('caravan-v', 'assets/caravan-v.png', { frameWidth: CARAVAN_ART.v.fw, frameHeight: CARAVAN_ART.v.fh });
+    this.load.image('canopy', 'assets/canopy.png'); this.load.json('canopy', 'assets/canopy.json');
     PROPS.forEach((p) => this.load.image(p, `assets/props/${p}.png`));
     ['clubhouse', 'waves', 'foam', 'gate-h', 'gate-v', 'spot'].forEach((k) => this.load.image(k, `assets/${k}.png`));
     this.load.spritesheet('bike', 'assets/bike.png', { frameWidth: 24, frameHeight: 24 });
@@ -77,29 +80,37 @@ export class World extends Phaser.Scene implements Host {
     const ground = this.ground = map.createLayer('ground', tiles)!.setVisible(false) as Phaser.Tilemaps.TilemapLayer;
     const objects = map.createLayer('objects', tiles)! as Phaser.Tilemaps.TilemapLayer;
     for (const [x, y, gid] of G.w.barrierTiles) objects.putTileAt(gid, x, y); // generated hedge line + roadworks
-    map.createLayer('roofs', tiles)!.setDepth(5e5);
+    // trees: trunks are baked into the ground chunks, canopies into a deduplicated tileset drawn above the player
+    // (scripts/gen/ground.py); the old roofs layer is empty and the trunk tiles in `objects` keep the collision
+    const cj = this.cache.json.get('canopy') as { w: number; h: number; data: number[] }, rowsC: number[][] = [];
+    for (let y = 0; y < cj.h; y++) rowsC.push(cj.data.slice(y * cj.w, (y + 1) * cj.w).map((v) => v - 1));
+    const cmap = this.make.tilemap({ data: rowsC, tileWidth: 16, tileHeight: 16 });
+    cmap.createLayer(0, cmap.addTilesetImage('canopy')!, 0, 0)!.setDepth(5e5);
     ground.setCollision([245]); objects.setCollisionByExclusion([-1]);
     const waves = this.add.tileSprite(shoreX + 24, 0, map.widthInPixels - shoreX, map.heightInPixels, 'waves').setOrigin(0).setDepth(-5).setAlpha(0.7);
     const foam = this.add.tileSprite(shoreX, 0, 32, map.heightInPixels, 'foam').setOrigin(0).setDepth(-4);
     this.tweens.add({ targets: foam, x: shoreX - 4, alpha: 0.6, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     this.events.on('update', () => { waves.tilePositionX -= 0.06; waves.tilePositionY += 0.12; });
+    // static scenery is culled to the camera (a few hundred images; only those near the view are drawn)
+    const statics: Phaser.GameObjects.Image[] = [], cull = <T extends Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Text>(o: T) => { statics.push(o as any); return o; };
     const solids = this.solids = this.physics.add.staticGroup();
     const body = (x: number, y: number, w: number, h: number) => { const z = this.add.zone(x + w / 2, y + h / 2, w, h); solids.add(z); return z; };
     for (const o of map.getObjectLayer('buildings')!.objects) {
-      this.add.image(o.x!, o.y!, o.name).setOrigin(0).setDepth(o.y! + o.height!);
+      cull(this.add.image(o.x!, o.y!, o.name).setOrigin(0).setDepth(o.y! + o.height!));
       const inset = prop(o, 'inset') ?? 0; body(o.x! + 4, o.y! + inset, o.width! - 8, o.height! - inset - 3);
     }
     for (const o of map.getObjectLayer('caravans')!.objects) {
       const key = prop(o, 'orient') === 'v' ? 'caravan-v' : 'caravan-h', inset = key === 'caravan-v' ? 20 : 14;
-      this.add.image(o.x!, o.y!, key, prop(o, 'variant')).setOrigin(0).setDepth(o.y! + o.height!);
+      const a = CARAVAN_ART[key === 'caravan-v' ? 'v' : 'h'], flip = key === 'caravan-h' && prop(o, 'segId') % 2 === 1; // same rule as grid.py Grid.art
+      cull(this.add.image(o.x! - a.ox, o.y! + o.height! - a.fh, key, prop(o, 'variant')).setOrigin(0).setFlipX(flip).setDepth(o.y! + o.height!));
       body(o.x! + 2, o.y! + inset, o.width! - 4, o.height! - inset - 2);
       const lab = prop(o, 'label') ?? (params.has('ids') ? String(prop(o, 'segId')) : null);
-      if (prop(o, 'home') || [127, 131].includes(prop(o, 'segId'))) this.add.text(o.x! + o.width! / 2, o.y! + o.height! - 3, lab ?? String(prop(o, 'segId')), { fontFamily: 'monospace', fontSize: '24px', color: '#fff', stroke: '#3a2a20', strokeThickness: 4 })
-        .setOrigin(0.5).setScale(0.25).setDepth(o.y! + o.height! + 1).texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      if (prop(o, 'home') || [127, 131].includes(prop(o, 'segId'))) cull(this.add.text(o.x! + o.width! / 2, o.y! + o.height! - 3, lab ?? String(prop(o, 'segId')), { fontFamily: 'monospace', fontSize: '24px', color: '#fff', stroke: '#3a2a20', strokeThickness: 4 })
+        .setOrigin(0.5).setScale(0.25).setDepth(o.y! + o.height! + 1)).texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
     }
     const lamps: [number, number][] = [];
     for (const o of map.getObjectLayer('props')!.objects) {
-      const img = this.add.image(o.x!, o.y!, o.name).setFlipY(!!prop(o, 'flipY'));
+      const img = cull(this.add.image(o.x!, o.y!, o.name).setFlipY(!!prop(o, 'flipY')));
       if (prop(o, 'w')) img.setDisplaySize(prop(o, 'w'), img.height);
       img.setDepth(img.y + img.height / 2);
       if (SOLID.has(o.name)) { const bh = Math.min(10, img.height * 0.6); body(img.x - img.displayWidth / 2 + 1, img.y + img.height / 2 - bh, img.displayWidth - 2, bh); }
@@ -114,11 +125,14 @@ export class World extends Phaser.Scene implements Host {
     }
     // generated decor (solid ones get bodies)
     for (const d of G.w.decor) {
-      const s = this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite).setOrigin(0.5, 1).setDepth(d.y * 16 + 14);
+      const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite).setOrigin(0.5, 1).setDepth(d.y * 16 + 14));
       if (d.anim || G.w.decorAnim.includes(d.sprite)) s.play({ key: 'd-' + d.sprite, startFrame: Math.floor(Math.random() * 2) });
       if (d.solid) { const w = s.width; body(d.x * 16 + 8 - w / 2 + 2, d.y * 16 + 4, w - 4, 11); }
       (d as any).obj = s;
     }
+    const sb = statics.map((o) => o.getBounds());
+    const cullAll = () => { const v = this.cameras.main.worldView, m = 48; for (let i = 0; i < statics.length; i++) { const r = sb[i]; statics[i].setVisible(r.right > v.x - m && r.x < v.right + m && r.bottom > v.y - m && r.y < v.bottom + m); } };
+    this.time.addEvent({ delay: 150, loop: true, callback: cullAll }); this.events.once('postupdate', cullAll);
     const spawnAt = G.w.start.out;
     const at = params.get('at')?.split(',').map(Number);
     const start = at ? [at[0] * 16 + 8, at[1] * 16 + 8] : G.st.pos ?? spawnAt;
