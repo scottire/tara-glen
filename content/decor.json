@@ -204,6 +204,26 @@
     "A gull. It's staring at your pockets.",
     "This gull is clearly on lookout duty for Big Gerry."
    ]
+  },
+  {
+   "sprite": "bins",
+   "solid": true,
+   "where": "caravan",
+   "weight": 3,
+   "lines": [
+    "Two wheelie bins. The green one is for 'recycling'. It is full of cans.",
+    "Bin day was Tuesday. Nobody told this caravan."
+   ]
+  },
+  {
+   "sprite": "flowerbush",
+   "solid": true,
+   "where": "caravan",
+   "weight": 3,
+   "lines": [
+    "Somebody's pride and joy. Do not let the ball near it.",
+    "Hydrangeas. Mam says they're blue because of the soil."
+   ]
   }
  ],
  "knock": [

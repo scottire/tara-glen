@@ -72,6 +72,13 @@ palette steps. Local only (numpy, scipy, scikit-image, pillow); outputs are comm
 - Caravan scale: the art overhangs the unchanged 72x48 / 48x80 footprints (roof above, a few px each side), bottom-aligned,
   so bodies, doors and the solver are untouched. Horizontal caravans with an odd `segId` are mirrored (same rule in `grid.py`
   `Grid.art` and `world.ts`); the knock door follows the door drawn on the sprite.
+- `pieces` step: `playground-sheet.png`, `props-sheet.png`, `clubhouse.png` (AI sources) are cut into objects and stylised at prop size;
+  `caravan-end.png` is the end-on caravan. `bins` / `flowerbush` decor are drawn by code (`house_decor`).
+- Performance: trees are not game objects. `ground.py` bakes trunks into the ground chunks and canopies into a deduplicated
+  tileset (`canopy.png` + `canopy.json`, drawn as one tilemap layer above the player); static scenery is culled to the camera;
+  on phones where the world zoom in device px is even (zoom 4 on a 3x phone) the canvas renders at half resolution and CSS
+  doubles it pixel-perfectly (`?fullres` turns that off).
+- Order: `restyle.py` → `build.py` → `ground.py` (ground reads decor + door positions), then `build.py --check`.
 - Interiors (`assets/v6/interior.png`) are not restyled yet.
 
 `map.json` layers: tile layers `ground` (hidden; sea collision + sand lookup), `objects` (tree trunks, collide), `roofs` (canopies, drawn above

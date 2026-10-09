@@ -94,7 +94,7 @@ def caravan_v(fw=52, fh=90):
 def caravan_sheets(out_dir):
     """writes caravan-h.png / caravan-v.png (3 palette variants side by side) and returns frame + door metadata (restyle.py writes it to art.json)"""
     import json
-    h = caravan_h(); v = caravan_v()
+    h = caravan_h(); v = caravan_end()
     meta = {}
     for name, base, foot in (('h', h, (72, 48)), ('v', v, (48, 80))):
         fh, fw = base.shape; sheet = Image.new('RGBA', (fw * 3, fh))
@@ -102,8 +102,26 @@ def caravan_sheets(out_dir):
         sheet.save(os.path.join(out_dir, f'caravan-{name}.png'))
         meta[name] = {'fw': fw, 'fh': fh, 'ox': (fw - foot[0]) // 2, 'oy': fh - foot[1], 'doorFx': DOOR_FX[name]}
     return meta
-ROOF_ROWS = {'h': lambda fh: int(fh * 0.4), 'v': lambda fh: fh - 30}
-DOOR_FX = {'h': 0.72, 'v': 0.5}   # door centre as a fraction of the sprite width (unflipped); measured on the sheet
+ROOF_ROWS = {'h': lambda fh: int(fh * 0.4), 'v': lambda fh: int(fh * 0.68)}
+DOOR_FX = {'h': 0.72, 'v': 0.34}   # door centre as a fraction of the sprite width (unflipped); measured on the sheet
+
+def caravan_end(fw=50, fh=96):
+    """caravan-end AI source (long pitched roof seen end-on, door + step on the gable) at game scale; slightly squashed
+    vertically (source aspect 0.5, frame 0.52) so it covers the 48x80 footprint with 16px of roof above"""
+    a = S.snap_grid(enh(src('caravan-end'), 1.1, 1.05), fw, fh, denoise=False)
+    idx = S.to_palette(a, 14, ['roof', 'wood', 'cream', 'glass', 'white', 'stone']); idx = S.limit_ramp_steps(idx, 4); idx = S.cleanup(idx, 1)
+    return S.outline(idx)
+
+# ---------------- AI sheet pieces at prop size ----------------
+def fit(im, W, H, k=12, ramps=None, sat=1.1, squash=1.0, align='bottom'):
+    """stylise a keyed source to fit inside W x H (aspect kept, optional vertical squash), pasted bottom-centre"""
+    r = min(W / im.width, H / (im.height * squash)); w, h = max(1, round(im.width * r)), max(1, round(im.height * squash * r))
+    sp = S.stylise(enh(im, sat, 1.05), w, h, k, ramps, denoise=False, cleanup_passes=1)
+    out = Image.new('RGBA', (W, H)); out.paste(sp, ((W - w) // 2, H - h if align == 'bottom' else (H - h) // 2)); return out
+
+def pieces(name):
+    from .keying import key_parts
+    return key_parts(os.path.join(HERE, 'src', name + '.png'))
 
 # ---------------- generic restyle for existing native-size sprites ----------------
 def _lab(rgb):
@@ -143,3 +161,21 @@ def tree_sheet(out_dir, w=48):
         vs.append(v)
     sheet = np.concatenate(vs, 1); S.render(sheet).save(os.path.join(out_dir, 'trees.png'))
     return {'fw': W, 'fh': H}
+
+# ---------------- house-style decor drawn by code (16x16, anchor bottom centre) ----------------
+def house_decor():
+    def canvas(): return np.full((16, 16), -1, int)
+    out = {}
+    b = canvas()                                                     # two wheelie bins: green + grey
+    for x0, r in ((1, 'leaf'), (8, 'tarmac')):
+        b[4:15, x0:x0 + 7] = I(r, 2); b[4:15, x0 + 5:x0 + 7] = I(r, 1); b[4:6, x0:x0 + 7] = I(r, 3); b[4, x0 + 1:x0 + 6] = I(r, 4)
+        b[7, x0 + 1:x0 + 6] = I(r, 1); b[15, x0 + 1] = I('tarmac', 0); b[15, x0 + 5] = I('tarmac', 0)
+    out['bins'] = S.render(S.outline(b))
+    f = canvas(); yy, xx = np.mgrid[0:16, 0:16]; d = ((xx - 7.5) / 7.2) ** 2 + ((yy - 9) / 6.2) ** 2
+    f[d < 1] = I('leaf', 2); f[(d < 1) & ((xx - 5) ** 2 + (yy - 6) ** 2 < 10)] = I('leaf', 3); f[(d < 1) & (xx + yy > 19)] = I('leaf', 1)
+    rng = np.random.default_rng(7)
+    for _ in range(9):
+        y, x = int(rng.integers(4, 13)), int(rng.integers(2, 14))
+        if d[y, x] < 0.75: f[y, x] = I('pink', 3) if rng.random() < 0.5 else I('blue', 3); f[y - 1, x] = I('white', 1) if rng.random() < 0.3 else f[y - 1, x]
+    out['flowerbush'] = S.render(S.outline(f))
+    return out

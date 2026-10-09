@@ -1,7 +1,7 @@
 # Tara Glen generator report
 
-seed 1987 · 136 entities · 19 NPCs · 24 ambient walkers · 169 decor · 25 interiors · 200 knock doors
-coverage 95.0% (radius 12, 31 fill items) · hiders 12 · shells 10 · coins 35 (shop 5) · max hearts at end 7
+seed 1987 · 136 entities · 19 NPCs · 23 ambient walkers · 222 decor · 25 interiors · 200 knock doors
+coverage 95.5% (radius 12, 19 fill items) · hiders 12 · shells 10 · coins 35 (shop 5) · max hearts at end 7
 
 ## Progression (solver spheres)
 ### Sphere 0

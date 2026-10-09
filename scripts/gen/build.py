@@ -356,7 +356,7 @@ def place_decor(rule, t):
     decor.append(d); return True
 for z in WD['zones']:
     zid = z['id']; cars = [c for c in G.caravans if zone_at(int((c['x'] + c['width'] / 2) // 16), int((c['y'] + c['height'] / 2) // 16)) == zid]
-    n = int(len(cars) * 0.45 * z.get('decor', 1)) + (12 if z.get('beach') else 0)
+    n = int(len(cars) * 0.75 * z.get('decor', 1)) + (12 if z.get('beach') else 0)
     for _ in range(n):
         if z.get('beach') and rng.random() < 0.8:
             rule = pick_rule(['beach'])
