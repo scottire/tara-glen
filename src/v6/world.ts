@@ -17,6 +17,9 @@ const PROPS = ['goal', 'tennis-net', 'bench', 'picnic-table', 'bin', 'lamp', 'fe
 const SOLID = new Set(['bench', 'picnic-table', 'bin', 'lamp', 'signpost', 'fence', 'hedge', 'car-red', 'car-blue', 'car-silver', 'windbreak', 'minigolf-hut',
   'swings', 'slide', 'roundabout', 'climbing-frame']);
 export const params = new URLSearchParams(location.search);
+// cache-busting: every asset URL carries the build id, so a new deploy never mixes new code with cached old images/JSON
+declare const __BUILD__: string;
+const V = (u: string) => `${u}?v=${__BUILD__}`;
 type Obj = Phaser.Types.Tilemaps.TiledObject;
 const prop = (o: Obj, k: string) => (o.properties as { name: string; value: any }[] | undefined)?.find((p) => p.name === k)?.value;
 
@@ -34,32 +37,32 @@ export class World extends Phaser.Scene implements Host {
   hunt: { e: any; items: Phaser.GameObjects.Image[]; left: number } | null = null;
 
   preload() {
-    this.load.json('world', 'world.json'); this.load.json('rooms', 'rooms.json');
-    this.load.image('tiles', 'assets/tiles.png'); this.load.tilemapTiledJSON('map', 'assets/map.json');
-    this.load.spritesheet('player', 'assets/player.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('chars', 'assets/v6/chars.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('dog', 'assets/v6/dog.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('monsters', 'assets/v6/monsters.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('items', 'assets/v6/items.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('interior6', 'assets/v6/interior.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.image('interior6img', 'assets/v6/interior.png');
-    this.load.spritesheet('chest', 'assets/chest.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.image('balloon', 'assets/balloon.png');
+    this.load.json('world', V('world.json')); this.load.json('rooms', V('rooms.json'));
+    this.load.image('tiles', V('assets/tiles.png')); this.load.tilemapTiledJSON('map', V('assets/map.json'));
+    this.load.spritesheet('player', V('assets/player.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('chars', V('assets/v6/chars.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('dog', V('assets/v6/dog.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('monsters', V('assets/v6/monsters.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('items', V('assets/v6/items.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('interior6', V('assets/v6/interior.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.image('interior6img', V('assets/v6/interior.png'));
+    this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.image('balloon', V('assets/balloon.png'));
     // caravan art overhangs its 72x48 / 48x80 footprint (frame sizes + offsets in art.json, written by scripts/gen/restyle.py)
-    this.load.spritesheet('caravan-h', 'assets/caravan-h.png', { frameWidth: CARAVAN_ART.h.fw, frameHeight: CARAVAN_ART.h.fh });
-    this.load.spritesheet('caravan-v', 'assets/caravan-v.png', { frameWidth: CARAVAN_ART.v.fw, frameHeight: CARAVAN_ART.v.fh });
-    this.load.image('canopy', 'assets/canopy.png'); this.load.json('canopy', 'assets/canopy.json');
-    PROPS.forEach((p) => this.load.image(p, `assets/props/${p}.png`));
-    ['clubhouse', 'waves', 'foam', 'gate-h', 'gate-v', 'spot'].forEach((k) => this.load.image(k, `assets/${k}.png`));
-    this.load.spritesheet('bike', 'assets/bike.png', { frameWidth: 24, frameHeight: 24 });
+    this.load.spritesheet('caravan-h', V('assets/caravan-h.png'), { frameWidth: CARAVAN_ART.h.fw, frameHeight: CARAVAN_ART.h.fh });
+    this.load.spritesheet('caravan-v', V('assets/caravan-v.png'), { frameWidth: CARAVAN_ART.v.fw, frameHeight: CARAVAN_ART.v.fh });
+    this.load.image('canopy', V('assets/canopy.png')); this.load.json('canopy', V('assets/canopy.json'));
+    PROPS.forEach((p) => this.load.image(p, V(`assets/props/${p}.png`)));
+    ['clubhouse', 'waves', 'foam', 'gate-h', 'gate-v', 'spot'].forEach((k) => this.load.image(k, V(`assets/${k}.png`)));
+    this.load.spritesheet('bike', V('assets/bike.png'), { frameWidth: 24, frameHeight: 24 });
   }
 
   create() {
     G.w = this.cache.json.get('world'); applyUrlState();
-    for (const [k, [w, h]] of Object.entries<number[]>(G.w.decorSizes)) this.load.spritesheet('d-' + k, `assets/v6/decor/${k}.png`, { frameWidth: w, frameHeight: h });
+    for (const [k, [w, h]] of Object.entries<number[]>(G.w.decorSizes)) this.load.spritesheet('d-' + k, V(`assets/v6/decor/${k}.png`), { frameWidth: w, frameHeight: h });
     const mp = this.cache.tilemap.get('map').data.properties as { name: string; value: number }[];
     const P = (k: string) => mp.find((p) => p.name === k)!.value;
-    for (let y = 0; y < P('groundRows'); y++) for (let x = 0; x < P('groundCols'); x++) this.load.image(`g_${x}_${y}`, `assets/ground/g_${x}_${y}.png`);
+    for (let y = 0; y < P('groundRows'); y++) for (let x = 0; x < P('groundCols'); x++) this.load.image(`g_${x}_${y}`, V(`assets/ground/g_${x}_${y}.png`));
     this.load.once('complete', () => this.build(P('groundChunk'), P('groundCols'), P('groundRows'), P('shoreX')));
     this.load.start();
   }
