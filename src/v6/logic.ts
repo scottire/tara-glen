@@ -97,6 +97,10 @@ export function migrateSave(): string[] {
     else if (e.give) st.items[e.give] = count(e.give) + (e.n ?? 1);
     if (e.set) setFlag(e.set);
   } };
+  if (from < 11) { // v11 renamed/moved fights: keep what an older save already won
+    if (flag('arena:arena_strand') && !flag('arena:arena_green')) setFlag('arena:arena_green');
+    if (flag('clear:m377') && !count('dashstrike')) { st.items.dashstrike = 1; granted.push('dashstrike'); }
+  }
   for (const e of G.w.entities) {
     if (e.type === 'enemy' && st.got.includes(e.id)) // beaten boss: only its fight abilities (other drops were paid at the time)
       grant((e.drops ?? []).filter((d: any) => d.give && G.w.items[d.give]?.how));

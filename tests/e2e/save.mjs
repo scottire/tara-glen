@@ -1,4 +1,4 @@
-// v10 objective + save migration (playwright-core + system Chrome, iPhone 13). node save.mjs [baseUrl]
+// v10/v11 objective + save migration (playwright-core + system Chrome, iPhone 13). node save.mjs [baseUrl]
 // A: fresh run clears 131 with real taps -> Power Drive, and the HUD objective moves past the Dust Bunny at once.
 // B: a v9-shaped save (131, the Back Field arena, Mobile 377 and the Dunes already won, no v10 rewards) loads with them granted, and loads again idempotently.
 import { chromium, devices } from 'playwright-core';
@@ -26,7 +26,7 @@ await page.waitForTimeout(300);
 R.A_afterClear = { drive: await ev(() => tgTest.G.st.items.drive ?? 0), objective: await obj() };
 await ev(() => tgTest.adv(10)); await ev(() => window.room.leave()); await page.waitForTimeout(1500); await ev(() => tgTest.adv(10));
 R.A_outside = await obj();
-R.A_ok = R.A_afterClear.drive === 1 && !/Dust Bunny/.test(R.A_afterClear.objective) && /rotten gate/.test(R.A_outside);
+R.A_ok = R.A_afterClear.drive === 1 && !/Dust Bunny/.test(R.A_afterClear.objective) && /brambles/i.test(R.A_outside);
 // B
 const v9 = { items: { throw: 1, balloons: 3, bucket: 0, coin: 7 }, flags: ['ev:intro', 'visited_z1', 'visited_z2', 'clear:131', 'arena:arena_field', 'clear:m377', 'arena:arena_strand', 'open:gate_g1'],
   got: ['boss131', 'chest131'], defeated: ['boss131'], maxhp: 3, hp: 3, elapsed: 600000, started: true, room: null, pos: [0, 0], hintTier: {}, seenZones: ['z1', 'z2'] };
@@ -38,7 +38,7 @@ const read = () => ev(() => { const s = tgTest.G.st; return { v: s.v, drive: s.i
 R.B_load1 = await read();
 await page.reload(); await page.waitForTimeout(4500); await ev(() => tgTest.adv(10));
 R.B_load2 = await read();
-const ok = (s) => s.v === 10 && s.drive && s.chip && s.dashstrike && !s.parry && s.maxhp === 4 && !/Dust Bunny|Back Field/.test(s.objective);
+const ok = (s) => s.v === 11 && s.drive && s.chip && s.dashstrike && !s.parry && s.maxhp === 4 && !/Dust Bunny|Back Field/.test(s.objective);
 R.B_ok = ok(R.B_load1) && ok(R.B_load2) && R.B_load2.enc.length === R.B_load1.enc.length;
 R.errors = errs.slice(0, 6); console.log(JSON.stringify(R, null, 1)); await b.close();
 process.exit(R.A_ok && R.B_ok && !errs.length ? 0 : 1);

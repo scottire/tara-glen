@@ -23,7 +23,7 @@ for (let i = 0; i < 50 && Object.keys(seen).length < 3; i++) { await page.waitFo
   for (const a of r.w) if (!seen[a]) { seen[a] = 1; await shot('telegraph-' + a); } proj = Math.max(proj, r.orbs); }
 R.telegraph = { windups: Object.keys(seen), projectilesSeen: proj, armor: await ev(() => tgTest.scene().enemies.filter((e) => e.armor).map((e) => e.ai + ':' + e.armor)) };
 await ev(() => { tgTest.G.god = false; });
-await page.goto(base + '?fresh&give=drive&room=m328'); await page.waitForTimeout(4500);
+await page.goto(base + '?fresh&give=drive&room=m123'); await page.waitForTimeout(4500);
 R.room = await ev(() => ({ room: tgTest.G.st.room, locked: tgTest.scene().locked, enemies: tgTest.scene().enemies.length, objective: document.getElementById('objective').textContent, atk: document.getElementById('atk').textContent }));
 // put an enemy 45deg off the player's facing (auto-aim cone) and freeze its AI so the combo lands
 const setup = () => ev(() => { const s = tgTest.scene(), p = s.player, e = s.enemies.find((e) => e.active && e.sm.current !== 'dead');
@@ -49,7 +49,7 @@ R.dodge.iframesOk = R.dodge.hp === hp0;
 // clear the room -> unlock + persistence flag
 await ev(() => { tgTest.G.god = false; for (const e of tgTest.scene().enemies) if (e.active && e.sm.current !== 'dead') { e.armor = 0; e.life.life = 1; e.hitBy(null, 5, 100, true, tgTest.scene().player); } });
 await page.waitForTimeout(800);
-R.cleared = await ev(() => ({ locked: tgTest.scene().locked, flag: tgTest.G.st.flags.includes('clear:m328') })); await shot('cleared');
+R.cleared = await ev(() => ({ locked: tgTest.scene().locked, flag: tgTest.G.st.flags.includes('clear:m123') })); await shot('cleared');
 // walk out the door -> World, checkpoint at the door
 await ev(() => { const s = tgTest.scene(); const [ex, ey] = s.def.exit; s.player.body.reset(ex * 16 + 8, ey * 16 - 10); });
 await page.keyboard.down('ArrowDown'); await page.waitForTimeout(900); await page.keyboard.up('ArrowDown'); await page.waitForTimeout(800);
@@ -60,7 +60,7 @@ await page.waitForTimeout(1800);
 R.respawn = await ev(() => ({ pos: [Math.round(tg.player.x), Math.round(tg.player.y)], cp: tgTest.G.st.cp, hp: tgTest.G.st.hp }));
 R.respawn.ok = Math.hypot(R.respawn.pos[0] - R.respawn.cp[0], R.respawn.pos[1] - R.respawn.cp[1]) < 4;
 // re-enter cleared room: no enemies, door open
-await ev(() => tg.enterRoom('m328')); await page.waitForTimeout(1500);
+await ev(() => tg.enterRoom('m123')); await page.waitForTimeout(1500);
 R.reenter = await ev(() => ({ enemies: tgTest.scene().enemies.length, locked: tgTest.scene().locked }));
 // arena
 await page.goto(base + '?fresh'); await page.waitForTimeout(4500);
