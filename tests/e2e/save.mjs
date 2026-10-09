@@ -31,7 +31,7 @@ R.A_ok = R.A_afterClear.drive === 1 && !/Dust Bunny/.test(R.A_afterClear.objecti
 const v9 = { items: { throw: 1, balloons: 3, bucket: 0, coin: 7 }, flags: ['ev:intro', 'visited_z1', 'visited_z2', 'clear:131', 'arena:arena_field', 'clear:m377', 'arena:arena_strand', 'open:gate_g1'],
   got: ['boss131', 'chest131'], defeated: ['boss131'], maxhp: 3, hp: 3, elapsed: 600000, started: true, room: null, pos: [0, 0], hintTier: {}, seenZones: ['z1', 'z2'] };
 await page.goto(base + '?fresh'); await page.waitForTimeout(2500);
-await ev((s) => { s.pos = [tg.player.x, tg.player.y]; localStorage.setItem('tara-glen-save-v6', JSON.stringify(s)); location.href = location.pathname; }, v9);
+await ev((s) => { s.pos = [tg.player.x, tg.player.y]; localStorage.setItem('tara-glen-save-v6', JSON.stringify(s)); Storage.prototype.setItem = () => {}; /* v11.2: the running game flushes on pagehide */ location.href = location.pathname; }, v9);
 await page.waitForTimeout(4500);
 const read = () => ev(() => { const s = tgTest.G.st; return { v: s.v, drive: s.items.drive ?? 0, chip: s.items.chip ?? 0, dashstrike: s.items.dashstrike ?? 0, parry: s.items.parry ?? 0, maxhp: s.maxhp,
   enc: s.got.filter((g) => g.startsWith('enc_')).sort(), banner: document.getElementById('banner').textContent, objective: document.getElementById('objective').textContent }; });
