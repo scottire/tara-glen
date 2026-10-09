@@ -59,3 +59,20 @@ Sources (read at HEAD on 2026-10-09):
 - Roll: i-frames (existing `dashing`), cooldown, dust trail, squash, momentum carried out of the roll.
 - Hit feedback: hitstop, knockback both sides, white flash, shake, particles, damage popups, sfx.
 - Practice yard by the caravan (Area 1): two training posts that take hits forever and spring back, plus a slow respawning practice bunny that can bump you (faint = respawn, as before). Disable with `?nofeelyard`.
+
+## Pass 2 (all in feel.json + ?feel sliders)
+
+| Key | Value | Basis |
+|---|---|---|
+| blinkMs / blinkAlpha | 66 / 0.15 | hard on/off flicker for the whole invulnMs (900 ≈ Z3 countdown_for_blink 58 f); Z3 blinks Link's sprite on alternate frames |
+| enemyHitstunMs / enemyKnockMul | 250 / 1.7 | Z3 sprite_F 15 f stun; knockback strengthened |
+| postWobble | 1.6 | training posts swing and slide further |
+| finisherHitstopMs / finisherShake / finisherShakeMs | 140 / 0.009 / 160 | last combo hit: ~8 f freeze vs 3 f normal, bigger shake, low "finisher" synth thump, longer vibrate |
+| bufferMax | 2 | multi-press queue: up to 2 presses held during a swing, each valid bufferMs × position; mashing 3x = full combo |
+| rollCancelAfterMs | 60 | a roll can cancel a swing after its first 60 ms (the hit frames); Minish Cap lets the roll interrupt the sword's recovery |
+| rollIframeMs | 220 | i-frames from the first frame of the roll for its whole length (existing `dashing` flag) |
+| cornerPx / cornerStep | 5 / 1 | Celeste-style corner correction: when blocked pushing along an axis, if shifting up to 5 px sideways frees the path, slide 1 px/frame that way (Celeste corrects up to 4 px on dashes/jumps, Player.cs DashCornerCorrection / UpwardCornerCorrection) |
+| camLead / camLeadBike / camLerp | 22 / 10 / 0.06 | camera look-ahead in the movement direction (px), eased per frame; reduced on the bike |
+| trailMs | 180 | fading crescent slash trail along the swing arc (yellow on heavy hits) |
+| grassEveryMs | 260 | green blade particles when the ground pixel under the feet is grassy |
+| vibrateMs / vibrateFinisherMs | 18 / 40 | navigator.vibrate on hit / finisher / hurt (Android; no-op on iOS) |

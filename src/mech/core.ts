@@ -43,7 +43,7 @@ export class LifeComponent {
 }
 export class InvulnerableComponent { constructor(public invulnerable = false, public afterHitMs = 0) {} }
 
-import { F, steer, animateBody, squash, sfx, dust } from '../v12/feel';
+import { F, steer, animateBody, squash, sfx, dust, cornerCorrect, grassy, rustle, vibrate } from '../v12/feel';
 // ---------- character ----------
 export class Character extends Phaser.Physics.Arcade.Sprite {
   sm = new StateMachine(); life: LifeComponent; invuln: InvulnerableComponent; facing: Dir = 'down';
@@ -66,7 +66,8 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
     return { name: 'hurt', onEnter: ([src, push]) => {
       const s = src as { x: number; y: number }, v = new Phaser.Math.Vector2(this.x - s.x, this.y - s.y).normalize().scale(push as number);
       this.setVelocity(v.x, v.y); this.invuln.invulnerable = true;
-      const blink = this.scene.tweens.add({ targets: this, alpha: 0.2, duration: 80, yoyo: true, repeat: -1 });
+      const pl = this instanceof Player; let on = false; // v12: hard flicker for the player (zelda3 countdown_for_blink), soft pulse for enemies
+      const blink = pl ? this.scene.time.addEvent({ delay: F.blinkMs, loop: true, callback: () => { on = !on; this.setAlpha(on ? F.blinkAlpha : 1); } }) : this.scene.tweens.add({ targets: this, alpha: 0.2, duration: 80, yoyo: true, repeat: -1 });
       this.scene.time.delayedCall(this instanceof Player ? F.recoilMs : F.enemyHitstunMs, () => { if (!this.active) return; this.setVelocity(0, 0); this.sm.set(next); });
       this.scene.time.delayedCall(this.invuln.afterHitMs, () => { blink.remove(); if (!this.active) return; this.setAlpha(1); this.invuln.invulnerable = false; });
     } };
@@ -107,7 +108,7 @@ export class Player extends Character {
       { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.play('h-faint-down'); this.scene.time.delayedCall(900, () => this.scene.events.emit('player-dead')); } });
     this.sm.set('idle');
   }
-  onDamage() { G.st.hp = this.life.life; persist(); this.pose('hurt', 300); this.scene.cameras.main.shake(140, F.hurtShake); sfx('hurt'); squash(this, 1.3, 0.7); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
+  onDamage() { G.st.hp = this.life.life; persist(); this.pose('hurt', 300); this.scene.cameras.main.shake(140, F.hurtShake); sfx('hurt'); vibrate(F.vibrateFinisherMs); squash(this, 1.3, 0.7); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
   revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); this.play('h-idle-' + this.facing); persist(); }
   dashing = false; dashReady = 0; slow = 1; poseUntil = 0;
   /** play a one-off action animation (swing/roll/hurt/...) for `ms`; walking/idle won't override it meanwhile */
@@ -146,6 +147,7 @@ export class Player extends Character {
   drive(v: Phaser.Math.Vector2, speed: number) {
     if (this.busy || this.dashing) return this.dashing;
     speed *= this.slow; const riding = !!(this.scene as any).riding;
+    if (v.length() >= 0.01) cornerCorrect(this, v.x, v.y);
     steer(this.body, v.x * speed, v.y * speed, speed, riding, this.scene.game.loop.delta); // v12: accel/decel instead of instant
     animateBody(this, v.length() >= 0.01, this.scene.game.loop.delta, riding);
     if ((this.scene as any).combat?.swingUntil > this.scene.time.now) return true; // facing locked mid-swing

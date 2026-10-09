@@ -6,7 +6,7 @@
 //   tank    - armour plates absorb normal hits (shown as a blue shield); a charged spin or a combo finisher breaks them
 //   boss    - mini-boss with phases (stats.phases): each phase borrows an archetype, faster each time; last phase calls help
 // Hurt/knockback/invulnerability via the Wispguard-derived Character (MIT, see licenses/wispguard-MIT.txt).
-import { sfx } from '../v12/feel';
+import { sfx, F } from '../v12/feel';
 import Phaser from 'phaser';
 import { Character, G, ensureAnims, type Player } from '../mech/core';
 import type { Pather } from '../mech/path';
@@ -61,7 +61,7 @@ export class Enemy extends Character implements Foe {
     const poise = this.s.boss && !heavy; // bosses only flinch on heavy hits
     if (!poise) this.cancel();
     if (poise) { this.life.takeDamage(dmg); this.onDamage(); if (this.life.life <= 0) this.sm.set('dead'); else this.checkPhase(); return; }
-    this.hurt(from, dmg, push); this.checkPhase();
+    this.hurt(from, dmg, push * F.enemyKnockMul); this.checkPhase();
   }
   checkPhase() {
     if (this.s.ai !== 'boss') return;

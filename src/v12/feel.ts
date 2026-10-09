@@ -46,6 +46,7 @@ export function animateBody(p: Sq, moving: boolean, dt: number, riding: boolean)
   p.setScale(p.sqx * (1 - bob * 0.5), p.sqy * (1 + bob));
   if (moving && (p.body as Phaser.Physics.Arcade.Body).velocity.length() > 20) {
     if ((p.dustT = (p.dustT ?? 0) - dt) <= 0) { p.dustT = riding ? F.dustEveryMs * 0.6 : F.dustEveryMs; dust(p.scene, p.x, p.y + 7); }
+    if (((p as any).grassT = ((p as any).grassT ?? 0) - dt) <= 0) { (p as any).grassT = F.grassEveryMs; if (grassy(p.scene, p.x, p.y + 6)) { rustle(p.scene, p.x, p.y + 7); (p as any).rustles = ((p as any).rustles ?? 0) + 1; } }
   }
 }
 export function dust(scene: Phaser.Scene, x: number, y: number, n = 1) {
@@ -60,9 +61,9 @@ export function dust(scene: Phaser.Scene, x: number, y: number, n = 1) {
 let ac: AudioContext | null = null;
 const audio = () => { try { ac ??= new (window.AudioContext || (window as any).webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; } catch { return null; } };
 addEventListener('pointerdown', () => audio(), { once: true }); addEventListener('keydown', () => audio(), { once: true });
-type Blip = 'swing' | 'hit' | 'heavy' | 'roll' | 'hurt';
+type Blip = 'swing' | 'hit' | 'heavy' | 'roll' | 'hurt' | 'finisher';
 const SFX: Record<Blip, [OscillatorType, number, number, number, boolean]> = { // wave, f0, f1, ms, noise
-  swing: ['triangle', 900, 300, 70, true], hit: ['square', 320, 90, 90, true], heavy: ['square', 220, 50, 140, true], roll: ['sine', 260, 520, 90, true], hurt: ['sawtooth', 420, 110, 200, false],
+  swing: ['triangle', 900, 300, 70, true], hit: ['square', 320, 90, 90, true], heavy: ['square', 220, 50, 140, true], roll: ['sine', 260, 520, 90, true], hurt: ['sawtooth', 420, 110, 200, false], finisher: ['square', 160, 35, 260, true],
 };
 export function sfx(name: Blip) {
   if (!F.sound || G.paused) return; const a = audio(); if (!a || a.state !== 'running') return;
@@ -72,7 +73,7 @@ export function sfx(name: Blip) {
   if (noise) {
     const buf = a.createBuffer(1, Math.ceil(a.sampleRate * d), a.sampleRate), ch = buf.getChannelData(0);
     for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
-    const s = a.createBufferSource(), ng = a.createGain(); ng.gain.value = name === 'swing' || name === 'roll' ? 0.35 : 0.6; s.buffer = buf; s.connect(ng).connect(g); s.start(t);
+    const s = a.createBufferSource(), ng = a.createGain(); ng.gain.value = name === 'finisher' ? 0.9 : name === 'swing' || name === 'roll' ? 0.35 : 0.6; s.buffer = buf; s.connect(ng).connect(g); s.start(t);
   }
 }
 
@@ -88,9 +89,9 @@ export class Dummy extends Phaser.Physics.Arcade.Sprite {
   hitBy(_c: any, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }) {
     this.hits++; flash(this as any, 0xffffff, heavy ? 110 : 80); burst(this.scene, this.x, this.y - 6, heavy ? 0xffe066 : 0xffffff, heavy ? 10 : 6, heavy ? 60 : 40);
     popup(this.scene, this.x, this.y - 8, String(dmg), heavy ? '#ffe066' : '#fff'); sfx(heavy ? 'heavy' : 'hit');
-    const a = Phaser.Math.Angle.Between(from.x, from.y, this.x, this.y); this.setVelocity(Math.cos(a) * push * 0.5, Math.sin(a) * push * 0.5);
+    const a = Phaser.Math.Angle.Between(from.x, from.y, this.x, this.y); this.setVelocity(Math.cos(a) * push * 0.5 * F.postWobble, Math.sin(a) * push * 0.5 * F.postWobble);
     const dir = Math.cos(a) >= 0 ? 1 : -1; this.scene.tweens.killTweensOf(this);
-    this.scene.tweens.add({ targets: this, angle: { from: dir * (heavy ? 28 : 18), to: 0 }, duration: 420, ease: 'Elastic.out' });
+    this.scene.tweens.add({ targets: this, angle: { from: dir * (heavy ? 28 : 18) * F.postWobble, to: 0 }, duration: 520, ease: 'Elastic.out' });
     this.scene.tweens.add({ targets: this, scaleX: { from: 1.25, to: 1 }, scaleY: { from: 0.8, to: 1 }, duration: 200, ease: 'Back.out' });
   }
   preUpdate(t: number, dt: number) {
@@ -133,6 +134,7 @@ export function practiceYard(scene: any) {
 
 // ---------- ?feel overlay ----------
 const RANGES: Partial<Record<FeelKey, [number, number, number]>> = {
+  blinkMs: [20, 200, 2], enemyKnockMul: [0.5, 3, 0.1], postWobble: [0.5, 3, 0.1], finisherHitstopMs: [0, 300, 5], finisherShake: [0, 0.03, 0.001], bufferMax: [1, 4, 1], rollCancelAfterMs: [0, 190, 5], cornerPx: [0, 10, 1], camLead: [0, 60, 1], camLeadBike: [0, 60, 1], camLerp: [0.01, 0.3, 0.01], trailMs: [0, 400, 10], vibrateMs: [0, 80, 2],
   walkAccelMs: [0, 400, 5], walkDecelMs: [0, 400, 5], bikeAccelMs: [0, 1000, 10], bikeDecelMs: [0, 1000, 10], squashStart: [0, 0.4, 0.01], squashStop: [0, 0.4, 0.01], walkBob: [0, 0.2, 0.01],
   swingMs: [80, 400, 5], bufferMs: [0, 400, 10], hitstopMs: [0, 200, 5], hitstopHeavyMs: [0, 250, 5], shake: [0, 0.02, 0.0005], dodgeSpeed: [80, 400, 5], dodgeMs: [80, 500, 10],
   dodgeCooldownMs: [0, 1500, 25], dodgeEndCarry: [0, 1, 0.05], invulnMs: [0, 2000, 50], sound: [0, 0.5, 0.01],
@@ -157,3 +159,57 @@ export function feelOverlay() {
   el.querySelector('#feelhide')!.addEventListener('click', () => { const s = (rows as HTMLElement).style; s.display = s.display === 'none' ? '' : 'none'; });
   document.body.appendChild(el);
 }
+
+// ---------- v2 polish ----------
+export const vibrate = (ms: number) => { try { if (ms > 0) navigator.vibrate?.(ms); } catch { /* iOS: no-op */ } };
+/** slash trail: a fading crescent along the swing arc */
+export function slashTrail(scene: Phaser.Scene, x: number, y: number, a: number, reach: number, arc: number, heavy: boolean, depth: number) {
+  if (F.trailMs <= 0) return;
+  const g = scene.add.graphics().setDepth(depth + 2), col = heavy ? 0xffe066 : 0xffffff, a0 = a - arc / 2, n = 6;
+  for (let i = 0; i < n; i++) { const t0 = a0 + (arc * i) / n, t1 = a0 + (arc * (i + 1)) / n, w = 1 + (heavy ? 3 : 2) * (i / n);
+    g.lineStyle(w, col, 0.25 + 0.6 * (i / n)).beginPath().arc(x, y + 1, reach * 0.8, t0, t1).strokePath(); }
+  scene.tweens.add({ targets: g, alpha: 0, duration: F.trailMs, onComplete: () => g.destroy() });
+}
+/** grass rustle: green blades flick up at the feet when the ground pixel under them is grassy */
+export function grassy(scene: any, x: number, y: number) {
+  const c = scene.groundChunk; if (!c) return false;
+  const k = `g_${Math.floor(x / c)}_${Math.floor(y / c)}`; if (!scene.textures.exists(k)) return false;
+  const px = scene.textures.getPixel(Math.floor(x % c), Math.floor(y % c), k); if (!px) return false;
+  return px.green > px.red * 1.15 && px.green > px.blue * 1.2;
+}
+export function rustle(scene: Phaser.Scene, x: number, y: number) {
+  ensureFxTextures(scene);
+  for (let i = 0; i < 3; i++) { const b = scene.add.image(x + (Math.random() - 0.5) * 6, y, 'fx-dot').setTint(Math.random() < 0.5 ? 0x5fae3a : 0x8fd05a).setDepth(y + 1).setScale(0.4, 0.8);
+    scene.tweens.add({ targets: b, y: y - 4 - Math.random() * 3, x: b.x + (Math.random() - 0.5) * 5, angle: (Math.random() - 0.5) * 90, alpha: 0, duration: 300 + Math.random() * 150, onComplete: () => b.destroy() }); }
+}
+/** Celeste-style corner correction: blocked while pushing along an axis -> slide up to cornerPx sideways if that frees the way */
+function solidAt(scene: any, x: number, y: number, w: number, h: number) {
+  for (const wl of scene.walls ?? []) {
+    if (!wl) continue;
+    if (wl.getTilesWithinWorldXY) { if (wl.getTilesWithinWorldXY(x, y, w, h, { isColliding: true }).length) return true; }
+    else if (wl.getChildren) { for (const o of wl.getChildren()) { const b = o.body; if (b && b.enable !== false && x < b.right && x + w > b.left && y < b.bottom && y + h > b.top) return true; } }
+  }
+  return false;
+}
+export function cornerCorrect(p: Phaser.Physics.Arcade.Sprite, vx: number, vy: number) {
+  const b = p.body as Phaser.Physics.Arcade.Body, s: any = p.scene, N = Math.round(F.cornerPx); if (N <= 0) return 0;
+  const bl = b.blocked as any, tch = b.touching as any;
+  const horiz = Math.abs(vx) > Math.abs(vy) * 1.5 && ((vx > 0 && (bl.right || tch.right)) || (vx < 0 && (bl.left || tch.left)));
+  const vert = Math.abs(vy) > Math.abs(vx) * 1.5 && ((vy > 0 && (bl.down || tch.down)) || (vy < 0 && (bl.up || tch.up)));
+  if (!horiz && !vert) return 0;
+  const dx = horiz ? Math.sign(vx) * 2 : 0, dy = vert ? Math.sign(vy) * 2 : 0;
+  for (let k = 1; k <= N; k++) for (const sg of [1, -1]) {
+    const ox = vert ? sg * k : 0, oy = horiz ? sg * k : 0;
+    if (!solidAt(s, b.x + ox, b.y + oy, b.width, b.height) && !solidAt(s, b.x + ox + dx, b.y + oy + dy, b.width, b.height)) {
+      const st = Math.min(k, F.cornerStep) * sg; if (vert) p.x += st; else p.y += st; (p as any).corrections = ((p as any).corrections ?? 0) + 1; return st;
+    }
+  }
+  return 0;
+}
+/** camera look-ahead: follow offset eases toward the movement direction */
+export function cameraLead(scene: any, baseY: number, riding: boolean) {
+  const cam = scene.cameras.main, v = scene.player.body.velocity, L = riding ? F.camLeadBike : F.camLead, sp = Math.max(1, v.length());
+  const tx = sp > 10 ? -(v.x / sp) * L * Math.min(1, sp / 60) : 0, ty = sp > 10 ? -(v.y / sp) * L * Math.min(1, sp / 60) : 0;
+  const o = cam.followOffset; cam.setFollowOffset(o.x + (tx - o.x) * F.camLerp, o.y + (baseY + ty - o.y) * F.camLerp);
+}
+(window as any).tgFeel = F;
