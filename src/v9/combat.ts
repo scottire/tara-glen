@@ -40,12 +40,21 @@ export function popup(scene: Phaser.Scene, x: number, y: number, text: string, c
   const t = scene.add.text(x, y - 10, text, { fontFamily: 'monospace', fontSize: '28px', fontStyle: 'bold', color, stroke: '#000', strokeThickness: 6 }).setOrigin(0.5).setScale(0.25).setDepth(9.5e5);
   scene.tweens.add({ targets: t, y: y - 22, alpha: 0, duration: 520, ease: 'Cubic.out', onComplete: () => t.destroy() });
 }
-let stopUntil = 0;
-export function hitStop(scene: Phaser.Scene, ms: number) {
-  const now = performance.now(); if (now < stopUntil) return; stopUntil = now + ms;
-  scene.physics.world.pause(); scene.anims.pauseAll();
-  setTimeout(() => { if (!scene.sys?.isActive()) return; scene.physics.world.resume(); scene.anims.resumeAll(); }, ms);
+let stopUntil = 0, stopped: Phaser.Scene | null = null;
+/** v10: hit-stop always restores, even if the scene sleeps/stops mid-pause or the timer is lost (watchdog in Combat.update) */
+export function endHitStop() {
+  const s = stopped; stopped = null; stopUntil = 0; if (!s) return;
+  try { s.physics?.world?.resume(); } catch { /* scene gone */ }
+  try { s.anims?.resumeAll(); } catch { /* */ }
 }
+export function hitStop(scene: Phaser.Scene, ms: number) {
+  const now = performance.now(); if (now < stopUntil) return;
+  if (stopped && stopped !== scene) endHitStop();
+  stopUntil = now + ms; stopped = scene;
+  scene.physics.world.pause(); scene.anims.pauseAll();
+  setTimeout(endHitStop, ms);
+}
+export const hitStopStuck = () => !!stopped && performance.now() > stopUntil + 100;
 /** enemy projectile: a visible glowing orb, dodgeable, stopped by walls */
 export function spit(scene: Phaser.Scene & { player: Player; walls: any[] }, from: { x: number; y: number }, angle: number, speed = 95, dmg = 1) {
   ensureFxTextures(scene);
@@ -67,7 +76,8 @@ export class Combat {
   constructor(public h: HostLike) {
     ensureFxTextures(h);
     this.ring = h.add.graphics().setDepth(9e4); this.slash = h.add.graphics().setDepth(9e4 + 1);
-    const fn = (_: number, dt: number) => this.update(dt); h.events.on('update', fn); h.events.once('shutdown', () => h.events.off('update', fn));
+    const fn = (_: number, dt: number) => this.update(dt); h.events.on('update', fn);
+    h.events.once('shutdown', () => { h.events.off('update', fn); endHitStop(); }); h.events.on('sleep', endHitStop);
     (h as any).combat = this;
   }
   get p() { return this.h.player; }
@@ -146,6 +156,7 @@ export class Combat {
   disengage(e: Foe) { this.engaged.delete(e); this.attackers.delete(e); }
   prune() { for (const s of [this.engaged, this.attackers]) for (const e of s) if (!e.active || e.sm.current === 'dead') s.delete(e); }
   update(dt: number) {
+    if (hitStopStuck()) endHitStop();
     const now = this.h.time.now, p = this.p; if (!p?.active) return;
     if (this.buffered && now >= this.swingUntil) { if (now <= this.buffered && !G.paused && !p.busy) this.attack(); this.buffered = 0; }
     if (now < this.swingUntil) p.slow = 0.25; else p.slow = this.holding ? 0.55 : 1;

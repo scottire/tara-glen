@@ -2,6 +2,7 @@
 // URL: ?snap=<name> (solver snapshot) · ?state=<base64 save> · ?give=item,item:3 · ?flag=a,b · ?tp=z3 | 120,40 | room:131
 //      ?room=<id> · ?at=x,y · ?god · ?hints · ?physics · ?fresh · ?debug (panel)
 // URL states use a scratch save key, so a real playthrough is never touched.
+import { say } from './ui';
 import { G, $, persist, toast } from '../mech/core';
 import { fresh } from '../state';
 import { changed, setFlag, clearFlag, give, currentHint } from './logic';
@@ -87,5 +88,7 @@ export const testApi = {
   give: (k: string, n = 1) => { give(k, n, true); changed(); return G.st.items[k]; },
   state: () => ({ items: G.st.items, flags: G.st.flags.filter((f) => !f.startsWith('ev:') && !f.startsWith('visited')), hp: G.st.hp, maxhp: G.st.maxhp, room: G.st.room }),
 };
-(testApi as any).G = G; // v9 tests inspect combat/room state
+(testApi as any).G = G;
+(testApi as any).say = (lines: string[]) => say(lines); // v10 freeze regression: say([]) / say(['']) must not open a box
+(testApi as any).throwOnce = () => testApi.scene().events.once('update', () => { throw new Error('test: thrown inside a frame'); }); // v9 tests inspect combat/room state
 (window as any).tgTest = testApi;

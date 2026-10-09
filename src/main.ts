@@ -5,7 +5,8 @@ import { Swing, Keepy, Putt } from './minigames';
 import { G, $ } from './mech/core';
 import { World, params } from './v6/world';
 import { Room } from './v6/room';
-import { UI } from './v6/ui';
+import { UI, recoverUI } from './v6/ui';
+import { endHitStop } from './v9/combat';
 
 // Render resolution: the world is drawn with an integer number of device px per world px (camera zoom 4 on a 3x phone).
 // When that number is even we render the canvas at half the device resolution and let CSS (image-rendering: pixelated)
@@ -18,6 +19,18 @@ const game = new Phaser.Game({
   physics: { default: 'arcade', arcade: { debug: params.has('physics') } },
   scene: [World, Room, Swing, Keepy, Putt, UI],
 });
+// v10 error boundary: an exception inside a frame is logged and the game recovers (dialogue closed, hit-stop released)
+// instead of the whole loop dying and the screen freezing.
+let lastErr = 0;
+const recover = (where: string, e: unknown) => {
+  console.error('[tara-glen] recovered from error in ' + where, e);
+  const now = performance.now(); if (now - lastErr < 50) return; lastErr = now;
+  try { endHitStop(); recoverUI(); } catch (e2) { console.error(e2); }
+};
+const step = (game as any).step.bind(game);
+(game as any).step = (t: number, d: number) => { try { step(t, d); } catch (e) { recover('frame', e); } };
+addEventListener('error', (e) => recover('window', e.error ?? e.message));
+addEventListener('unhandledrejection', (e) => recover('promise', e.reason));
 const active = () => (game.scene.isActive('Room') ? game.scene.getScene('Room') : game.scene.getScene('World')) as any;
 const btn = (id: string, f: () => void) => $(id).addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); f(); });
 // v9 controls. Touch: left floating stick, right big Attack (tap = combo, hold = charge; Interact when something is in
@@ -26,7 +39,7 @@ btn('fire', () => active().fire());
 btn('dash', () => active().dash());
 btn('prompt', () => !G.paused && active().interact());
 const atk = $('atk');
-atk.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); atk.setPointerCapture?.(e.pointerId); if (!G.paused) active().combat?.press(); });
+atk.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); try { atk.setPointerCapture?.(e.pointerId); } catch { /* synthetic or already released */ } if (!G.paused) active().combat?.press(); });
 const atkUp = (e: Event) => { e.stopPropagation(); active().combat?.release(); };
 atk.addEventListener('pointerup', atkUp); atk.addEventListener('pointercancel', atkUp);
 addEventListener('keydown', (e) => {
