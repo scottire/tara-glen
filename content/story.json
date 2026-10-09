@@ -758,9 +758,9 @@
         "!@visited_z5"
       ],
       "tiers": [
-        "Hook the key over the ditch by the beach gate.",
-        "Use the fishing rod by the ditch next to the beach gate.",
-        "Stand by the whitethorn near the beach gate and press Action."
+        "Chip the lifeguard's key out of the whitethorn by the beach gate.",
+        "The key is caught in the whitethorn next to the beach gate. Use your Chip Shot ⛳.",
+        "Stand near the whitethorn by the beach gate and tap ⛳ towards it."
       ],
       "target": "key_hook"
     },
@@ -774,6 +774,17 @@
         "Give Róisín a 99 for her spare fins."
       ],
       "target": "roisin"
+    },
+    {
+      "when": [
+        "!parry"
+      ],
+      "tiers": [
+        "Clear the arena on the Ninth Hole.",
+        "The marked square of grass is out on the links. Beat every wave.",
+        "Win the Ninth Hole arena to learn Putt Parry: you need it for Big Gerry."
+      ],
+      "target": "enc_arena_links"
     },
     {
       "when": [

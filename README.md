@@ -39,6 +39,7 @@ It writes `public/assets/v10/player.png` and `player.json` (anim → dir → fra
 `tests/e2e/*.mjs` (playwright-core + system Chrome, iPhone 13 emulation, real touch events):
 - `freeze.mjs`: room clear with a boss, the empty-dialogue regression, and recovery from an error inside a frame (`node freeze.mjs webkit` for WebKit).
 - `v10.mjs`: Power Drive unlock, breaking the gate and walking through, then Chip Shot, Dash Strike, Putt Parry and Gerry's guard.
+- `save.mjs`: a fresh 131 clear moves the objective on; a v9 save gets its fight rewards on load (idempotent).
 - `v9.mjs`: combo, charge, dodge, telegraphs, room lock, checkpoints, arena.
 
 ## Combat and structure (v9)

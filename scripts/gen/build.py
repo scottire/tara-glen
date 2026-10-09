@@ -576,6 +576,26 @@ for zid in order:
 for i, s in enumerate(spheres[:-1]):
     stt = {'items': s['state']['items'], 'flags': set(s['state']['flags'])}
     if not any(ok(h['when'], stt) for h in STORY['hints']): err(f'hint gap at sphere {i}')
+# v10 hint audit: the current hint at every sphere must be doable then. If its target is a lock, boss or interact whose req isn't met yet,
+# the HUD objective is asking for something the player can't do (e.g. "beat Gerry" before Putt Parry).
+HINT_TRACE = []
+for i, s in enumerate([{'state': {'items': {}, 'flags': [], 'maxhp': WD['start']['hp']}}] + spheres[:-1]):
+    stt = {'items': s['state']['items'], 'flags': set(s['state']['flags']), 'maxhp': s['state']['maxhp']}
+    hi = next((j for j, h in enumerate(STORY['hints']) if ok(h['when'], stt)), None)
+    if hi is None: continue
+    h = STORY['hints'][hi]; HINT_TRACE.append(hi); tg = h.get('target')
+    if isinstance(tg, list): tg = next((t['to'] for t in tg if ok(t.get('when'), stt)), None)
+    if not tg: continue
+    obj = LOCKS.get(tg) or next((e for e in ENT if e.get('id') == tg), None)
+    if obj and obj.get('req') and not ok(obj['req'], stt): err(f"hint {hi} ('{h['tiers'][0]}') at sphere {i} points at {tg}, which needs {obj['req']} the player hasn't got")
+if '-v' in sys.argv: print('hint per sphere:', HINT_TRACE)
+# off the solver's path too: a hint whose target needs a fight ability must sit below a hint that asks for that ability ('!k'),
+# so the objective can never say "go through X" while X is still shut to you
+for j, h in enumerate(STORY['hints']):
+    for tg in ([h['target']] if isinstance(h.get('target'), str) else [t['to'] for t in h.get('target') or []]):
+        obj = LOCKS.get(tg) or next((e for e in ENT if e.get('id') == tg), None)
+        for k in (mentions(obj.get('req')) if obj else []):
+            if k in FIGHT_ABIL and not any('!' + k in g['when'] for g in STORY['hints'][:j]): err(f"hint {j} ('{h['tiers'][0]}') targets {tg} needing {k}, but no earlier hint asks for {k}")
 # hint targets (for ?hints arrow): id of an entity / NPC / lock, or [{when, to}] (first match wins); resolved to outdoor px
 def outdoor_of_room(rid):
     r = ROOMS[rid]

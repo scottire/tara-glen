@@ -3,13 +3,13 @@ import Phaser from 'phaser';
 import { stickCtl } from '../joystick';
 import { G, $, S, toast, persist, Player, DIRS } from '../mech/core';
 import { Pather } from '../mech/path';
-import { cond, count, apply, changed, onChange, flag } from './logic';
+import { cond, count, apply, changed, onChange, flag, migrateSave } from './logic';
 import { say, hud, banner, wireButtons, showEnd, bossBar } from './ui';
 import { Ents, Walker, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, zoneAt } from './fx';
 import { applyUrlState, debugPanel } from './debug';
-import { Combat } from '../v9/combat';
+import { Combat, abilityMoment } from '../v9/combat';
 import { Arenas, Checkpoints, LivingDoors, wireObjective } from '../v9/arena';
 import CARAVAN_ART from '../../public/assets/art.json';
 
@@ -29,6 +29,7 @@ export class World extends Phaser.Scene implements Host {
   constructor() { super('World'); }
   player!: Player; walls: any[] = []; roomId = null; pather?: Pather; enemies: Enemy[] = []; ents!: Ents;
   overview = params.has('overview');
+  migrated: string[] = [];
   solids!: Phaser.Physics.Arcade.StaticGroup; gateSolids!: Phaser.Physics.Arcade.StaticGroup;
   ground!: Phaser.Tilemaps.TilemapLayer; bike!: Phaser.GameObjects.Sprite; riding = false;
   gates: Record<string, { img: Phaser.GameObjects.TileSprite; body: Phaser.GameObjects.Zone }> = {};
@@ -63,7 +64,7 @@ export class World extends Phaser.Scene implements Host {
   }
 
   create() {
-    G.w = this.cache.json.get('world'); applyUrlState();
+    G.w = this.cache.json.get('world'); applyUrlState(); this.migrated = migrateSave();
     for (const [k, [w, h]] of Object.entries<number[]>(G.w.decorSizes)) this.load.spritesheet('d-' + k, V(`assets/v6/decor/${k}.png`), { frameWidth: w, frameHeight: h });
     const mp = this.cache.tilemap.get('map').data.properties as { name: string; value: number }[];
     const P = (k: string) => mp.find((p) => p.name === k)!.value;
@@ -190,6 +191,7 @@ export class World extends Phaser.Scene implements Host {
     if (!G.st.started) { G.st.started = true; if (!at && !this.overview && G.st.room === undefined) G.st.room = G.w.start.room; }
     if (params.get('room')) G.st.room = params.get('room');
     hud(); changed();
+    this.migrated.forEach((k, i) => setTimeout(() => abilityMoment((window as any).room?.sys?.isActive() ? (window as any).room : this, k), 900 + i * 2600)); // v10: rewards for fights won in an older save
     if (G.st.done && flag('ending')) showEnd();
     if (G.st.room && !at && !this.overview) this.enterRoom(G.st.room, true);
     else if (!this.overview) this.time.delayedCall(400, () => this.checkZone(true));
