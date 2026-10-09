@@ -18,7 +18,8 @@ DECOR = {'washing': (32, 24), 'bbq': (16, 16), 'kidbike': (16, 16), 'gas': (16, 
          'ball': (16, 16), 'crisps': (16, 16), 'pole': (16, 16), 'cattlegrid': (16, 16), 'roadworks': (16, 16), 'bush': (16, 16), 'sparkle': (16, 16),
          'curtain': (16, 16), 'wardrobe': (16, 16), 'sandbar': (16, 16), 'tap': (16, 16), 'whitethorn': (16, 16),
          'bins': (16, 16), 'flowerbush': (16, 16)}  # last two are drawn by restyle.py (house style)
-ANIM = {'cat', 'gullsit', 'bonfire', 'bush', 'sparkle'}  # 2 frames side by side
+DECOR.update({'brambles': (16, 20), 'roadclosed': (16, 20), 'chasm': (16, 16), 'ramp': (16, 16), 'crowd': (16, 24), 'rope': (16, 16), 'terrace': (16, 22), 'skip': (32, 20)})  # v11 blockers
+ANIM = {'cat', 'gullsit', 'bonfire', 'bush', 'sparkle', 'crowd'}  # 2 frames side by side
 
 
 def new(w, h): im = Image.new('RGBA', (w, h)); return im, ImageDraw.Draw(im)
@@ -94,7 +95,7 @@ def decor():
         sheet = Image.new('RGBA', (w * frames, h))
         for f in range(frames):
             im, d = new(w, h)
-            draw_decor(k, d, w, h, f)
+            draw_decor(k, d, w, h, f); draw_v11(k, d, w, h, f)
             sheet.paste(im, (f * w, 0))
         sheet.save(f'{OUT}/decor/{k}.png')
 
@@ -149,11 +150,44 @@ def draw_decor(k, d, w, h, f):
     if k == 'whitethorn': d.ellipse([1, 1, 15, 13], fill=(70, 120, 60, 255), outline=(30, 70, 30, 255)); [d.point(p, fill=(250, 250, 250, 255)) for p in ((4, 4), (9, 3), (12, 7), (6, 9))]; d.line([11, 9, 12, 13], fill=(240, 200, 60, 255), width=2)
 
 
+def draw_v11(k, d, w, h, f):
+    B = h - 1
+    if k == 'brambles':  # a thorny tangle filling the gap into the Glen
+        for i, (x, y, r) in enumerate(((4, 10, 5), (11, 9, 5), (8, 5, 4), (3, 15, 4), (12, 15, 4))):
+            d.ellipse([x - r, y - r, x + r, y + r], fill=(40, 90, 45, 255), outline=(20, 50, 30, 255))
+        for x0, y0, x1, y1 in ((0, 14, 15, 6), (2, 4, 14, 17), (0, 9, 16, 12), (6, 0, 9, 19)): d.line([x0, y0, x1, y1], fill=(110, 60, 50, 255))
+        for p in ((5, 8), (11, 12), (8, 15), (3, 11)): d.point(p, fill=(70, 30, 70, 255))
+    if k == 'roadclosed':  # ROAD CLOSED pole on two trestles, sign on top
+        d.rectangle([0, 10, 15, 13], fill=(250, 250, 250, 255), outline=OL); [d.rectangle([x, 10, x + 3, 13], fill=(220, 40, 40, 255)) for x in (0, 8)]
+        d.line([2, 14, 0, B], fill=OL); d.line([2, 14, 4, B], fill=OL); d.line([13, 14, 11, B], fill=OL); d.line([13, 14, 15, B], fill=OL)
+        d.rectangle([3, 1, 12, 8], fill=(220, 40, 40, 255), outline=OL); d.line([5, 3, 10, 3], fill=(255, 255, 255, 255)); d.line([5, 6, 10, 6], fill=(255, 255, 255, 255)); d.line([7, 8, 7, 10], fill=OL)
+    if k == 'chasm':  # the washed-out gully: dark earth walls, water at the bottom
+        d.rectangle([0, 0, 15, 15], fill=(60, 40, 35, 255)); d.rectangle([0, 3, 15, 12], fill=(35, 25, 28, 255)); d.rectangle([0, 6, 15, 9], fill=(50, 80, 110, 255))
+        d.line([0, 2, 15, 2], fill=(110, 70, 45, 255)); d.line([0, 13, 15, 13], fill=(110, 70, 45, 255)); [d.point((x, 7), fill=(140, 190, 220, 255)) for x in (3, 9, 13)]
+    if k == 'ramp':  # plank jump ramp on a breeze block
+        d.polygon([(1, 15), (14, 15), (14, 5)], fill=(180, 130, 80, 255), outline=OL); d.line([3, 14, 13, 6], fill=(120, 80, 50, 255)); d.rectangle([10, 10, 15, 15], fill=(150, 150, 150, 255), outline=OL)
+    if k == 'crowd':  # kids crowding the road at the match, bobbing; a ball between them
+        cols = ((220, 40, 40), (40, 90, 200), (250, 250, 250), (40, 150, 70))
+        for i, (x, y) in enumerate(((3, 6), (11, 4), (6, 12), (13, 13))):
+            yy = y + ((f + i) % 2); c = cols[i] + (255,)
+            d.rectangle([x - 2, yy + 4, x + 2, yy + 9], fill=c, outline=OL); d.ellipse([x - 2, yy, x + 2, yy + 4], fill=(240, 190, 150, 255), outline=OL); d.line([x - 1, yy + 10, x - 1, yy + 11], fill=OL); d.line([x + 1, yy + 10, x + 1, yy + 11], fill=OL)
+        d.ellipse([7 + f, 19, 10 + f, 22], fill=(250, 250, 250, 255), outline=OL)
+    if k == 'rope':  # velvet rope between brass posts (the clubhouse grounds)
+        for x in (1, 13): d.rectangle([x, 4, x + 2, B], fill=(200, 160, 60, 255), outline=OL); d.ellipse([x - 1, 2, x + 3, 6], fill=(230, 200, 80, 255), outline=OL)
+        d.arc([2, 0, 14, 14], 20, 160, fill=(170, 30, 50, 255), width=2)
+    if k == 'terrace':  # iron gate in a stone wall, chained
+        d.rectangle([0, 4, 15, B], outline=OL); [d.line([x, 4, x, B], fill=(50, 50, 60, 255), width=1) for x in range(2, 15, 3)]; d.line([0, 8, 15, 8], fill=(50, 50, 60, 255)); d.line([0, 17, 15, 17], fill=(50, 50, 60, 255))
+        d.arc([5, 9, 11, 15], 0, 360, fill=(160, 160, 170, 255)); d.rectangle([7, 13, 9, 16], fill=(200, 170, 60, 255))
+    if k == 'skip':  # a yellow skip full of rubble
+        d.polygon([(0, 6), (31, 6), (28, B), (3, B)], fill=(240, 190, 40, 255), outline=OL); d.line([2, 10, 29, 10], fill=(200, 150, 30, 255))
+        for x, y, c in ((5, 3, (150, 150, 150)), (12, 1, (180, 120, 80)), (20, 3, (130, 130, 140)), (26, 2, (160, 110, 70))): d.rectangle([x, y, x + 5, y + 4], fill=c + (255,), outline=OL)
+
+
 def interior():
     """32 tiles, 8 cols x 4 rows. 0-15 as v5; 16 stone A, 17 stone B, 18 shelf, 19 crate, 20 barrel, 21 ladder, 22 doorway, 23 quiz table,
     24 bar, 25 lino, 26 toilet, 27 bath, 28 cobweb stone, 29 hatch, 30 bunk, 31 trophies"""
     old = Image.open(os.path.join(ROOT, 'public/assets/interior.png')).convert('RGBA')
-    ts = Image.new('RGBA', (128, 64)); ts.paste(old.crop((0, 0, 128, 32)), (0, 0))
+    ts = Image.new('RGBA', (128, 128)); ts.paste(old.crop((0, 0, 128, 32)), (0, 0))  # v11: 64 tiles (rows 4-7: Glen + panelled interiors)
     def T(k, fn): im, d = new(16, 16); fn(d); ts.paste(im, ((k % 8) * 16, (k // 8) * 16))
     def stone(c):
         def f(d):
@@ -175,7 +209,83 @@ def interior():
     T(29, lambda d: (d.rectangle([0, 0, 15, 15], fill=(80, 60, 40, 255), outline=OL), d.rectangle([3, 3, 12, 12], outline=(160, 160, 160, 255))))
     T(30, lambda d: (d.rectangle([1, 0, 14, 15], fill=(110, 80, 60, 255), outline=OL), d.rectangle([2, 1, 13, 6], fill=(220, 80, 80, 255)), d.rectangle([2, 9, 13, 14], fill=(80, 160, 90, 255)), d.line([1, 7, 14, 7], fill=OL)))
     T(31, lambda d: (d.rectangle([0, 0, 15, 15], fill=(140, 96, 60, 255), outline=OL), [d.polygon([(x, 4), (x + 4, 4), (x + 3, 9), (x + 1, 9)], fill=(250, 210, 60, 255)) for x in (2, 9)], d.line([0, 11, 15, 11], fill=OL)))
+    interior_v11(T, stone)
     ts.save(f'{OUT}/interior.png')
+
+
+def interior_v11(T, stone):
+    """32-41 the Glen (forest interior), 42-52 caravan interiors in the style of interior-living-ref (panelled walls, lace curtains,
+    checked lino, carpet, teen mess), 63 = blank (collision under sprite furniture). Tile 2/14/25 are redrawn here too."""
+    import random
+    G1, G2, G3, G4 = (55, 117, 53, 255), (76, 147, 56, 255), (92, 160, 58, 255), (37, 91, 49, 255)
+    DK, LF, MD = (27, 75, 45, 255), (69, 134, 54, 255), (46, 101, 50, 255)
+    E1, E2, E3 = (111, 63, 48, 255), (141, 85, 55, 255), (74, 43, 41, 255)
+    def grass(d, seed, c=G2):
+        r = random.Random(seed); d.rectangle([0, 0, 15, 15], fill=c)
+        for _ in range(9): x, y = r.randrange(16), r.randrange(16); d.line([x, y, x, y - 1], fill=G3 if r.random() > .4 else G1)
+        for _ in range(2): x, y = r.randrange(14), r.randrange(14); d.point((x, y), fill=(240, 220, 120, 255) if r.random() > .5 else (250, 250, 250, 255))
+    T(32, lambda d: grass(d, 1)); T(33, lambda d: grass(d, 2))
+    def slope(d, k):  # a steep bank falling away south: stepped earth bands under a grass skin, chevrons point downhill
+        d.rectangle([0, 0, 15, 15], fill=G1); d.rectangle([0, 9, 15, 15], fill=E2); d.line([0, 9, 15, 9], fill=G4); d.line([0, 15, 15, 15], fill=E1)
+        for x in range(2 + k * 4, 16, 8): d.line([x, 3, x + 2, 6, x + 4, 3], fill=G3)
+        d.point((5 + k * 6, 12), fill=E3); d.point((11 - k * 5, 13), fill=E1)
+    T(34, lambda d: slope(d, 0)); T(35, lambda d: slope(d, 1))
+    def stream(d):
+        d.rectangle([0, 0, 15, 15], fill=(63, 80, 117, 255)); d.rectangle([0, 3, 15, 12], fill=(82, 140, 196, 255))
+        d.line([1, 6, 5, 6], fill=(133, 198, 244, 255)); d.line([9, 9, 14, 9], fill=(133, 198, 244, 255)); d.point((12, 4), fill=(214, 240, 255, 255))
+    T(36, stream)
+    def tree(d):
+        grass(d, 3, G1); d.ellipse([0, 0, 15, 13], fill=DK); d.ellipse([2, 1, 12, 10], fill=MD); d.ellipse([4, 2, 10, 7], fill=LF); d.rectangle([6, 11, 9, 15], fill=E1, outline=E3)
+    T(37, tree)
+    def steps(d):
+        d.rectangle([0, 0, 15, 15], fill=E2)
+        for y in (2, 7, 12): d.rectangle([1, y, 14, y + 2], fill=E1, outline=E3); d.line([2, y, 13, y], fill=(180, 120, 69, 255))
+        d.line([0, 0, 0, 15], fill=G4); d.line([15, 0, 15, 15], fill=G4)
+    T(38, steps)
+    T(39, lambda d: (grass(d, 4, G1), d.ellipse([1, 9, 15, 15], fill=(37, 91, 49, 160))))
+    def path(d):
+        r = random.Random(5); d.rectangle([0, 0, 15, 15], fill=(180, 120, 69, 255))
+        for _ in range(7): d.point((r.randrange(16), r.randrange(16)), fill=E2)
+        d.line([0, 0, 0, 15], fill=G1); d.line([15, 0, 15, 15], fill=G1)
+    T(40, path)
+    def fwall(d):  # dense trees as the Glen's walls
+        d.rectangle([0, 0, 15, 15], fill=(17, 42, 37, 255))
+        for (x, y, rr, c) in ((4, 4, 5, DK), (12, 6, 5, DK), (7, 11, 6, DK), (5, 3, 3, MD), (12, 5, 3, MD), (8, 10, 3, MD), (4, 2, 1, LF), (11, 4, 1, LF)):
+            d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=c)
+    T(41, fwall)
+    CR1, CR2, CR3 = (241, 197, 127, 255), (250, 225, 162, 255), (203, 142, 82, 255)
+    W1, W2, W3, W4 = (49, 32, 40, 255), (111, 63, 48, 255), (141, 85, 55, 255), (180, 120, 69, 255)
+    def panel(d):  # cream tongue-and-groove above a wooden dado rail and wainscot (the reference's wall)
+        d.rectangle([0, 0, 15, 9], fill=CR2); [d.line([x, 0, x, 9], fill=CR1) for x in (3, 7, 11, 15)]
+        d.rectangle([0, 10, 15, 15], fill=W3); d.line([0, 10, 15, 10], fill=W4); d.line([0, 11, 15, 11], fill=W2); [d.line([x, 12, x, 15], fill=W2) for x in (4, 12)]
+        d.line([0, 15, 15, 15], fill=W1)
+    T(2, panel)
+    def window(d):  # window in the panelling: sky + hedge outside, lace curtains each side, sill
+        panel(d); d.rectangle([2, 1, 13, 10], fill=W2); d.rectangle([3, 2, 12, 9], fill=(133, 198, 244, 255)); d.rectangle([3, 7, 12, 9], fill=(92, 160, 58, 255))
+        d.line([7, 2, 7, 9], fill=W2); d.line([1, 1, 14, 1], fill=W1)
+        for x0 in (2, 10): d.rectangle([x0, 1, x0 + 3, 10], fill=(248, 244, 228, 255)); d.line([x0 + 1, 2, x0 + 1, 10], fill=(214, 220, 228, 255))
+        d.rectangle([1, 11, 14, 12], fill=W4)
+    T(14, window)
+    def lino(d):  # cream/beige checks
+        d.rectangle([0, 0, 15, 15], fill=(236, 210, 156, 255)); d.rectangle([0, 0, 7, 7], fill=(248, 234, 196, 255)); d.rectangle([8, 8, 15, 15], fill=(248, 234, 196, 255))
+        d.line([0, 15, 15, 15], fill=(217, 178, 122, 255))
+    T(25, lino)
+    def carpet(d, k):
+        d.rectangle([0, 0, 15, 15], fill=(138, 42, 42, 255))
+        for y in range(0, 16, 4):
+            for x in range((y // 4 + k) % 2 * 2, 16, 4): d.point((x, y), fill=(161, 66, 54, 255))
+        d.point((7, 7), fill=(203, 142, 82, 255))
+    T(43, lambda d: carpet(d, 0)); T(44, lambda d: carpet(d, 1))
+    def on_carpet(fn): return lambda d: (carpet(d, 0), fn(d))
+    T(46, on_carpet(lambda d: (d.polygon([(1, 12), (4, 6), (9, 5), (14, 9), (13, 14), (3, 15)], fill=(63, 80, 117, 255), outline=W1), d.polygon([(4, 9), (9, 7), (11, 12), (5, 13)], fill=(240, 240, 240, 255)), d.line([6, 8, 12, 6], fill=(215, 69, 53, 255), width=2))))  # clothes pile
+    T(47, on_carpet(lambda d: (d.rectangle([2, 4, 14, 13], fill=(236, 210, 156, 255), outline=W1), d.rectangle([4, 6, 12, 11], fill=(232, 168, 58, 255)), d.point((6, 8), fill=(138, 42, 42, 255)), d.point((10, 9), fill=(138, 42, 42, 255)))))  # pizza box
+    def poster(d, c):
+        panel(d); d.rectangle([3, 1, 12, 9], fill=c, outline=W1); d.rectangle([5, 3, 10, 6], fill=(248, 244, 228, 255)); d.line([5, 8, 10, 8], fill=(250, 250, 250, 255))
+    T(48, lambda d: poster(d, (194, 90, 124, 255)))
+    T(49, on_carpet(lambda d: (d.ellipse([1, 3, 15, 15], fill=(82, 140, 196, 255), outline=W1), d.ellipse([4, 4, 12, 10], fill=(133, 198, 244, 255)))))  # beanbag
+    T(50, on_carpet(lambda d: (d.ellipse([2, 8, 9, 15], fill=(180, 120, 69, 255), outline=W1), d.line([7, 10, 14, 2], fill=W1, width=2), d.ellipse([5, 10, 7, 12], fill=W1))))  # guitar
+    T(51, on_carpet(lambda d: (d.rectangle([2, 7, 12, 11], fill=(56, 56, 67, 255), outline=W1), d.point((10, 9), fill=(110, 190, 250, 255)), d.line([12, 9, 15, 4], fill=(30, 30, 30, 255)), d.ellipse([1, 1, 6, 5], fill=(56, 56, 67, 255)))))  # console + pad
+    T(52, lambda d: (panel(d), d.rectangle([3, 1, 12, 8], fill=W2), d.rectangle([4, 2, 11, 7], fill=(133, 198, 244, 255)), d.rectangle([4, 5, 11, 7], fill=(92, 160, 58, 255))))  # picture
 
 
 if __name__ == '__main__':

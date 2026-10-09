@@ -165,6 +165,7 @@ export class Ents {
   }
   interact() { if (this.near && !G.paused) this.use(this.near); }
   use(t: Thing) {
+    if (t.e?.swing) return (this.h as any).swing?.(t); // v11: the Glen rope swing (Room handles the animation)
     const e = t.e, h = this.h, st = G.st;
     switch (t.kind) {
       case 'npc': return this.talk(e);

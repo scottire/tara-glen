@@ -103,6 +103,10 @@ export function migrateSave(): string[] {
     else if (e.type === 'encounter' && !st.got.includes(e.id) && flag(e.arena ? 'arena:' + e.arena : 'clear:' + e.room)) {
       st.got.push(e.id); grant(e.effects); }
   }
+  if (from < 11) { // v11 spine: the den fee is Sully's fiver, the clubhouse rope is a bribe (the old password counts)
+    if (flag('sully_done') && !flag('match_joined') && !count('fiver')) st.items.fiver = 1;
+    if (flag('clubhouse_open') && !flag('bribed')) setFlag('bribed');
+  }
   st.v = SAVE_VERSION;
   if (granted.length || from !== SAVE_VERSION) persist();
   return granted;

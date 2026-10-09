@@ -17,7 +17,8 @@ export function throwBalloon(scene: Phaser.Scene, player: Player, walls: any[], 
   scene.time.delayedCall(700, pop);
 }
 export function zoneAt(tx: number, ty: number) {
-  return G.w.zones.find((z: any) => z.rects.some((r: number[]) => tx >= r[0] && tx <= r[2] && ty >= r[1] && ty <= r[3]));
+  const k = +(G.w.zoneGrid?.[ty * G.w.mapW + tx] ?? 0); // v11: one digit per tile (Scott's outlines), from build.py
+  return k ? G.w.zones[k - 1] : undefined;
 }
 /** black canvas with a soft hole in the middle (torchlight); drawn following the player in dark rooms */
 export function darkTexture(scene: Phaser.Scene, radius: number) {

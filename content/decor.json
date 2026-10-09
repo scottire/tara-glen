@@ -6,11 +6,11 @@
    "sprite": "shed",
    "solid": true,
    "at": {
-    "zone": "z4",
-    "near": "lm:30",
+    "zone": "z5",
+    "near": "lm:18",
     "off": [
-     0,
-     -3
+     3,
+     -2
     ]
    }
   },
@@ -19,7 +19,7 @@
    "sprite": "hut",
    "solid": true,
    "at": {
-    "zone": "z5",
+    "zone": "z7",
     "near": [
      186,
      116
@@ -45,7 +45,7 @@
    "id": "beach_sign",
    "sprite": "sign",
    "at": {
-    "zone": "z5",
+    "zone": "z7",
     "near": [
      184,
      170
@@ -59,7 +59,7 @@
    "id": "groyne_sign",
    "sprite": "sign",
    "at": {
-    "zone": "z5",
+    "zone": "z7",
     "near": [
      186,
      103

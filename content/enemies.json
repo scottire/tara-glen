@@ -122,12 +122,12 @@
       "speed": 44,
       "chase": 100,
       "sight": 140,
-      "bark": "Big Gerry has the flag. His wings turn your swings. Putt his shots back to knock him down.",
+      "bark": "Big Gerry has the flag. His wings turn your swings while he hovers. Putt his shots back to knock him down; hit him when he charges.",
       "fly": true,
       "phases": [
-        "charger",
         "spitter",
-        "charger"
+        "charger",
+        "spitter"
       ],
       "guard": true
     }
