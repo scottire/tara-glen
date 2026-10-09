@@ -71,7 +71,9 @@ R.fps_world = await fps();
 const choke = await ev(() => { const b = tgTest.G.w.borders.filter((b) => b[2] === 'choke'); const t = b[Math.floor(b.length / 2)]; tg.player.body.reset(t[0] * 16 + 8, t[1] * 16 - 20); return t; });
 await walk(0, 1, 1500); R.choke = { tile: choke, zone: await zone() }; await walk(-1, 1, 1200); R.choke.zone2 = await zone();
 await ev(() => { const s = tgTest.scene(); s.cameras.main.setZoom(2); }); await shot('blocker-roadworks'); await ev(() => tgTest.scene().cameras.main.setZoom(3));
-const fence = await ev(() => { const b = tgTest.G.w.borders.filter((b) => b[2] === 'fence'); const t = b[Math.floor(b.length / 3)]; tg.player.body.reset(t[0] * 16 + 8, t[1] * 16 - 20); return t; });
+// a z1|z3 fence tile with z1 directly north of it: stand there and push south / along it
+const fence = await ev(() => { const w = tgTest.G.w, Z = w.zoneGrid, W = w.mapW, z = (x, y) => +Z[y * W + x];
+  const b = w.borders.filter((b) => b[2] === 'fence' && z(b[0], b[1]) === 1 && z(b[0], b[1] - 1) === 1 && z(b[0], b[1] + 1) === 3); const t = b[Math.floor(b.length / 2)]; tg.player.body.reset(t[0] * 16 + 8, t[1] * 16 - 20); return t; });
 await walk(0, 1, 1000); await walk(1, 0, 600); await walk(-1, 0, 600); R.fence = { tile: fence, zone: await zone() };
 await ev(() => { const d = tgTest.G.w.doors.find((d) => d.side === 'top'); tg.player.body.reset(d.x + 40, d.y + 6); });
 await walk(0, -1, 1500); R.forestWall = { zone: await zone(), y: await ev(() => Math.round(tg.player.y)) };

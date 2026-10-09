@@ -47,6 +47,19 @@ def border_tiles(Z, free, W, H):
     return out
 
 
+def corner_tiles(out, Z, free, W, H, skip=()):
+    # v11: staircase corners. Where the border steps diagonally the two border tiles only touch at a corner, which seals
+    # movement but leaves a visible hole in the fence; fill the inside corner so the art reads as one continuous line.
+    add = {}
+    skip = set(skip)
+    for (x, y), (a, b) in out.items():
+        for dx, dy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+            if out.get((x + dx, y + dy), (None,))[0] != a: continue
+            for cx, cy in ((x + dx, y), (x, y + dy)):
+                if (cx, cy) not in out and (cx, cy) not in skip and free(cx, cy) and Z[cy * W + cx] == a: add[(cx, cy)] = (a, b)
+    return add
+
+
 def gate_tiles(border, a, b, near, width):
     """border tiles of the a|b border closest to `near`, grown along the border to `width` tiles"""
     cand = [t for t, p in border.items() if set(p) == {a, b}]

@@ -68,6 +68,9 @@ for gd in WD['gates']:
 BLOCKER_TILES = {}
 for bd in WD.get('blockers', []):
     for t in ZN.gate_tiles(BORDER, ZIDX[bd['pair'][0]], ZIDX[bd['pair'][1]], bd['near'], 4): BLOCKER_TILES[t] = bd['id']
+# staircase corners: art + collision so the line reads continuous (never next to a gate, so gates stay straight cuts)
+_near_gate = {(x + dx, y + dy) for (x, y) in list(GATE_TILES) + list(BLOCKER_TILES) for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+BORDER.update(ZN.corner_tiles(BORDER, ZMAP, G.free, W, H, skip=_near_gate))
 def style_of(t, pair):
     a, b = (WD['zones'][k - 1]['id'] for k in pair)
     if G.g(*t) == ROAD and WD['borderStyle'].get(f'{a}|{b}') != 'bank': return 'road'
