@@ -1,6 +1,8 @@
 // Outdoor scene: the traced park map + everything from world.json (locks, barriers, doors, entities, NPCs, decor, life, events).
 import Phaser from 'phaser';
 import { urlParam, urlHas, stripUrlState } from '../state';
+import { Vibe } from './vibe';
+import { audio } from '../audio';
 import { stickCtl } from '../joystick';
 import { G, $, S, toast, persist, Player, DIRS } from '../mech/core';
 import { Pather } from '../mech/path';
@@ -37,7 +39,7 @@ export class World extends Phaser.Scene implements Host {
   lockObjs: { l: any; body?: Phaser.GameObjects.Zone; sprites: Phaser.GameObjects.Image[]; open: boolean }[] = [];
   said = new Map<string, Phaser.Geom.Rectangle>(); doorArmed = true; lastSafe: [number, number] = [0, 0];
   labels: Phaser.GameObjects.Text[] = []; zone = ''; zoneT = 0; saveT = 0; inMini = false;
-  night!: Phaser.GameObjects.Rectangle; glows: Phaser.GameObjects.Arc[] = [];
+  night!: Phaser.GameObjects.Rectangle; vibe!: Vibe; glows: Phaser.GameObjects.Arc[] = [];
   hunt: { e: any; items: Phaser.GameObjects.Image[]; left: number } | null = null;
   combat!: Combat; arenas!: Arenas; cps!: Checkpoints; living!: LivingDoors; benches: [number, number][] = [];
 
@@ -165,10 +167,11 @@ export class World extends Phaser.Scene implements Host {
       if (a.barks?.length) this.ents.things.push({ kind: 'decor', e: { lines: [a.barks[Math.floor(Math.random() * a.barks.length)]] }, obj: wk }); } // v9: no filler barks
     this.combat = new Combat(this); this.arenas = new Arenas(this); this.cps = new Checkpoints(this, this.benches); this.living = new LivingDoors(this);
     // night + lamps (world event: evening)
-    this.night = this.add.rectangle(0, 0, 4000, 4000, 0x101a50, 0.5).setDepth(9e5).setVisible(false); // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
+    this.night = this.add.rectangle(0, 0, 4, 4, 0x101a50, 0).setDepth(9e5).setVisible(false); // v12: kept as the 'is it night' marker; the Vibe grade draws the darkness // follows the camera (scrollFactor 0 shapes don't render in Phaser 4)
     for (const [x, y] of lamps) this.glows.push(this.add.circle(x, y, 26, 0xffd27a, 0.22).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
     const fire = G.w.entities.find((e: any) => e.id === 'bonfire');
     if (fire) this.glows.push(this.add.circle(fire.x, fire.y, 46, 0xff9a3a, 0.3).setDepth(9e5 + 1).setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
+    this.vibe = new Vibe(this);
     onChange(() => { this.applyWorld(); this.living?.refresh(); }); this.applyWorld(true);
 
     this.input.keyboard!.on('keydown-X', () => this.fire()); this.input.keyboard!.on('keydown-F', () => this.fire());
@@ -376,7 +379,7 @@ export class World extends Phaser.Scene implements Host {
   }
   update(_: number, dt: number) {
     if (!this.player) return;
-    if (this.night.visible) { const m = this.cameras.main.midPoint; this.night.setPosition(m.x, m.y); }
+    this.vibe?.update(dt);
         if (this.inMini || G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.idle(); if (G.paused) $('prompt').style.display = 'none'; return; }
     if (!G.st.done) G.st.elapsed += dt;
     if ((this.saveT += dt) > 2000) { this.saveT = 0; G.st.pos = [Math.round(this.player.x), Math.round(this.player.y)]; persist(); }
