@@ -1,268 +1,308 @@
 {
- "_readme": "Items, abilities and recipes. kind: ability (a power), ammo (counted, depletes), quest (story item), currency, collectible. icon = emoji used in the UI; sprite = frame name in assets/items.png for the in-world pickup.",
- "items": {
-  "coin": {
-   "name": "Coins",
-   "icon": "🪙",
-   "kind": "currency",
-   "sprite": "coin",
-   "desc": "Spend at Tony's van."
+  "_readme": "Items, abilities and recipes. kind: ability (a power), ammo (counted, depletes), quest (story item), currency, collectible. icon = emoji used in the UI; sprite = frame name in assets/items.png for the in-world pickup.",
+  "items": {
+    "coin": {
+      "name": "Coins",
+      "icon": "🪙",
+      "kind": "currency",
+      "sprite": "coin",
+      "desc": "Spend at Tony's van."
+    },
+    "balloon_pack": {
+      "name": "Pack of balloons",
+      "icon": "🎈",
+      "kind": "quest",
+      "sprite": "parcel",
+      "desc": "Fifty empty balloons."
+    },
+    "bucket": {
+      "name": "Bucket of water",
+      "icon": "🪣",
+      "kind": "quest",
+      "sprite": "bucket",
+      "desc": "Sloshing. Combine with something?"
+    },
+    "balloons": {
+      "name": "Water balloons",
+      "icon": "💧",
+      "kind": "ammo",
+      "max": 9,
+      "sprite": "balloon",
+      "desc": "Secondary attack: throw with the small 🎈 button. Refill at taps."
+    },
+    "throw": {
+      "name": "Throwing arm",
+      "icon": "💪",
+      "kind": "ability",
+      "power": 1,
+      "desc": "You can throw water balloons."
+    },
+    "walkie_broken": {
+      "name": "Broken walkie-talkie",
+      "icon": "📻",
+      "kind": "quest",
+      "sprite": "walkie",
+      "desc": "Needs batteries."
+    },
+    "batteries": {
+      "name": "Batteries",
+      "icon": "🔋",
+      "kind": "quest",
+      "sprite": "batteries",
+      "desc": "Two AAs."
+    },
+    "walkie": {
+      "name": "Walkie-talkie",
+      "icon": "📻",
+      "kind": "ability",
+      "power": 1,
+      "desc": "Tap 📻 for a hint."
+    },
+    "trainers": {
+      "name": "Trainers",
+      "icon": "👟",
+      "kind": "ability",
+      "power": 1,
+      "sprite": "trainers",
+      "desc": "Proper grippy soles. You run a bit faster."
+    },
+    "peg_bag": {
+      "name": "Peg bag",
+      "icon": "🧺",
+      "kind": "quest",
+      "sprite": "parcel",
+      "desc": "Mrs Kehoe's peg bag."
+    },
+    "sausage": {
+      "name": "Burnt sausage",
+      "icon": "🌭",
+      "kind": "quest",
+      "sprite": "sausage",
+      "desc": "A dog would love it."
+    },
+    "deck": {
+      "name": "Skateboard deck",
+      "icon": "🪵",
+      "kind": "quest",
+      "sprite": "deck",
+      "desc": "Aoife's old deck. No wheels."
+    },
+    "wheels": {
+      "name": "Pram wheels",
+      "icon": "⚙️",
+      "kind": "quest",
+      "sprite": "wheels",
+      "desc": "Four pram wheels."
+    },
+    "skateboard": {
+      "name": "Skateboard",
+      "icon": "🛹",
+      "kind": "ability",
+      "power": 2,
+      "desc": "Dodge further and slide under barriers."
+    },
+    "bike": {
+      "name": "Bike",
+      "icon": "🚲",
+      "kind": "ability",
+      "power": 1,
+      "desc": "Tap 🚲 to ride. Crosses cattle grids."
+    },
+    "can": {
+      "name": "Can of Club Orange",
+      "icon": "🥫",
+      "kind": "quest",
+      "sprite": "can",
+      "desc": "A cold can of Club Orange."
+    },
+    "cone": {
+      "name": "99 with a flake",
+      "icon": "🍦",
+      "kind": "quest",
+      "sprite": "cone",
+      "desc": "A 99 with a flake."
+    },
+    "golf_ball": {
+      "name": "Golf balls",
+      "icon": "⚪",
+      "kind": "quest",
+      "sprite": "golfball",
+      "desc": "One of Sully's."
+    },
+    "torch": {
+      "name": "Torch",
+      "icon": "🔦",
+      "kind": "ability",
+      "power": 1,
+      "sprite": "torch",
+      "desc": "Lights dark rooms."
+    },
+    "photo": {
+      "name": "Photo album",
+      "icon": "📔",
+      "kind": "quest",
+      "sprite": "photo",
+      "desc": "'Tara Glen, Summer 1987'."
+    },
+    "rod": {
+      "name": "Grandad's fishing rod",
+      "icon": "🎣",
+      "kind": "ability",
+      "power": 1,
+      "desc": "Hook things you can't reach."
+    },
+    "key_lifeguard": {
+      "name": "Lifeguard hut key",
+      "icon": "🗝️",
+      "kind": "quest",
+      "sprite": "key",
+      "desc": "Opens the beach gate."
+    },
+    "fins": {
+      "name": "Swim fins",
+      "icon": "🩴",
+      "kind": "ability",
+      "power": 1,
+      "desc": "Wade through the shallows."
+    },
+    "string": {
+      "name": "Bit of string",
+      "icon": "🧵",
+      "kind": "quest",
+      "sprite": "string",
+      "desc": "Good for threading things."
+    },
+    "shell": {
+      "name": "Shells",
+      "icon": "🐚",
+      "kind": "collectible",
+      "sprite": "shell",
+      "desc": "Three on a string makes a necklace (+1 heart)."
+    },
+    "flag_tg": {
+      "name": "The Tara Glen flag",
+      "icon": "🚩",
+      "kind": "quest",
+      "sprite": "flag",
+      "desc": "The Tara Glen flag."
+    },
+    "kids": {
+      "name": "Kids found",
+      "icon": "🙈",
+      "kind": "collectible",
+      "hidden": true,
+      "desc": "Manhunt hiders you've caught."
+    },
+    "drive": {
+      "name": "Power Drive",
+      "icon": "🏌️",
+      "kind": "ability",
+      "power": 3,
+      "desc": "Hold Attack to charge, release for a full drive swing all round you. Breaks armour and rotten wood.",
+      "how": "Hold ⚔️, let go when the ring glows."
+    },
+    "chip": {
+      "name": "Chip Shot",
+      "icon": "⛳",
+      "kind": "ability",
+      "power": 3,
+      "desc": "Chip a golf ball at enemies or at things out of reach.",
+      "how": "Tap the small ⛳ button to chip a ball."
+    },
+    "dashstrike": {
+      "name": "Dash Strike",
+      "icon": "⚡",
+      "kind": "ability",
+      "power": 3,
+      "desc": "Attack during a dodge to lunge through enemies and squeeze through low gaps.",
+      "how": "Dodge 💨, then tap ⚔️ mid-roll."
+    },
+    "parry": {
+      "name": "Putt Parry",
+      "icon": "🔁",
+      "kind": "ability",
+      "power": 3,
+      "desc": "Tap Attack just as a shot reaches you to putt it straight back. Returned shots stun.",
+      "how": "Tap ⚔️ as a shot arrives to send it back."
+    },
+    "combo4": {
+      "name": "Long Game",
+      "icon": "➕",
+      "kind": "ability",
+      "power": 2,
+      "desc": "Your combo gets a fourth, heavier swing.",
+      "how": "Tap ⚔️ four times in a row."
+    }
   },
-  "balloon_pack": {
-   "name": "Pack of balloons",
-   "icon": "🎈",
-   "kind": "quest",
-   "sprite": "parcel",
-   "desc": "Fifty empty balloons."
-  },
-  "bucket": {
-   "name": "Bucket of water",
-   "icon": "🪣",
-   "kind": "quest",
-   "sprite": "bucket",
-   "desc": "Sloshing. Combine with something?"
-  },
-  "balloons": {
-   "name": "Water balloons",
-   "icon": "💧",
-   "kind": "ammo",
-   "max": 9,
-   "sprite": "balloon",
-   "desc": "Secondary attack: throw with the small 🎈 button. Refill at taps."
-  },
-  "throw": {
-   "name": "Throwing arm",
-   "icon": "💪",
-   "kind": "ability",
-   "power": 1,
-   "desc": "You can throw water balloons."
-  },
-  "walkie_broken": {
-   "name": "Broken walkie-talkie",
-   "icon": "📻",
-   "kind": "quest",
-   "sprite": "walkie",
-   "desc": "Needs batteries."
-  },
-  "batteries": {
-   "name": "Batteries",
-   "icon": "🔋",
-   "kind": "quest",
-   "sprite": "batteries",
-   "desc": "Two AAs."
-  },
-  "walkie": {
-   "name": "Walkie-talkie",
-   "icon": "📻",
-   "kind": "ability",
-   "power": 1,
-   "desc": "Tap 📻 for a hint."
-  },
-  "trainers": {
-   "name": "Trainers",
-   "icon": "👟",
-   "kind": "ability",
-   "power": 1,
-   "sprite": "trainers",
-   "desc": "Proper grippy soles. Climb tall gates."
-  },
-  "peg_bag": {
-   "name": "Peg bag",
-   "icon": "🧺",
-   "kind": "quest",
-   "sprite": "parcel",
-   "desc": "Mrs Kehoe's peg bag."
-  },
-  "sausage": {
-   "name": "Burnt sausage",
-   "icon": "🌭",
-   "kind": "quest",
-   "sprite": "sausage",
-   "desc": "A dog would love it."
-  },
-  "deck": {
-   "name": "Skateboard deck",
-   "icon": "🪵",
-   "kind": "quest",
-   "sprite": "deck",
-   "desc": "Aoife's old deck. No wheels."
-  },
-  "wheels": {
-   "name": "Pram wheels",
-   "icon": "⚙️",
-   "kind": "quest",
-   "sprite": "wheels",
-   "desc": "Four pram wheels."
-  },
-  "skateboard": {
-   "name": "Skateboard",
-   "icon": "🛹",
-   "kind": "ability",
-   "power": 2,
-   "desc": "Dodge further and slide under barriers."
-  },
-  "bike": {
-   "name": "Bike",
-   "icon": "🚲",
-   "kind": "ability",
-   "power": 1,
-   "desc": "Tap 🚲 to ride. Crosses cattle grids."
-  },
-  "can": {
-   "name": "Can of Club Orange",
-   "icon": "🥫",
-   "kind": "quest",
-   "sprite": "can",
-   "desc": "A cold can of Club Orange."
-  },
-  "cone": {
-   "name": "99 with a flake",
-   "icon": "🍦",
-   "kind": "quest",
-   "sprite": "cone",
-   "desc": "A 99 with a flake."
-  },
-  "golf_ball": {
-   "name": "Golf balls",
-   "icon": "⚪",
-   "kind": "quest",
-   "sprite": "golfball",
-   "desc": "One of Sully's."
-  },
-  "torch": {
-   "name": "Torch",
-   "icon": "🔦",
-   "kind": "ability",
-   "power": 1,
-   "sprite": "torch",
-   "desc": "Lights dark rooms."
-  },
-  "photo": {
-   "name": "Photo album",
-   "icon": "📔",
-   "kind": "quest",
-   "sprite": "photo",
-   "desc": "'Tara Glen, Summer 1987'."
-  },
-  "rod": {
-   "name": "Grandad's fishing rod",
-   "icon": "🎣",
-   "kind": "ability",
-   "power": 1,
-   "desc": "Hook things you can't reach."
-  },
-  "key_lifeguard": {
-   "name": "Lifeguard hut key",
-   "icon": "🗝️",
-   "kind": "quest",
-   "sprite": "key",
-   "desc": "Opens the beach gate."
-  },
-  "fins": {
-   "name": "Swim fins",
-   "icon": "🩴",
-   "kind": "ability",
-   "power": 1,
-   "desc": "Wade through the shallows."
-  },
-  "string": {
-   "name": "Bit of string",
-   "icon": "🧵",
-   "kind": "quest",
-   "sprite": "string",
-   "desc": "Good for threading things."
-  },
-  "shell": {
-   "name": "Shells",
-   "icon": "🐚",
-   "kind": "collectible",
-   "sprite": "shell",
-   "desc": "Three on a string makes a necklace (+1 heart)."
-  },
-  "flag_tg": {
-   "name": "The Tara Glen flag",
-   "icon": "🚩",
-   "kind": "quest",
-   "sprite": "flag",
-   "desc": "The Tara Glen flag."
-  },
-  "kids": {
-   "name": "Kids found",
-   "icon": "🙈",
-   "kind": "collectible",
-   "hidden": true,
-   "desc": "Manhunt hiders you've caught."
-  }
- },
- "recipes": [
-  {
-   "id": "fill_balloons",
-   "a": "balloon_pack",
-   "b": "bucket",
-   "consume": [
-    "balloon_pack",
-    "bucket"
-   ],
-   "effects": [
+  "recipes": [
     {
-     "give": "throw"
+      "id": "fill_balloons",
+      "a": "balloon_pack",
+      "b": "bucket",
+      "consume": [
+        "balloon_pack",
+        "bucket"
+      ],
+      "effects": [
+        {
+          "give": "throw"
+        },
+        {
+          "give": "balloons",
+          "n": 6
+        }
+      ],
+      "text": "Balloons filled."
     },
     {
-     "give": "balloons",
-     "n": 6
-    }
-   ],
-   "text": "Balloons filled."
-  },
-  {
-   "id": "build_skate",
-   "a": "deck",
-   "b": "wheels",
-   "consume": [
-    "deck",
-    "wheels"
-   ],
-   "effects": [
+      "id": "build_skate",
+      "a": "deck",
+      "b": "wheels",
+      "consume": [
+        "deck",
+        "wheels"
+      ],
+      "effects": [
+        {
+          "give": "skateboard"
+        }
+      ],
+      "text": "Wheels on the deck. A skateboard."
+    },
     {
-     "give": "skateboard"
-    }
-   ],
-   "text": "Wheels on the deck. A skateboard."
-  },
-  {
-   "id": "fix_walkie",
-   "a": "walkie_broken",
-   "b": "batteries",
-   "consume": [
-    "walkie_broken",
-    "batteries"
-   ],
-   "effects": [
+      "id": "fix_walkie",
+      "a": "walkie_broken",
+      "b": "batteries",
+      "consume": [
+        "walkie_broken",
+        "batteries"
+      ],
+      "effects": [
+        {
+          "give": "walkie"
+        }
+      ],
+      "text": "The walkie hisses into life."
+    },
     {
-     "give": "walkie"
+      "id": "necklace",
+      "a": "shell",
+      "b": "string",
+      "need": {
+        "shell": 3
+      },
+      "consume": [
+        "string",
+        {
+          "shell": 3
+        }
+      ],
+      "effects": [
+        {
+          "maxhp": 1
+        }
+      ],
+      "text": "Shell necklace: +1 heart."
     }
-   ],
-   "text": "The walkie hisses into life."
-  },
-  {
-   "id": "necklace",
-   "a": "shell",
-   "b": "string",
-   "need": {
-    "shell": 3
-   },
-   "consume": [
-    "string",
-    {
-     "shell": 3
-    }
-   ],
-   "effects": [
-    {
-     "maxhp": 1
-    }
-   ],
-   "text": "Shell necklace: +1 heart."
-  }
- ]
+  ]
 }

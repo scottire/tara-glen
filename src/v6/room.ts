@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import { G, $, S, toast, persist, Player } from '../mech/core';
 import { Pather } from '../mech/path';
-import { cond, count, changed, onChange } from './logic';
+import { cond, count, changed, onChange, apply } from './logic';
 import { hud, say, bossBar } from './ui';
 import { Ents, type Host } from './entities';
 import type { Enemy } from './enemies';
@@ -56,7 +56,7 @@ export class Room extends Phaser.Scene implements Host {
     }
     this.ents = new Ents(this); this.combat = new Combat(this);
     // v9 combat room: the door bars shut while anything hostile is alive; cleared rooms stay cleared (flag clear:<id>)
-    if (this.enemies.length) this.lock();
+    if (this.enemies.some((e) => this.front(e))) this.lock();
     // fainting in a room puts you back at its door outside (the checkpoint); the room resets because it wasn't cleared
     this.events.off('player-dead'); this.events.off('hud');
     this.events.once('player-dead', () => { toast(S('fainted')); this.player.revive(...this.spawn); hud(); this.locked = false; setObjective(null); this.leave(true); });
@@ -79,7 +79,7 @@ export class Room extends Phaser.Scene implements Host {
     (window as any).room = this;
     if (!this.resume) this.time.delayedCall(250, () => { const b = document.getElementById('banner'); if (b) { b.innerHTML = `<b>${def.name}</b>`; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); } });
   }
-  fire() { throwBalloon(this, this.player, this.walls, this.enemies); }
+  fire() { if (this.combat.chip()) return; throwBalloon(this, this.player, this.walls, this.enemies); }
   dash() { this.combat.dodge(); }
   lock() {
     ensureFxTextures(this); this.locked = true;
@@ -88,13 +88,18 @@ export class Room extends Phaser.Scene implements Host {
       this.tweens.add({ targets: b, scaleY: 1, duration: 250, delay: 300 + i * 40, ease: 'Back.out' }); this.bars.push(b); }
     this.left();
   }
-  left() { const n = this.enemies.filter((e) => e.active && e.sm.current !== 'dead').length; setObjective(this.locked ? `Clear the room: ${n} left` : null); return n; }
+  /** enemies that bar the door: alive and not shut behind an unopened inner lock (chambers stack upwards from the door) */
+  front(e: Enemy) { return !this.inner.some((o) => !o.open && e.y < o.l.tiles[0][1] * 16); }
+  left() { const n = this.enemies.filter((e) => e.active && e.sm.current !== 'dead' && this.front(e)).length; setObjective(this.locked ? `Clear the room: ${n} left` : null); return n; }
   onEnemyDeath() {
     if (!this.locked) return;
     if (this.left() > 0) return;
     this.locked = false; G.st.flags.push('clear:' + this.id); G.st.hp = Math.min(G.st.maxhp, G.st.hp + 1); this.player.life.life = G.st.hp; persist();
     this.bars.forEach((b) => { burst(this, b.x, b.y - 6, 0xffd27a, 4, 20); this.tweens.add({ targets: b, scaleY: 0, alpha: 0, duration: 300, onComplete: () => b.destroy() }); });
-    this.cameras.main.flash(160, 255, 230, 140); toast('Room cleared. The door is open.'); setObjective(null); changed();
+    this.cameras.main.flash(160, 255, 230, 140); toast('Room cleared. The door is open.'); setObjective(null);
+    const enc = G.w.entities.find((e: any) => e.type === 'encounter' && e.room === this.id && !G.st.got.includes(e.id)); // v10: fight rewards
+    if (enc) { G.st.got.push(enc.id); const lines = apply(enc.effects); if (lines.length) say(lines); }
+    changed();
   }
   interact() { this.ents?.interact(); }
   startActivity() {}
@@ -104,10 +109,10 @@ export class Room extends Phaser.Scene implements Host {
   }
   update(_: number, dt: number) {
     if (!this.player || !this.def) return;
-    if (G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.anims.stop(); $('prompt').style.display = 'none'; return; }
+    if (G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.idle(); $('prompt').style.display = 'none'; return; }
     if (!G.st.done) G.st.elapsed += dt;
     if ((this.saveT += dt) > 2000) { this.saveT = 0; G.st.roomPos = [Math.round(this.player.x), Math.round(this.player.y)]; persist(); }
-    this.player.drive(this.player.readInput(), G.w.start.walk);
+    this.player.drive(this.player.readInput(), G.w.start.walk * (count('trainers') ? 1.15 : 1));
     this.ents.update();
     const cam = this.cameras.main, vw = cam.width / cam.zoom, vh = cam.height / cam.zoom, mw = this.def.w * 16, mh = this.def.h * 16;
     const c = (p: number, m: number, v: number, extra = 0) => (m + extra <= v ? (m + extra) / 2 : Phaser.Math.Clamp(p, v / 2, m - v / 2 + extra)), off = vh > vw ? vh * 0.2 : 0;

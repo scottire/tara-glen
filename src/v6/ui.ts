@@ -126,8 +126,8 @@ export function hud() {
   $('shells').textContent = count('shell') ? `🐚${count('shell')}` : '';
   $('kids').textContent = count('kids') ? `🙈${count('kids')}/12` : '';
   $('abilities').textContent = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map((k) => I[k].icon).join('');
-  const f = $('fire'); f.style.display = count('throw') ? 'flex' : 'none';
-  f.innerHTML = `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !count('balloons'));
+  const f = $('fire'), chip = count('chip') > 0; f.style.display = chip || count('throw') ? 'flex' : 'none';
+  f.innerHTML = chip ? '⛳' : `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !chip && !count('balloons'));
   $('dash').textContent = count('skateboard') ? '🛹' : '💨';
   $('hint-btn').style.display = count('walkie') || document.body.classList.contains('hints') ? 'flex' : 'none';
   $('objective').textContent = '🎯 ' + objectiveText(); // v9: short current objective, tap to fold

@@ -321,8 +321,7 @@
       ],
       "reward": [
         {
-          "give": "coin",
-          "n": 3
+          "give": "chip"
         }
       ]
     },
@@ -342,8 +341,7 @@
       ],
       "reward": [
         {
-          "give": "coin",
-          "n": 4
+          "give": "parry"
         }
       ]
     },
@@ -364,11 +362,29 @@
       ],
       "reward": [
         {
-          "give": "coin",
-          "n": 5
+          "maxhp": 1
         }
       ]
     }
   ],
-  "_readme_arenas": "v9: outdoor arenas. build.py finds an open size (default 9x7 tiles) rectangle in the zone; waves list enemy types (count = 2 + tier//2 each). Reward effects apply once."
+  "_readme_arenas": "v9: outdoor arenas. build.py finds an open size (default 9x7 tiles) rectangle in the zone; waves list enemy types (count = 2 + tier//2 each). Reward effects apply once.",
+  "encounters": [
+    {
+      "room": "m377",
+      "reward": [
+        {
+          "give": "dashstrike"
+        }
+      ]
+    },
+    {
+      "room": "m370",
+      "reward": [
+        {
+          "give": "combo4"
+        }
+      ]
+    }
+  ],
+  "_readme_encounters": "v10: clearing a room (all enemies down) or an arena applies its reward once; the solver models it as an entity in that room/arena."
 }

@@ -122,13 +122,14 @@
       "speed": 44,
       "chase": 100,
       "sight": 140,
-      "bark": "Big Gerry has the flag. Get it back.",
+      "bark": "Big Gerry has the flag. His wings turn your swings. Putt his shots back to knock him down.",
       "fly": true,
       "phases": [
         "charger",
         "spitter",
         "charger"
-      ]
+      ],
+      "guard": true
     }
   }
 }

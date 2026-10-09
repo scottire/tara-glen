@@ -83,6 +83,7 @@ export class Arenas {
     const a = this.active!.a; this.open();
     G.st.flags.push('arena:' + a.id); G.st.hp = G.st.maxhp; this.w.player.life.life = G.st.maxhp; persist();
     this.w.cameras.main.flash(200, 255, 230, 140);
+    const enc = 'enc_' + a.id; if (!G.st.got.includes(enc)) G.st.got.push(enc);
     const lines = apply(a.reward ?? []); say([`${a.name} cleared.`, ...lines]); changed(); this.marks.clear(); for (const b of G.w.arenas) this.drawMark(b);
   }
   /** player fainted mid-arena: reset it (enemies gone, posts down) */

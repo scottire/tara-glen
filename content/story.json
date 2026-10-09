@@ -1,779 +1,801 @@
 {
- "_readme": "Curated (hand-authored) layer. Entities: type pickup|chest|note|interact|activity|door|vista|whisper|enemy|decor. at = position ref ({zone, near, off} outdoors or {room, slot} indoors). when = visibility condition. Locks block paths until their req is met (kinds: climb, dash, ride, solid, water). Events fire once when their condition becomes true. Hints: first unmet entry is the current one; 3 tiers each.",
- "entities": [
-  {
-   "id": "mam_note",
-   "type": "note",
-   "at": {
-    "room": "127",
-    "slot": 1
-   },
-   "text": [
-    "A note from Mam on the table:",
-    "'Gone to the clubhouse quiz. Stay in the mobile.'",
-    "'And stay away from 131. Love, Mam.'"
-   ]
-  },
-  {
-   "id": "pack127",
-   "type": "pickup",
-   "item": "balloon_pack",
-   "at": {
-    "room": "127",
-    "slot": 5
-   }
-  },
-  {
-   "id": "bucket127",
-   "type": "pickup",
-   "item": "bucket",
-   "at": {
-    "room": "127",
-    "slot": 3
-   }
-  },
-  {
-   "id": "coins127",
-   "type": "pickup",
-   "item": "coin",
-   "n": 2,
-   "at": {
-    "room": "127",
-    "slot": 4
-   }
-  },
-  {
-   "id": "walkie127",
-   "type": "pickup",
-   "item": "walkie_broken",
-   "at": {
-    "room": "127",
-    "slot": 6
-   },
-   "text": [
-    "Your old walkie-talkie. It crackles:",
-    "'...kkhh... the dust is moving... stay inside...'",
-    "The batteries are dead."
-   ]
-  },
-  {
-   "id": "tap_z1",
-   "type": "interact",
-   "kind": "tap",
-   "at": {
-    "zone": "z1",
-    "near": "door:127",
-    "off": [
-     -2,
-     2
-    ]
-   },
-   "req": [
-    "throw"
-   ],
-   "effects": [
+  "_readme": "Curated (hand-authored) layer. Entities: type pickup|chest|note|interact|activity|door|vista|whisper|enemy|decor. at = position ref ({zone, near, off} outdoors or {room, slot} indoors). when = visibility condition. Locks block paths until their req is met (kinds: climb, dash, ride, solid, water). Events fire once when their condition becomes true. Hints: first unmet entry is the current one; 3 tiers each.",
+  "entities": [
     {
-     "refill": "balloons"
-    }
-   ],
-   "text": [
-    "An outdoor tap. Balloons filled."
-   ],
-   "locked": "An outdoor tap. Drippy."
-  },
-  {
-   "id": "tap_z3",
-   "type": "interact",
-   "kind": "tap",
-   "at": {
-    "zone": "z3",
-    "near": "lm:25",
-    "off": [
-     -6,
-     4
-    ]
-   },
-   "req": [
-    "throw"
-   ],
-   "effects": [
-    {
-     "refill": "balloons"
-    }
-   ],
-   "text": [
-    "Pitch tap. Balloons filled."
-   ],
-   "locked": "A tap. You've nothing to fill."
-  },
-  {
-   "id": "tap_z4",
-   "type": "interact",
-   "kind": "tap",
-   "at": {
-    "zone": "z4",
-    "near": "door:clubhouse",
-    "off": [
-     4,
-     3
-    ]
-   },
-   "req": [
-    "throw"
-   ],
-   "effects": [
-    {
-     "refill": "balloons"
-    }
-   ],
-   "text": [
-    "Clubhouse tap. Balloons filled."
-   ],
-   "locked": "A tap."
-  },
-  {
-   "id": "tap_z5",
-   "type": "interact",
-   "kind": "tap",
-   "at": {
-    "zone": "z5",
-    "near": [
-     185,
-     118
-    ]
-   },
-   "req": [
-    "throw"
-   ],
-   "effects": [
-    {
-     "refill": "balloons"
-    }
-   ],
-   "text": [
-    "Beach shower. Balloons filled."
-   ],
-   "locked": "The beach shower."
-  },
-  {
-   "id": "peg131",
-   "type": "pickup",
-   "item": "peg_bag",
-   "at": {
-    "room": "131",
-    "slot": 2
-   }
-  },
-  {
-   "id": "chest131",
-   "type": "chest",
-   "at": {
-    "room": "131",
-    "slot": 3
-   },
-   "effects": [
-    {
-     "give": "trainers"
-    }
-   ],
-   "text": [
-    "Trainers with grippy soles. You could climb a gate in these."
-   ]
-  },
-  {
-   "id": "boss131",
-   "type": "enemy",
-   "etype": "bigdust",
-   "at": {
-    "room": "131",
-    "slot": 9
-   }
-  },
-  {
-   "id": "wheels",
-   "type": "pickup",
-   "item": "wheels",
-   "at": {
-    "zone": "z2",
-    "near": "door:203",
-    "off": [
-     5,
-     -5
-    ]
-   },
-   "text": [
-    "An old pram behind 210. You take the wheels."
-   ]
-  },
-  {
-   "id": "swing",
-   "type": "activity",
-   "minigame": "swing",
-   "at": {
-    "zone": "z2",
-    "near": "lm:10",
-    "off": [
-     -1,
-     0
-    ]
-   },
-   "reward": [
-    {
-     "give": "deck"
+      "id": "mam_note",
+      "type": "note",
+      "at": {
+        "room": "127",
+        "slot": 1
+      },
+      "text": [
+        "A note from Mam on the table:",
+        "'Gone to the clubhouse quiz. Stay in the mobile.'",
+        "'And stay away from 131. Love, Mam.'"
+      ]
     },
     {
-     "set": "swing_done"
+      "id": "pack127",
+      "type": "pickup",
+      "item": "balloon_pack",
+      "at": {
+        "room": "127",
+        "slot": 5
+      }
+    },
+    {
+      "id": "bucket127",
+      "type": "pickup",
+      "item": "bucket",
+      "at": {
+        "room": "127",
+        "slot": 3
+      }
+    },
+    {
+      "id": "coins127",
+      "type": "pickup",
+      "item": "coin",
+      "n": 2,
+      "at": {
+        "room": "127",
+        "slot": 4
+      }
+    },
+    {
+      "id": "walkie127",
+      "type": "pickup",
+      "item": "walkie_broken",
+      "at": {
+        "room": "127",
+        "slot": 6
+      },
+      "text": [
+        "Your old walkie-talkie. It crackles:",
+        "'...kkhh... the dust is moving... stay inside...'",
+        "The batteries are dead."
+      ]
+    },
+    {
+      "id": "tap_z1",
+      "type": "interact",
+      "kind": "tap",
+      "at": {
+        "zone": "z1",
+        "near": "door:127",
+        "off": [
+          -2,
+          2
+        ]
+      },
+      "req": [
+        "throw"
+      ],
+      "effects": [
+        {
+          "refill": "balloons"
+        }
+      ],
+      "text": [
+        "An outdoor tap. Balloons filled."
+      ],
+      "locked": "An outdoor tap. Drippy."
+    },
+    {
+      "id": "tap_z3",
+      "type": "interact",
+      "kind": "tap",
+      "at": {
+        "zone": "z3",
+        "near": "lm:25",
+        "off": [
+          -6,
+          4
+        ]
+      },
+      "req": [
+        "throw"
+      ],
+      "effects": [
+        {
+          "refill": "balloons"
+        }
+      ],
+      "text": [
+        "Pitch tap. Balloons filled."
+      ],
+      "locked": "A tap. You've nothing to fill."
+    },
+    {
+      "id": "tap_z4",
+      "type": "interact",
+      "kind": "tap",
+      "at": {
+        "zone": "z4",
+        "near": "door:clubhouse",
+        "off": [
+          4,
+          3
+        ]
+      },
+      "req": [
+        "throw"
+      ],
+      "effects": [
+        {
+          "refill": "balloons"
+        }
+      ],
+      "text": [
+        "Clubhouse tap. Balloons filled."
+      ],
+      "locked": "A tap."
+    },
+    {
+      "id": "tap_z5",
+      "type": "interact",
+      "kind": "tap",
+      "at": {
+        "zone": "z5",
+        "near": [
+          185,
+          118
+        ]
+      },
+      "req": [
+        "throw"
+      ],
+      "effects": [
+        {
+          "refill": "balloons"
+        }
+      ],
+      "text": [
+        "Beach shower. Balloons filled."
+      ],
+      "locked": "The beach shower."
+    },
+    {
+      "id": "peg131",
+      "type": "pickup",
+      "item": "peg_bag",
+      "at": {
+        "room": "131",
+        "slot": 2
+      }
+    },
+    {
+      "id": "chest131",
+      "type": "chest",
+      "at": {
+        "room": "131",
+        "slot": 3
+      },
+      "effects": [
+        {
+          "give": "trainers"
+        }
+      ],
+      "text": [
+        "Trainers with grippy soles. You run a bit faster in these."
+      ]
+    },
+    {
+      "id": "boss131",
+      "type": "enemy",
+      "etype": "bigdust",
+      "at": {
+        "room": "131",
+        "slot": 9
+      },
+      "drops": [
+        {
+          "give": "drive"
+        }
+      ],
+      "text": [
+        "The Big Dust Bunny falls apart."
+      ]
+    },
+    {
+      "id": "wheels",
+      "type": "pickup",
+      "item": "wheels",
+      "at": {
+        "zone": "z2",
+        "near": "door:203",
+        "off": [
+          5,
+          -5
+        ]
+      },
+      "text": [
+        "An old pram behind 210. You take the wheels."
+      ]
+    },
+    {
+      "id": "swing",
+      "type": "activity",
+      "minigame": "swing",
+      "at": {
+        "zone": "z2",
+        "near": "lm:10",
+        "off": [
+          -1,
+          0
+        ]
+      },
+      "reward": [
+        {
+          "give": "deck"
+        },
+        {
+          "set": "swing_done"
+        }
+      ],
+      "intro": "Aoife's swing contest"
+    },
+    {
+      "id": "keepy",
+      "type": "activity",
+      "minigame": "keepy",
+      "at": {
+        "zone": "z3",
+        "near": "lm:25"
+      },
+      "reward": [
+        {
+          "give": "bike"
+        },
+        {
+          "set": "keepy_done"
+        }
+      ],
+      "intro": "Big Mick's keepy-uppy challenge"
+    },
+    {
+      "id": "biscuit_ball",
+      "type": "pickup",
+      "item": "golf_ball",
+      "when": [
+        "@biscuit_fed"
+      ],
+      "at": {
+        "zone": "z3",
+        "near": [
+          168,
+          146
+        ]
+      },
+      "text": [
+        "A golf ball. Biscuit was lying on it."
+      ]
+    },
+    {
+      "id": "putt",
+      "type": "activity",
+      "minigame": "putt",
+      "at": {
+        "zone": "z4",
+        "near": "lm:38",
+        "off": [
+          -2,
+          -2
+        ]
+      },
+      "reward": [
+        {
+          "give": "golf_ball"
+        },
+        {
+          "set": "putt_done"
+        }
+      ],
+      "intro": "Crazy golf"
+    },
+    {
+      "id": "links_ball",
+      "type": "pickup",
+      "item": "golf_ball",
+      "at": {
+        "zone": "z4",
+        "near": "lm:33",
+        "off": [
+          0,
+          2
+        ]
+      },
+      "text": [
+        "A golf ball in the rough. SULLY written on it."
+      ]
+    },
+    {
+      "id": "shed_coins",
+      "type": "pickup",
+      "item": "coin",
+      "n": 2,
+      "at": {
+        "room": "shed",
+        "slot": 2
+      }
+    },
+    {
+      "id": "cellar_door",
+      "type": "door",
+      "to": "cellar",
+      "at": {
+        "room": "clubhouse",
+        "slot": 7
+      },
+      "req": [
+        "torch"
+      ],
+      "locked": "Stairs down to the cellar. Pitch black. Something blinks down there."
+    },
+    {
+      "id": "photo_chest",
+      "type": "chest",
+      "at": {
+        "room": "cellar",
+        "slot": 1
+      },
+      "effects": [
+        {
+          "give": "photo"
+        }
+      ],
+      "text": [
+        "Under a pile of bunting: a photo album. 'Tara Glen, Summer 1987'."
+      ]
+    },
+    {
+      "id": "cellar_coins",
+      "type": "pickup",
+      "item": "coin",
+      "n": 3,
+      "at": {
+        "room": "cellar",
+        "slot": 2
+      }
+    },
+    {
+      "id": "key_hook",
+      "type": "interact",
+      "kind": "hook",
+      "at": {
+        "zone": "z4",
+        "near": [
+          178,
+          169
+        ]
+      },
+      "req": [
+        "chip"
+      ],
+      "effects": [
+        {
+          "give": "key_lifeguard"
+        }
+      ],
+      "text": [
+        "You chip a ball into the whitethorn. The lifeguard's key drops."
+      ],
+      "locked": "A key hangs off a whitethorn branch over the ditch. Out of reach. You could knock it down with something."
+    },
+    {
+      "id": "hunt",
+      "type": "activity",
+      "minigame": "hunt",
+      "at": {
+        "zone": "z5",
+        "near": [
+          187,
+          146
+        ]
+      },
+      "reward": [
+        {
+          "give": "string"
+        },
+        {
+          "give": "shell"
+        },
+        {
+          "set": "hunt_done"
+        }
+      ],
+      "intro": "Sandy Acres beach challenge"
+    },
+    {
+      "id": "hut_coins",
+      "type": "pickup",
+      "item": "coin",
+      "n": 2,
+      "at": {
+        "room": "hut",
+        "slot": 2
+      }
+    },
+    {
+      "id": "gerry",
+      "type": "enemy",
+      "etype": "gerry",
+      "at": {
+        "zone": "z6",
+        "near": [
+          201,
+          40
+        ],
+        "exact": true
+      },
+      "drops": [
+        {
+          "give": "flag_tg"
+        },
+        {
+          "set": "gerry_beaten"
+        }
+      ],
+      "text": [
+        "Big Gerry drops the flag and flies off."
+      ],
+      "req": [
+        "parry"
+      ]
+    },
+    {
+      "id": "bonfire",
+      "type": "decor",
+      "sprite": "bonfire",
+      "when": [
+        "@evening"
+      ],
+      "at": {
+        "zone": "z5",
+        "near": [
+          188,
+          160
+        ]
+      }
     }
-   ],
-   "intro": "Aoife's swing contest"
-  },
-  {
-   "id": "keepy",
-   "type": "activity",
-   "minigame": "keepy",
-   "at": {
-    "zone": "z3",
-    "near": "lm:25"
-   },
-   "reward": [
+  ],
+  "locks": [
     {
-     "give": "bike"
+      "id": "gate_g1",
+      "gate": "g1",
+      "kind": "crack",
+      "req": [
+        "drive"
+      ],
+      "text": "A rotten old gate, wired shut. A hard enough drive would break it."
     },
     {
-     "set": "keepy_done"
+      "id": "pole",
+      "barrier": "b1",
+      "kind": "dash",
+      "req": [
+        "skateboard"
+      ],
+      "text": "ROAD CLOSED. The pole is too low to duck under. You'd need to slide under it on a board."
+    },
+    {
+      "id": "gate_g2",
+      "gate": "g2",
+      "kind": "ride",
+      "req": [
+        "bike"
+      ],
+      "sprite": "cattlegrid",
+      "text": "A cattle grid. You'd need wheels."
+    },
+    {
+      "id": "gate_g3",
+      "gate": "g3",
+      "kind": "solid",
+      "req": [
+        "key_lifeguard"
+      ],
+      "text": "The beach gate. Padlocked. 'KEY HELD BY LIFEGUARD'."
+    },
+    {
+      "id": "shallows",
+      "tide": "shallows",
+      "kind": "water",
+      "req": [
+        "fins|@tide_out"
+      ],
+      "text": "The groyne runs out into deep water. Wait for the tide."
+    },
+    {
+      "id": "channel",
+      "rect": [
+        199,
+        38,
+        199,
+        42
+      ],
+      "kind": "water",
+      "req": [
+        "fins",
+        "@tide_out"
+      ],
+      "text": "A channel between the sandbar and the Rock. Too deep without fins."
     }
-   ],
-   "intro": "Big Mick's keepy-uppy challenge"
-  },
-  {
-   "id": "biscuit_ball",
-   "type": "pickup",
-   "item": "golf_ball",
-   "when": [
-    "@biscuit_fed"
-   ],
-   "at": {
-    "zone": "z3",
-    "near": [
-     168,
-     146
-    ]
-   },
-   "text": [
-    "A golf ball. Biscuit was lying on it."
-   ]
-  },
-  {
-   "id": "putt",
-   "type": "activity",
-   "minigame": "putt",
-   "at": {
-    "zone": "z4",
-    "near": "lm:38",
-    "off": [
-     -2,
-     -2
-    ]
-   },
-   "reward": [
+  ],
+  "events": [
     {
-     "give": "golf_ball"
+      "id": "walkie_fixed",
+      "when": [
+        "walkie"
+      ],
+      "effects": [
+        {
+          "say": [
+            "The walkie crackles: '...the clubhouse password tonight is SPUDS...'",
+            "You know the clubhouse password."
+          ]
+        },
+        {
+          "set": "knows_password"
+        }
+      ]
     },
     {
-     "set": "putt_done"
+      "id": "evening",
+      "when": [
+        "@photo_returned"
+      ],
+      "effects": [
+        {
+          "say": [
+            "The sun drops behind the clubhouse. The lamps come on.",
+            "Down on the strand the tide is going a long way out.",
+            "Someone's lit a bonfire on the beach."
+          ]
+        },
+        {
+          "set": "evening"
+        },
+        {
+          "set": "tide_out"
+        }
+      ]
     }
-   ],
-   "intro": "Crazy golf"
-  },
-  {
-   "id": "links_ball",
-   "type": "pickup",
-   "item": "golf_ball",
-   "at": {
-    "zone": "z4",
-    "near": "lm:33",
-    "off": [
-     0,
-     2
-    ]
-   },
-   "text": [
-    "A golf ball in the rough. SULLY written on it."
-   ]
-  },
-  {
-   "id": "shed_coins",
-   "type": "pickup",
-   "item": "coin",
-   "n": 2,
-   "at": {
-    "room": "shed",
-    "slot": 2
-   }
-  },
-  {
-   "id": "cellar_door",
-   "type": "door",
-   "to": "cellar",
-   "at": {
-    "room": "clubhouse",
-    "slot": 7
-   },
-   "req": [
-    "torch"
-   ],
-   "locked": "Stairs down to the cellar. Pitch black. Something blinks down there."
-  },
-  {
-   "id": "photo_chest",
-   "type": "chest",
-   "at": {
-    "room": "cellar",
-    "slot": 1
-   },
-   "effects": [
+  ],
+  "end": [
+    "@ending"
+  ],
+  "hints": [
     {
-     "give": "photo"
+      "when": [
+        "!throw"
+      ],
+      "tiers": [
+        "Fill your balloons: combine the bucket with the pack.",
+        "Open your bag 🎒 and combine the balloons with the bucket.",
+        "🎒 → 'Pack of balloons', then 'Bucket of water'. The bucket's in the bathroom."
+      ]
+    },
+    {
+      "when": [
+        "!drive"
+      ],
+      "tiers": [
+        "Beat the Big Dust Bunny in 131.",
+        "131 is just south-west of 127. Clear the room.",
+        "Clear 131. Its boss teaches you the Power Drive."
+      ],
+      "target": "boss131"
+    },
+    {
+      "when": [
+        "!@visited_z2"
+      ],
+      "tiers": [
+        "Break the rotten gate into Playground Row.",
+        "The gate is at the bottom of the long hedge, east side.",
+        "Hold ⚔️ next to the gate and let go when the ring glows."
+      ],
+      "target": "gate_g1"
+    },
+    {
+      "when": [
+        "@visited_z2",
+        "!chip"
+      ],
+      "tiers": [
+        "Clear the arena in the Back Field.",
+        "Look for the marked square of grass in Playground Row.",
+        "Stand inside the marked square and beat both waves."
+      ]
+    },
+    {
+      "when": [
+        "!skateboard"
+      ],
+      "tiers": [
+        "Build a skateboard: Aoife's deck and some wheels.",
+        "Win the swing game, then check behind Nana Breda's mobile (210).",
+        "Combine the deck and the pram wheels in your bag 🎒."
+      ]
+    },
+    {
+      "when": [
+        "!@visited_z3"
+      ],
+      "tiers": [
+        "Slide under the ROAD CLOSED pole.",
+        "Dodge under the pole on the main road south with the skateboard.",
+        "Face the pole and dodge right in front of it."
+      ],
+      "target": "pole"
+    },
+    {
+      "when": [
+        "!bike"
+      ],
+      "tiers": [
+        "Win Big Mick's BMX on the pitch.",
+        "Do ten keepy-uppies for Big Mick.",
+        "Talk to Big Mick in the middle of the pitch."
+      ],
+      "target": "mick"
+    },
+    {
+      "when": [
+        "!walkie"
+      ],
+      "tiers": [
+        "Get batteries for the walkie.",
+        "The teens in the woods den want a Club Orange from Tony's van.",
+        "Buy a can from Tony (2🪙), give it to Shauna in the den north-west of 127, then combine walkie + batteries."
+      ],
+      "target": [
+        {
+          "when": [
+            "!can",
+            "!batteries"
+          ],
+          "to": "tony"
+        },
+        {
+          "when": [
+            "!batteries"
+          ],
+          "to": "shauna"
+        }
+      ]
+    },
+    {
+      "when": [
+        "!@visited_z4"
+      ],
+      "tiers": [
+        "Cross the cattle grid south of the pitch.",
+        "Ride the bike 🚲 over the cattle grid.",
+        "Get on the bike and ride straight over it."
+      ],
+      "target": "gate_g2"
+    },
+    {
+      "when": [
+        "!torch"
+      ],
+      "tiers": [
+        "Find Sully's three golf balls.",
+        "One's under Biscuit, one's at crazy golf, one's on the links.",
+        "Feed Biscuit the sausage, win crazy golf, find the ball on the far links, give all 3 to Sully."
+      ],
+      "target": [
+        {
+          "when": [
+            "!sausage",
+            "!@biscuit_fed"
+          ],
+          "to": "kehoe"
+        },
+        {
+          "when": [
+            "!@biscuit_fed"
+          ],
+          "to": "biscuit"
+        },
+        {
+          "when": [
+            "!golf_ball",
+            "!@putt_done"
+          ],
+          "to": "putt"
+        },
+        {
+          "when": [
+            "!golf_ball"
+          ],
+          "to": "links_ball"
+        },
+        {
+          "to": "sully"
+        }
+      ]
+    },
+    {
+      "when": [
+        "!@clubhouse_open"
+      ],
+      "tiers": [
+        "Get into the clubhouse.",
+        "The teens let the password slip on the walkie.",
+        "Fix the walkie, then tell Tadhg the password."
+      ],
+      "target": "tadhg"
+    },
+    {
+      "when": [
+        "!photo",
+        "!@photo_returned"
+      ],
+      "tiers": [
+        "Find Nana Breda's album in the clubhouse cellar.",
+        "The cellar stairs are behind the bar. You need light.",
+        "With the torch, go through the bar to the cellar stairs."
+      ],
+      "target": "cellar_door"
+    },
+    {
+      "when": [
+        "!@photo_returned"
+      ],
+      "tiers": [
+        "Bring the album to Nana Breda.",
+        "Nana Breda lives at 210 on Playground Row.",
+        "Talk to Nana Breda with the album."
+      ],
+      "target": "nana"
+    },
+    {
+      "when": [
+        "!key_lifeguard",
+        "!@visited_z5"
+      ],
+      "tiers": [
+        "Hook the key over the ditch by the beach gate.",
+        "Use the fishing rod by the ditch next to the beach gate.",
+        "Stand by the whitethorn near the beach gate and press Action."
+      ],
+      "target": "key_hook"
+    },
+    {
+      "when": [
+        "!fins"
+      ],
+      "tiers": [
+        "Get fins from Róisín the lifeguard.",
+        "Tony's van comes down to the beach at dusk. A 99 is 3🪙.",
+        "Give Róisín a 99 for her spare fins."
+      ],
+      "target": "roisin"
+    },
+    {
+      "when": [
+        "!flag_tg"
+      ],
+      "tiers": [
+        "Take the flag back from Big Gerry on the Rock.",
+        "Go round the groyne, out the sandbar, and wade the channel with fins.",
+        "North Strand → sandbar → the Rock. Dodge his dives, hit him when he lands."
+      ],
+      "target": "gerry"
+    },
+    {
+      "when": [
+        "!@ending"
+      ],
+      "tiers": [
+        "Take the flag to the bonfire.",
+        "Mam and Dad are at the bonfire on the South Strand.",
+        "Talk to Mam at the bonfire."
+      ],
+      "target": "mam"
     }
-   ],
-   "text": [
-    "Under a pile of bunting: a photo album. 'Tara Glen, Summer 1987'."
-   ]
-  },
-  {
-   "id": "cellar_coins",
-   "type": "pickup",
-   "item": "coin",
-   "n": 3,
-   "at": {
-    "room": "cellar",
-    "slot": 2
-   }
-  },
-  {
-   "id": "key_hook",
-   "type": "interact",
-   "kind": "hook",
-   "at": {
-    "zone": "z4",
-    "near": [
-     178,
-     169
-    ]
-   },
-   "req": [
-    "rod"
-   ],
-   "effects": [
-    {
-     "give": "key_lifeguard"
-    }
-   ],
-   "text": [
-    "You cast Grandad's rod and hook the lifeguard's key off the whitethorn."
-   ],
-   "locked": "A key hangs off a whitethorn branch over the ditch. Out of reach."
-  },
-  {
-   "id": "hunt",
-   "type": "activity",
-   "minigame": "hunt",
-   "at": {
-    "zone": "z5",
-    "near": [
-     187,
-     146
-    ]
-   },
-   "reward": [
-    {
-     "give": "string"
-    },
-    {
-     "give": "shell"
-    },
-    {
-     "set": "hunt_done"
-    }
-   ],
-   "intro": "Sandy Acres beach challenge"
-  },
-  {
-   "id": "hut_coins",
-   "type": "pickup",
-   "item": "coin",
-   "n": 2,
-   "at": {
-    "room": "hut",
-    "slot": 2
-   }
-  },
-  {
-   "id": "gerry",
-   "type": "enemy",
-   "etype": "gerry",
-   "at": {
-    "zone": "z6",
-    "near": [
-     201,
-     40
-    ],
-    "exact": true
-   },
-   "drops": [
-    {
-     "give": "flag_tg"
-    },
-    {
-     "set": "gerry_beaten"
-    }
-   ],
-   "text": [
-    "Big Gerry drops the flag and flies off."
-   ]
-  },
-  {
-   "id": "bonfire",
-   "type": "decor",
-   "sprite": "bonfire",
-   "when": [
-    "@evening"
-   ],
-   "at": {
-    "zone": "z5",
-    "near": [
-     188,
-     160
-    ]
-   }
-  }
- ],
- "locks": [
-  {
-   "id": "gate_g1",
-   "gate": "g1",
-   "kind": "climb",
-   "req": [
-    "trainers"
-   ],
-   "text": "A tall locked gate. You'd need grippy shoes to climb it."
-  },
-  {
-   "id": "pole",
-   "barrier": "b1",
-   "kind": "dash",
-   "req": [
-    "skateboard"
-   ],
-   "text": "ROAD CLOSED. The pole is too low to duck under. You'd need to slide under it on a board."
-  },
-  {
-   "id": "gate_g2",
-   "gate": "g2",
-   "kind": "ride",
-   "req": [
-    "bike"
-   ],
-   "sprite": "cattlegrid",
-   "text": "A cattle grid. You'd need wheels."
-  },
-  {
-   "id": "gate_g3",
-   "gate": "g3",
-   "kind": "solid",
-   "req": [
-    "key_lifeguard"
-   ],
-   "text": "The beach gate. Padlocked. 'KEY HELD BY LIFEGUARD'."
-  },
-  {
-   "id": "shallows",
-   "tide": "shallows",
-   "kind": "water",
-   "req": [
-    "fins|@tide_out"
-   ],
-   "text": "The groyne runs out into deep water. Wait for the tide."
-  },
-  {
-   "id": "channel",
-   "rect": [
-    199,
-    38,
-    199,
-    42
-   ],
-   "kind": "water",
-   "req": [
-    "fins",
-    "@tide_out"
-   ],
-   "text": "A channel between the sandbar and the Rock. Too deep without fins."
-  }
- ],
- "events": [
-  {
-   "id": "walkie_fixed",
-   "when": [
-    "walkie"
-   ],
-   "effects": [
-    {
-     "say": [
-      "The walkie crackles: '...the clubhouse password tonight is SPUDS...'",
-      "You know the clubhouse password."
-     ]
-    },
-    {
-     "set": "knows_password"
-    }
-   ]
-  },
-  {
-   "id": "evening",
-   "when": [
-    "@photo_returned"
-   ],
-   "effects": [
-    {
-     "say": [
-      "The sun drops behind the clubhouse. The lamps come on.",
-      "Down on the strand the tide is going a long way out.",
-      "Someone's lit a bonfire on the beach."
-     ]
-    },
-    {
-     "set": "evening"
-    },
-    {
-     "set": "tide_out"
-    }
-   ]
-  }
- ],
- "end": [
-  "@ending"
- ],
- "hints": [
-  {
-   "when": [
-    "!throw"
-   ],
-   "tiers": [
-    "Fill your balloons: combine the bucket with the pack.",
-    "Open your bag 🎒 and combine the balloons with the bucket.",
-    "🎒 → 'Pack of balloons', then 'Bucket of water'. The bucket's in the bathroom."
-   ]
-  },
-  {
-   "when": [
-    "!trainers"
-   ],
-   "tiers": [
-    "Get Mrs Kehoe's peg bag back from 131.",
-    "131 is just south-west of 127. Clear the dust bunnies inside.",
-    "Clear 131. The chest in the back room has trainers."
-   ],
-   "target": "chest131"
-  },
-  {
-   "when": [
-    "!@visited_z2"
-   ],
-   "tiers": [
-    "Climb the tall gate into Playground Row.",
-    "The tall gate is at the bottom of the long hedge, east side.",
-    "Walk into the tall gate wearing the trainers."
-   ],
-   "target": "gate_g1"
-  },
-  {
-   "when": [
-    "!skateboard"
-   ],
-   "tiers": [
-    "Build a skateboard: Aoife's deck and some wheels.",
-    "Win the swing game, then check behind Nana Breda's mobile (210).",
-    "Combine the deck and the pram wheels in your bag 🎒."
-   ]
-  },
-  {
-   "when": [
-    "!@visited_z3"
-   ],
-   "tiers": [
-    "Slide under the ROAD CLOSED pole.",
-    "Dodge under the pole on the main road south with the skateboard.",
-    "Face the pole and dodge right in front of it."
-   ],
-   "target": "pole"
-  },
-  {
-   "when": [
-    "!bike"
-   ],
-   "tiers": [
-    "Win Big Mick's BMX on the pitch.",
-    "Do ten keepy-uppies for Big Mick.",
-    "Talk to Big Mick in the middle of the pitch."
-   ],
-   "target": "mick"
-  },
-  {
-   "when": [
-    "!walkie"
-   ],
-   "tiers": [
-    "Get batteries for the walkie.",
-    "The teens in the woods den want a Club Orange from Tony's van.",
-    "Buy a can from Tony (2🪙), give it to Shauna in the den north-west of 127, then combine walkie + batteries."
-   ],
-   "target": [
-    {
-     "when": [
-      "!can",
-      "!batteries"
-     ],
-     "to": "tony"
-    },
-    {
-     "when": [
-      "!batteries"
-     ],
-     "to": "shauna"
-    }
-   ]
-  },
-  {
-   "when": [
-    "!@visited_z4"
-   ],
-   "tiers": [
-    "Cross the cattle grid south of the pitch.",
-    "Ride the bike 🚲 over the cattle grid.",
-    "Get on the bike and ride straight over it."
-   ],
-   "target": "gate_g2"
-  },
-  {
-   "when": [
-    "!torch"
-   ],
-   "tiers": [
-    "Find Sully's three golf balls.",
-    "One's under Biscuit, one's at crazy golf, one's on the links.",
-    "Feed Biscuit the sausage, win crazy golf, find the ball on the far links, give all 3 to Sully."
-   ],
-   "target": [
-    {
-     "when": [
-      "!sausage",
-      "!@biscuit_fed"
-     ],
-     "to": "kehoe"
-    },
-    {
-     "when": [
-      "!@biscuit_fed"
-     ],
-     "to": "biscuit"
-    },
-    {
-     "when": [
-      "!golf_ball",
-      "!@putt_done"
-     ],
-     "to": "putt"
-    },
-    {
-     "when": [
-      "!golf_ball"
-     ],
-     "to": "links_ball"
-    },
-    {
-     "to": "sully"
-    }
-   ]
-  },
-  {
-   "when": [
-    "!@clubhouse_open"
-   ],
-   "tiers": [
-    "Get into the clubhouse.",
-    "The teens let the password slip on the walkie.",
-    "Fix the walkie, then tell Tadhg the password."
-   ],
-   "target": "tadhg"
-  },
-  {
-   "when": [
-    "!photo",
-    "!@photo_returned"
-   ],
-   "tiers": [
-    "Find Nana Breda's album in the clubhouse cellar.",
-    "The cellar stairs are behind the bar. You need light.",
-    "With the torch, go through the bar to the cellar stairs."
-   ],
-   "target": "cellar_door"
-  },
-  {
-   "when": [
-    "!@photo_returned"
-   ],
-   "tiers": [
-    "Bring the album to Nana Breda.",
-    "Nana Breda lives at 210 on Playground Row.",
-    "Talk to Nana Breda with the album."
-   ],
-   "target": "nana"
-  },
-  {
-   "when": [
-    "!key_lifeguard",
-    "!@visited_z5"
-   ],
-   "tiers": [
-    "Hook the key over the ditch by the beach gate.",
-    "Use the fishing rod by the ditch next to the beach gate.",
-    "Stand by the whitethorn near the beach gate and press Action."
-   ],
-   "target": "key_hook"
-  },
-  {
-   "when": [
-    "!fins"
-   ],
-   "tiers": [
-    "Get fins from Róisín the lifeguard.",
-    "Tony's van comes down to the beach at dusk. A 99 is 3🪙.",
-    "Give Róisín a 99 for her spare fins."
-   ],
-   "target": "roisin"
-  },
-  {
-   "when": [
-    "!flag_tg"
-   ],
-   "tiers": [
-    "Take the flag back from Big Gerry on the Rock.",
-    "Go round the groyne, out the sandbar, and wade the channel with fins.",
-    "North Strand → sandbar → the Rock. Dodge his dives, hit him when he lands."
-   ],
-   "target": "gerry"
-  },
-  {
-   "when": [
-    "!@ending"
-   ],
-   "tiers": [
-    "Take the flag to the bonfire.",
-    "Mam and Dad are at the bonfire on the South Strand.",
-    "Talk to Mam at the bonfire."
-   ],
-   "target": "mam"
-  }
- ]
+  ]
 }

@@ -43,6 +43,8 @@ export class World extends Phaser.Scene implements Host {
     this.load.json('world', V('world.json')); this.load.json('rooms', V('rooms.json'));
     this.load.image('tiles', V('assets/tiles.png')); this.load.tilemapTiledJSON('map', V('assets/map.json'));
     this.load.spritesheet('player', V('assets/player.png'), { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('hero', V('assets/v10/player.png'), { frameWidth: 24, frameHeight: 24 }); this.load.json('hero', V('assets/v10/player.json'));
+    this.load.spritesheet('herofx', V('assets/v10/fx.png'), { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('chars', V('assets/v6/chars.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('dog', V('assets/v6/dog.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('monsters', V('assets/v6/monsters.png'), { frameWidth: 16, frameHeight: 16 });
@@ -205,6 +207,7 @@ export class World extends Phaser.Scene implements Host {
       } else {
         if (l.gate) { const g = this.gates[l.gate]; o.body = g.body; if (l.kind === 'ride') { g.img.setVisible(false); for (const [tx, ty] of l.tiles) o.sprites.push(this.add.image(tx * 16 + 8, ty * 16 + 8, 'd-cattlegrid').setDepth(-2)); } else o.sprites.push(g.img as any); }
         else { o.body = this.add.zone(x + w / 2, y + h / 2, w, h); for (const [tx, ty] of l.tiles) o.sprites.push(this.add.image(tx * 16 + 8, ty * 16 + 8, 'd-pole').setDepth(ty * 16 + 12)); }
+        if (l.kind === 'crack') o.sprites.forEach((sp: any) => sp.setTint?.(0xc09070)); // rotten wood reads warmer/duller
         this.gateSolids.add(o.body);
         this.physics.add.collider(this.player, o.body, () => this.bump(o), () => this.passable(o));
       }
@@ -224,11 +227,24 @@ export class World extends Phaser.Scene implements Host {
   bump(o: (typeof this.lockObjs)[number]) {
     const l = o.l, r = o.body!.getBounds(), has = cond(l.req);
     if (l.kind === 'climb' && has) return this.hop(o);
-    if (l.kind === 'solid' && has) { o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false;
-      o.sprites.forEach((s) => this.tweens.add({ targets: s, scaleY: 0.05, alpha: 0, duration: 900, ease: 'Back.in' })); toast('🔓 Unlocked!'); G.st.flags.push('open:' + l.id); persist(); return; }
+    if (l.kind === 'solid' && has) return this.openLock(o, '🔓 Unlocked!');
+    if (l.kind === 'crack' && has) return this.sayOnce(l.id, r, ['Hold ⚔️ and let go when the ring glows to drive through it.'], true);
     if (l.kind === 'dash' && has) return this.sayOnce(l.id, r, [S('dashHint')], true);
     if (l.kind === 'ride' && has) return this.sayOnce(l.id, r, [S('rideHint')], true);
     this.sayOnce(l.id, r, [l.text]);
+  }
+  openLock(o: (typeof this.lockObjs)[number], msg: string) {
+    if (o.open) return; o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false;
+    o.sprites.forEach((s) => this.tweens.add({ targets: s, scaleY: 0.05, alpha: 0, duration: 600, ease: 'Back.in' })); toast(msg); G.st.flags.push('open:' + o.l.id); persist(); changed();
+  }
+  /** v10: a charged drive breaks rotten gates (crack locks) in reach */
+  driveHit(x: number, y: number, r: number) {
+    for (const o of this.lockObjs) if (o.l.kind === 'crack' && !o.open && cond(o.l.req) && o.body && Phaser.Geom.Rectangle.Overlaps(Phaser.Geom.Rectangle.Inflate(o.body.getBounds(), r, r), new Phaser.Geom.Rectangle(x - 1, y - 1, 2, 2))) {
+      const b = o.body.getBounds(); this.cameras.main.shake(200, 0.008);
+      for (let i = 0; i < 10; i++) { const p = this.add.rectangle(b.centerX + (Math.random() - 0.5) * b.width, b.centerY, 3, 2, 0x8d5537).setDepth(9e4);
+        this.tweens.add({ targets: p, x: p.x + (Math.random() - 0.5) * 40, y: p.y - 10 - Math.random() * 20, alpha: 0, angle: 180, duration: 600, onComplete: () => p.destroy() }); }
+      this.openLock(o, 'The rotten gate gives way.');
+    }
   }
   hop(o: (typeof this.lockObjs)[number]) {
     if ((this.player as any).hopping) return; (this.player as any).hopping = true;
@@ -243,7 +259,7 @@ export class World extends Phaser.Scene implements Host {
     this.night.setVisible(eve); this.glows.forEach((g) => g.setVisible(eve));
     for (const o of this.lockObjs) {
       if (o.l.kind !== 'water') {
-        if (first && o.l.kind === 'solid' && flag('open:' + o.l.id)) { o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false; o.sprites.forEach((s) => s.setVisible(false)); }
+        if (first && (o.l.kind === 'solid' || o.l.kind === 'crack') && flag('open:' + o.l.id)) { o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false; o.sprites.forEach((s) => s.setVisible(false)); }
         continue; }
       const open = cond(o.l.req);
       if (open === o.open && !first) continue; o.open = open;
@@ -268,7 +284,7 @@ export class World extends Phaser.Scene implements Host {
     this.player.facing = 'down'; this.doorArmed = false; this.input.keyboard!.resetKeys(); bossBar(null);
     this.cameras.main.fadeIn(250); $('bike').style.display = count('bike') ? 'flex' : 'none'; changed(); this.checkZone();
   }
-  fire() { throwBalloon(this, this.player, [this.ground, ...this.walls.slice(1)], this.enemies); }
+  fire() { if (this.combat.chip()) return; throwBalloon(this, this.player, [this.ground, ...this.walls.slice(1)], this.enemies); }
   dash() { if (!this.riding && !this.inMini) this.combat.dodge(); }
   onEnemyDeath(en: Enemy) { this.arenas?.onDeath(en); }
   interact() { if (!this.inMini && !this.hunt) this.ents.interact(); }
@@ -326,7 +342,7 @@ export class World extends Phaser.Scene implements Host {
   update(_: number, dt: number) {
     if (!this.player) return;
     if (this.night.visible) { const m = this.cameras.main.midPoint; this.night.setPosition(m.x, m.y); }
-        if (this.inMini || G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.anims.stop(); if (G.paused) $('prompt').style.display = 'none'; return; }
+        if (this.inMini || G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.idle(); if (G.paused) $('prompt').style.display = 'none'; return; }
     if (!G.st.done) G.st.elapsed += dt;
     if ((this.saveT += dt) > 2000) { this.saveT = 0; G.st.pos = [Math.round(this.player.x), Math.round(this.player.y)]; persist(); }
     if ((this.zoneT += dt) > 500) { this.zoneT = 0; this.checkZone(); }
@@ -353,14 +369,14 @@ export class World extends Phaser.Scene implements Host {
     if (!this.overview) for (const t of this.labels) t.setAlpha(Phaser.Math.Distance.Between(t.x, t.y, p.x, p.y) < 64 ? 1 : 0);
     if (this.riding && this.onSand()) { this.toggleBike(); toast(S('offSand')); }
     if ((p as any).hopping) return;
-    const moving = p.drive(p.readInput(), this.riding ? BIKE_SPEED : G.w.start.walk);
+    const moving = p.drive(p.readInput(), this.riding ? BIKE_SPEED : G.w.start.walk * (count('trainers') ? 1.15 : 1));
     const f = p.facing;
     if (this.riding) {
-      this.bike.setPosition(p.x, p.y + 2).setDepth(p.depth - 0.5); p.setDisplayOrigin(8, 11);
+      this.bike.setPosition(p.x, p.y + 2).setDepth(p.depth - 0.5); p.setDisplayOrigin(12, 17);
       if (moving) this.bike.anims.play('bike-' + f, true); else { this.bike.anims.stop(); this.bike.setFrame(DIRS.indexOf(f)); }
       if (f === 'down') this.bike.setDepth(p.depth + 0.5);
       return;
     }
-    p.setDisplayOrigin(8, 8);
+    p.setDisplayOrigin(12, 14);
   }
 }

@@ -1,5 +1,6 @@
 // Condition DSL + effects + world events + hints. Same semantics as scripts/gen/logic.py (the solver).
 // cond = AND list of terms: 'item' | 'item>=3' | '@flag' | '!term' | 'a|b'
+import { abilityMoment } from '../v9/combat';
 import { G, persist, toast, S } from '../mech/core';
 import { say, hud, showEnd } from './ui';
 
@@ -20,8 +21,10 @@ const listeners: (() => void)[] = [];
 export const onChange = (fn: () => void) => { listeners.push(fn); return () => listeners.splice(listeners.indexOf(fn), 1); };
 
 export function give(k: string, n = 1, quiet = false) {
-  const d = G.w.items[k] ?? {}; let v = count(k) + n; if (d.max) v = Math.min(d.max, v);
+  const d = G.w.items[k] ?? {}, had = count(k); let v = had + n; if (d.max) v = Math.min(d.max, v);
   G.st.items[k] = v;
+  if (d.how && !had) { // v10: fight ability unlocked -> pose + banner with the how-to
+    const w = window as any, sc = w.room?.sys?.isActive() ? w.room : w.tg; setTimeout(() => sc && abilityMoment(sc, k), 250); return; }
   if (!quiet && !d.hidden) toast(S('got', { icon: d.icon ?? '', name: d.name ?? k, n: n > 1 ? ` x${n}` : '' }));
 }
 export function take(k: string, n = 1) { G.st.items[k] = Math.max(0, count(k) - n); }

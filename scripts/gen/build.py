@@ -352,6 +352,16 @@ for ad in WD.get('arenas', []):
     ARENAS.append({'id': ad['id'], 'zone': zid, 'name': ad['name'], 'rect': [x0 * 16, y0 * 16, (x0 + aw) * 16, (y0 + ah) * 16], 'waves': waves,
                    'stats': {t: estats(t, tier_of(zid)) for w in ad['waves'] for t in w}, 'reward': ad.get('reward', [])})
 
+# v10 combat-gated rewards: clearing a room or an arena is an 'encounter' entity the solver can collect
+for a in ARENAS:
+    if a['reward']: ENT.append({'id': 'enc_' + a['id'], 'type': 'encounter', 'arena': a['id'], 'effects': a['reward'], 'x': (a['rect'][0] + a['rect'][2]) // 2, 'y': (a['rect'][1] + a['rect'][3]) // 2, 'zone': a['zone']})
+for enc in WD.get('encounters', []):
+    rid = enc['room']
+    if rid not in ROOMS: err(f"encounter room {rid} does not exist"); continue
+    if not any(e['type'] == 'enemy' and e.get('room') == rid for e in ENT): err(f"encounter room {rid} has no enemies to clear")
+    sx, sy = ROOMS[rid]['spawn']
+    ENT.append({'id': 'enc_' + rid, 'type': 'encounter', 'room': rid, 'effects': enc['reward'], 'x': sx * 16 + 8, 'y': sy * 16 + 4, 'zone': ROOMS[rid]['zone']})
+
 # decor near caravans / on the beach / in the open
 rules = DC['rules']
 def pick_rule(where): rs = [r for r in rules if r['where'] in where]; return rng.choices(rs, [r['weight'] for r in rs])[0] if rs else None
@@ -494,7 +504,8 @@ def solve(record=True):
                 if t == 'pickup': eff = [{'give': e['item'], 'n': e.get('n', 1)}]
                 elif t in ('chest', 'whisper', 'hider', 'interact') and ok(e.get('req'), st): eff = e.get('effects', [])
                 elif t == 'activity': eff = e['reward']
-                elif t == 'enemy' and e['stats'].get('boss') and st['items'].get('throw'): eff = e.get('drops', []) + e['stats'].get('drops', [])
+                elif t == 'enemy' and e['stats'].get('boss') and ok(e.get('req'), st): eff = e.get('drops', []) + e['stats'].get('drops', [])  # v10: the club beats bosses; guarded ones need their ability
+                elif t == 'encounter': eff = e['effects']
                 elif t in ('note', 'vista'): eff = []
                 if eff is None: continue
                 if t == 'interact' and any('refill' in x for x in eff): eff = []
@@ -546,6 +557,16 @@ if never: err(f'{len(never)} entities never collectable: {never[:12]}')
 for nid_, n in NPCS.items():
     for i, tk in enumerate(n['talk']):
         if (nid_, i) not in matched and tk.get('when') and 'evening' not in ' '.join(tk['when']): warn(f'talk entry {nid_}[{i}] never shown on the critical path')
+# v10: fight abilities must come from fights (an encounter or a boss) and be reachable, and their gates must open after them
+FIGHT_ABIL = [k for k, v in ITEMS.items() if v.get('how')]
+for k in FIGHT_ABIL:
+    src = [(i, l) for i, sp in enumerate(spheres) for l in sp['log'] if f'give:{k}' in l]
+    if not src: err(f'ability {k} is never earned'); continue
+    if not src[0][1].startswith(('encounter', 'enemy')): err(f'ability {k} is earned outside a fight: {src[0][1]}')
+    for l in locks:
+        if k in mentions(l['req']):
+            gate_sp = next((i for i, sp in enumerate(spheres) if l['id'] in {x['id'] for x in locks if ok(x['req'], {'items': sp['state']['items'], 'flags': set(sp['state']['flags']), 'maxhp': sp['state']['maxhp']})}), None)
+            if gate_sp is None or gate_sp < src[0][0]: err(f'gate {l["id"]} ({k}) opens before {k} is earned')
 # ramp: zone tiers should not decrease along the unlock order
 order = sorted(zone_sphere, key=zone_sphere.get); prev = 0
 for zid in order:

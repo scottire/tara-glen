@@ -8,12 +8,38 @@ and by sundown the gulls have the Tara Glen flag out on the Rock.
 
 ## Controls (touch first, v9 action layout)
 - Move: floating joystick on the **left** 60% of the screen, or arrows / WASD.
-- **⚔️ Attack** (big red, bottom right): tap for a 3-hit combo (taps during a swing are buffered); **hold** to charge,
-  the ring fills round you, then release for a spin attack. Swings snap to the nearest enemy in a wide cone.
+- **⚔️ Attack** (big red, bottom right): you swing a golf iron. Tap for a 3-hit combo (4 with Long Game; taps during a swing are buffered).
+  With Power Drive, **hold** to charge: a ring fills round you, then release for a full drive swing. Swings snap to the nearest enemy in a wide cone.
+  Mid-roll it becomes Dash Strike; as an enemy shot arrives it becomes Putt Parry (once you've earned them).
   Near someone or something with no enemy close, the same button becomes **Interact** (✋ 💬 🔓 🚪 ▶, turns green). Keys: J / Space (hold to charge), E / Enter = talk.
 - **💨 Dodge** (big blue, left of Attack): roll with i-frames, short cooldown. With the skateboard 🛹 it goes further, passes dash locks and hurts enemies. Keys: K / Shift (Z / C still work).
-- 💦 water balloon (small, optional secondary; L / X / F) · 🚲 bike (B; not on sand).
+- ⛳ Chip Shot once earned (small secondary button; before that it throws 💦 water balloons; L / X / F) · 🚲 bike (B; not on sand).
 - 🎯 objective line top-left (tap to fold) · 🎒 bag (combine items) · 📻 walkie hints · ☰ reset. Saved in localStorage (`tara-glen-save-v6`).
+
+## Fight abilities (v10): the world opens through combat
+| Ability | Earned by | What it does | What it opens |
+|---|---|---|---|
+| 🏌️ Power Drive | beating the Big Dust Bunny (Mobile 131) | hold ⚔️, release for a 360° drive swing; cracks armour | the rotten gate into Playground Row (`gate_g1`, lock kind `crack`) |
+| ⛳ Chip Shot | the Back Field arena | ranged golf ball on the small button | the lifeguard's key in the whitethorn (`key_hook`), which leads to the beach gate |
+| ⚡ Dash Strike | clearing Mobile 377 | ⚔️ during a dodge = a lunge through enemies | the low wardrobe gaps in secret back rooms (`secretLocks` dash) |
+| 🔁 Putt Parry | the Ninth Hole arena | tap ⚔️ as a shot arrives to send it back; returned shots stun | Big Gerry, whose guard turns the club until a returned shot stuns him |
+| ➕ Long Game | clearing Mobile 370 | a 4th, heavier combo hit | (combat only) |
+| ❤️ Heart | the Dunes arena | +1 max heart | (combat only) |
+
+Rewards live in `content/world.json` (`arenas[].reward`, `encounters[]`) and in boss `drops` (`content/story.json`). build.py turns each room or arena clear into an
+`encounter` entity the solver collects once the room or arena is reachable. The validator fails if a fight ability (an item with `how`) is never earned, is earned
+outside a fight, or a gate needing it could open first. Unlocks play a club-raise pose and a banner with a one-line how-to (`abilityMoment`).
+
+## Player sprite (v10)
+`scripts/gen/player.py` hand-pixels the hero in the house palette: messy brown hair, green GAA jersey with a cream hoop, navy shorts, white runners and a golf iron.
+Frames are 24x24 with the feet on row 22. Animations: idle, walk, three swings, charge, spin, roll, hurt, faint and interact, in 4 directions (left mirrors right).
+It writes `public/assets/v10/player.png` and `player.json` (anim → dir → frames), plus `fx.png` (swoosh, drive ring, ball). It also writes a x4 preview to `/workspace/tg-v10-player-sheet-x4.png`.
+
+## Tests
+`tests/e2e/*.mjs` (playwright-core + system Chrome, iPhone 13 emulation, real touch events):
+- `freeze.mjs`: room clear with a boss, the empty-dialogue regression, and recovery from an error inside a frame (`node freeze.mjs webkit` for WebKit).
+- `v10.mjs`: Power Drive unlock, breaking the gate and walking through, then Chip Shot, Dash Strike, Putt Parry and Gerry's guard.
+- `v9.mjs`: combo, charge, dodge, telegraphs, room lock, checkpoints, arena.
 
 ## Combat and structure (v9)
 - `src/v9/combat.ts`: combo, charge, dodge, auto-aim, input buffer, hit-stop, flash, knockback, particles, shake, enemy projectiles, and attack tokens (at most 3 enemies close in and 2 wind up at once; the rest circle).

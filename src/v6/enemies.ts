@@ -16,7 +16,7 @@ type Mode = 'idle' | 'move' | 'windup' | 'attack' | 'recover';
 export class Enemy extends Character implements Foe {
   t = 0; path: { x: number; y: number }[] = []; repath = 0; seen = false; home: { x: number; y: number };
   mode: Mode = 'idle'; mt = 0; mt0 = 1; dir = 0; attacking = false; windup = false; armor = 0; phase = 0; tele?: Phaser.GameObjects.Graphics; shield?: Phaser.GameObjects.Arc;
-  strafe = Math.random() < 0.5 ? 1 : -1; sight: number;
+  strafe = Math.random() < 0.5 ? 1 : -1; sight: number; stunUntil = 0;
   onDeath?: (e: Enemy) => void;
   constructor(scene: Phaser.Scene, public e: any, public target: Player, public pather?: Pather) {
     super(scene, e.x, e.y, 'monsters', e.stats.hp, e.stats.hp, 140);
@@ -39,8 +39,16 @@ export class Enemy extends Character implements Foe {
   get ai(): string { return this.s.ai === 'boss' ? (this.s.phases ?? ['chaser'])[this.phase] : this.s.ai; }
   get spd() { return this.s.chase * (1 + this.phase * 0.2); }
   onDamage() { if (this.s.boss) bossBar(this.s.name, this.life.life / this.life.max); }
-  hitBy(_c: Combat, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }) {
+  /** knocked silly (Putt Parry): stops, goes grey, and a guarded enemy drops its guard */
+  stun(ms: number) {
+    this.stunUntil = this.scene.time.now + ms; this.cancel(); this.mode = 'recover'; this.mt = ms; this.setVelocity(0, 0);
+    popup(this.scene, this.x, this.y - 10, 'STUNNED', '#fff09a');
+    this.scene.tweens.add({ targets: this, angle: { from: -10, to: 10 }, duration: 150, yoyo: true, repeat: Math.floor(ms / 300), onComplete: () => this.active && this.setAngle(0) });
+  }
+  hitBy(_c: Combat | null, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }) {
     if (this.invuln.invulnerable || this.sm.current === 'dead') return;
+    if (this.s.guard && this.scene.time.now > this.stunUntil && !(from as any).reflected) { // wings turn the club: needs a parried shot first
+      flash(this, 0xd6f0ff, 80); popup(this.scene, this.x, this.y, 'GUARD', '#d6f0ff'); burst(this.scene, this.x, this.y, 0xd6f0ff, 4, 25); return; }
     if (this.armor > 0) { // armour soaks the hit; heavy hits crack a plate and still stagger
       this.armor = heavy ? Math.max(0, this.armor - 2) : this.armor - 1;
       flash(this, 0x9cc8ff, 80); burst(this.scene, this.x, this.y - 2, 0x9cc8ff, 5, 30); popup(this.scene, this.x, this.y, this.armor ? 'CLINK' : 'CRACK', '#9cc8ff');

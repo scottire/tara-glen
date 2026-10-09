@@ -83,22 +83,38 @@ export class Character extends Phaser.Physics.Arcade.Sprite {
 }
 
 // ---------- player ----------
+/** animations from public/assets/v10/player.json (scripts/gen/player.py): h-<anim>-<dir> */
+const HERO_RATE: Record<string, [number, number]> = { idle: [2, -1], walk: [8, -1], swing1: [16, 0], swing2: [16, 0], swing3: [14, 0], charge: [6, -1], spin: [16, 0], roll: [18, 0], hurt: [1, 0], faint: [3, 0], interact: [4, 0] };
+export function heroAnims(scene: Phaser.Scene) {
+  const meta = scene.cache.json.get('hero'); if (!meta || scene.anims.exists('h-idle-down')) return;
+  for (const [name, dirs] of Object.entries<Record<string, number[]>>(meta.anims)) for (const [d, frames] of Object.entries(dirs)) {
+    const [rate, repeat] = HERO_RATE[name] ?? [8, -1];
+    scene.anims.create({ key: `h-${name}-${d}`, frameRate: rate, repeat, frames: scene.anims.generateFrameNumbers('hero', { frames }) });
+  }
+}
 type Keys = Record<string, Phaser.Input.Keyboard.Key>;
 export class Player extends Character {
   keys: Keys;
   constructor(scene: Phaser.Scene, x: number, y: number) {
     const P = G.w.player;
-    super(scene, x, y, 'player', G.st.hp > 0 ? Math.min(G.st.hp, G.st.maxhp) : G.st.maxhp, G.st.maxhp, P.invulnMs);
-    this.setSize(10, 8).setOffset(3, 8).setCollideWorldBounds(true);
-    ensureAnims(scene, 'player');
+    super(scene, x, y, 'hero', G.st.hp > 0 ? Math.min(G.st.hp, G.st.maxhp) : G.st.maxhp, G.st.maxhp, P.invulnMs);
+    // v10 hero: 24x24 frames, feet on row 22; origin keeps the feet where the old 16px sprite had them
+    this.setOrigin(0.5, 14 / 24).setSize(10, 8).setOffset(7, 14).setCollideWorldBounds(true);
+    heroAnims(scene); this.play('h-idle-down');
     this.keys = scene.input.keyboard!.addKeys('UP,DOWN,LEFT,RIGHT,W,A,S,D') as Keys;
     this.sm.add({ name: 'idle' }, { name: 'move' }, this.hurtState('idle'),
-      { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.anims.stop(); this.setAngle(90); this.scene.time.delayedCall(700, () => this.scene.events.emit('player-dead')); } });
+      { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.play('h-faint-down'); this.scene.time.delayedCall(900, () => this.scene.events.emit('player-dead')); } });
     this.sm.set('idle');
   }
-  onDamage() { G.st.hp = this.life.life; persist(); this.scene.cameras.main.shake(140, 0.006); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
-  revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); persist(); }
-  dashing = false; dashReady = 0; slow = 1;
+  onDamage() { G.st.hp = this.life.life; persist(); this.pose('hurt', 300); this.scene.cameras.main.shake(140, 0.006); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
+  revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); this.play('h-idle-' + this.facing); persist(); }
+  dashing = false; dashReady = 0; slow = 1; poseUntil = 0;
+  /** play a one-off action animation (swing/roll/hurt/...) for `ms`; walking/idle won't override it meanwhile */
+  pose(name: string, ms: number, dir: Dir = this.facing) {
+    const k = `h-${name}-${dir}`; if (!this.scene.anims.exists(k)) return;
+    this.poseUntil = this.scene.time.now + ms; this.anims.play(k, true);
+  }
+  idle() { if (this.scene.time.now >= this.poseUntil && this.sm.current !== 'dead') this.anims.play('h-idle-' + this.facing, true); }
   /** v9 dodge-roll: always available; burst along `angle` with i-frames (the `dashing` flag). With the skateboard it goes
    *  further, passes dash locks and hurts enemies on contact. Cooldown is enforced by Combat. */
   dodge(angle: number) {
@@ -107,8 +123,8 @@ export class Player extends Character {
     const sp = board ? P.dashSpeed : P.dodgeSpeed ?? 210, ms = board ? P.dashMs : P.dodgeMs ?? 220;
     this.dashing = true; this.setVelocity(Math.cos(angle) * sp, Math.sin(angle) * sp);
     this.facing = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle)) ? (Math.cos(angle) > 0 ? 'right' : 'left') : (Math.sin(angle) > 0 ? 'down' : 'up');
-    this.setFrame(DIRS.indexOf(this.facing)); this.scene.tweens.add({ targets: this, scaleY: 0.8, duration: ms / 2, yoyo: true });
-    const ghost = () => { if (!this.active) return; const g = this.scene.add.image(this.x, this.y, this.texture.key, this.frame.name).setAlpha(0.4).setTint(0x9fd0ff).setDepth(this.depth - 1);
+    this.pose('roll', ms);
+    const ghost = () => { if (!this.active) return; const g = this.scene.add.image(this.x, this.y, this.texture.key, this.frame.name).setOrigin(this.originX, this.originY).setFlipX(this.flipX).setAlpha(0.4).setTint(0x9fd0ff).setDepth(this.depth - 1);
       this.scene.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() }); };
     const t = this.scene.time.addEvent({ delay: 40, repeat: Math.floor(ms / 40), callback: ghost });
     this.scene.time.delayedCall(ms, () => { this.dashing = false; t.remove(); if (this.active && !this.busy) this.setVelocity(0, 0); });
@@ -131,7 +147,7 @@ export class Player extends Character {
     if ((this.scene as any).combat?.swingUntil > this.scene.time.now) return true; // facing locked mid-swing
     const moving = v.length() >= 0.01;
     if (moving) this.facing = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 'right' : 'left') : (v.y > 0 ? 'down' : 'up');
-    if (moving) this.anims.play(this.facing, true); else { this.anims.stop(); this.setFrame(DIRS.indexOf(this.facing)); }
+    if (this.scene.time.now >= this.poseUntil) this.anims.play(`h-${moving ? 'walk' : 'idle'}-${this.facing}`, true);
     this.sm.set(moving ? 'move' : 'idle'); return moving;
   }
 }
