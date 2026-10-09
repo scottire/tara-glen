@@ -3,22 +3,24 @@
 import Phaser from 'phaser';
 import { G, $, S, toast, persist, Player } from '../mech/core';
 import { Pather } from '../mech/path';
-import { cond, count, changed, onChange } from './logic';
+import { cond, count, changed, onChange, apply } from './logic';
 import { hud, say, bossBar } from './ui';
 import { Ents, type Host } from './entities';
 import type { Enemy } from './enemies';
 import { throwBalloon, darkTexture } from './fx';
+import { Combat, burst, ensureFxTextures } from '../v9/combat';
+import { setObjective } from '../v9/arena';
 
 export class Room extends Phaser.Scene implements Host {
   id = ''; resume = false; from: { x: number; y: number } | null = null;
   player!: Player; walls: Phaser.Tilemaps.TilemapLayer[] = []; roomId: string | null = null; pather?: Pather; enemies: Enemy[] = []; ents!: Ents;
   def: any; exit!: Phaser.Geom.Rectangle; spawn: [number, number] = [0, 0]; leaving = false; armed = false; saveT = 0;
   inner: { l: any; body: Phaser.GameObjects.Zone; sprites: Phaser.GameObjects.Image[]; open: boolean }[] = [];
-  dark?: Phaser.GameObjects.Image; said = 0;
+  dark?: Phaser.GameObjects.Image; said = 0; combat!: Combat; locked = false; bars: Phaser.GameObjects.Image[] = [];
   constructor() { super('Room'); }
   init(d: { id: string; resume?: boolean; from?: { x: number; y: number } }) {
     this.id = d.id; this.roomId = d.id; this.resume = !!d.resume; this.from = d.from ?? null;
-    this.enemies = []; this.inner = []; this.leaving = false; this.armed = false; this.dark = undefined;
+    this.enemies = []; this.inner = []; this.leaving = false; this.armed = false; this.dark = undefined; this.locked = false; this.bars = [];
   }
   create() {
     const def = this.def = G.w.rooms[this.id], data = this.cache.json.get('rooms')[this.id];
@@ -49,11 +51,15 @@ export class Room extends Phaser.Scene implements Host {
       const o = { l, body, sprites, open: false }; this.inner.push(o);
       this.physics.add.collider(this.player, body, () => {
         if (l.kind === 'dark' && cond(l.req)) { o.open = true; (body.body as Phaser.Physics.Arcade.StaticBody).enable = false; sprites.forEach((s: any) => this.tweens.add({ targets: s, alpha: 0, duration: 400 })); toast('🔦 You light the way.'); return; }
-        if (this.time.now > this.said) { this.said = this.time.now + 3000; if (l.kind === 'dash' && cond(l.req)) toast(S('dashHint')); else say([l.text]); }
+        if (this.time.now > this.said) { this.said = this.time.now + 3000; if (l.kind === 'dash' && cond(l.req)) toast(S('dashHint')); else toast(l.text); } // toast, not a dialogue box, so fights never stall
       }, () => !o.open && !(l.kind === 'dash' && this.player.dashing && cond(l.req)));
     }
-    this.ents = new Ents(this);
-    this.events.on('player-dead', () => { toast(S('fainted')); this.player.revive(...this.spawn); this.player.facing = 'up'; hud(); });
+    this.ents = new Ents(this); this.combat = new Combat(this);
+    // v9 combat room: the door bars shut while anything hostile is alive; cleared rooms stay cleared (flag clear:<id>)
+    if (this.enemies.some((e) => this.front(e))) this.lock();
+    // fainting in a room puts you back at its door outside (the checkpoint); the room resets because it wasn't cleared
+    this.events.off('player-dead'); this.events.off('hud');
+    this.events.once('player-dead', () => { toast(S('fainted')); this.player.revive(...this.spawn); hud(); this.locked = false; setObjective(null); this.leave(true); });
     this.events.on('hud', hud);
     this.input.keyboard!.on('keydown-X', () => this.fire()); this.input.keyboard!.on('keydown-F', () => this.fire());
     this.input.keyboard!.on('keydown-Z', () => this.dash()); this.input.keyboard!.on('keydown-C', () => this.dash());
@@ -73,8 +79,28 @@ export class Room extends Phaser.Scene implements Host {
     (window as any).room = this;
     if (!this.resume) this.time.delayedCall(250, () => { const b = document.getElementById('banner'); if (b) { b.innerHTML = `<b>${def.name}</b>`; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); } });
   }
-  fire() { throwBalloon(this, this.player, this.walls, this.enemies); }
-  dash() { if (count('skateboard')) this.player.dash(); }
+  fire() { if (this.combat.chip()) return; throwBalloon(this, this.player, this.walls, this.enemies); }
+  dash() { this.combat.dodge(); }
+  lock() {
+    ensureFxTextures(this); this.locked = true;
+    const [ex, ey] = this.def.exit;
+    for (let i = -1; i <= 1; i++) { const b = this.add.image(ex * 16 + 8 + i * 5, ey * 16 + 16, 'fx-post').setOrigin(0.5, 1).setDepth(ey * 16 + 20).setScale(1, 0);
+      this.tweens.add({ targets: b, scaleY: 1, duration: 250, delay: 300 + i * 40, ease: 'Back.out' }); this.bars.push(b); }
+    this.left();
+  }
+  /** enemies that bar the door: alive and not shut behind an unopened inner lock (chambers stack upwards from the door) */
+  front(e: Enemy) { return !this.inner.some((o) => !o.open && e.y < o.l.tiles[0][1] * 16); }
+  left() { const n = this.enemies.filter((e) => e.active && e.sm.current !== 'dead' && this.front(e)).length; setObjective(this.locked ? `Clear the room: ${n} left` : null); return n; }
+  onEnemyDeath() {
+    if (!this.locked) return;
+    if (this.left() > 0) return;
+    this.locked = false; G.st.flags.push('clear:' + this.id); G.st.hp = Math.min(G.st.maxhp, G.st.hp + 1); this.player.life.life = G.st.hp; persist();
+    this.bars.forEach((b) => { burst(this, b.x, b.y - 6, 0xffd27a, 4, 20); this.tweens.add({ targets: b, scaleY: 0, alpha: 0, duration: 300, onComplete: () => b.destroy() }); });
+    this.cameras.main.flash(160, 255, 230, 140); toast('Room cleared. The door is open.'); setObjective(null);
+    const enc = G.w.entities.find((e: any) => e.type === 'encounter' && e.room === this.id && !G.st.got.includes(e.id)); // v10: fight rewards
+    if (enc) { G.st.got.push(enc.id); const lines = apply(enc.effects); if (lines.length) say(lines); }
+    changed();
+  }
   interact() { this.ents?.interact(); }
   startActivity() {}
   goRoom(id: string) { // room -> room (clubhouse -> cellar)
@@ -83,21 +109,27 @@ export class Room extends Phaser.Scene implements Host {
   }
   update(_: number, dt: number) {
     if (!this.player || !this.def) return;
-    if (G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.anims.stop(); $('prompt').style.display = 'none'; return; }
+    if (G.paused) { if (!this.player.dashing) this.player.setVelocity(0, 0); this.player.idle(); $('prompt').style.display = 'none'; return; }
     if (!G.st.done) G.st.elapsed += dt;
     if ((this.saveT += dt) > 2000) { this.saveT = 0; G.st.roomPos = [Math.round(this.player.x), Math.round(this.player.y)]; persist(); }
-    this.player.drive(this.player.readInput(), G.w.start.walk);
+    this.player.drive(this.player.readInput(), G.w.start.walk * (count('trainers') ? 1.15 : 1));
     this.ents.update();
     const cam = this.cameras.main, vw = cam.width / cam.zoom, vh = cam.height / cam.zoom, mw = this.def.w * 16, mh = this.def.h * 16;
-    const c = (p: number, m: number, v: number) => (m <= v ? m / 2 : Phaser.Math.Clamp(p, v / 2, m - v / 2));
-    cam.centerOn(Math.round(c(this.player.x, mw, vw)), Math.round(c(this.player.y, mh, vh)));
+    const c = (p: number, m: number, v: number, extra = 0) => (m + extra <= v ? (m + extra) / 2 : Phaser.Math.Clamp(p, v / 2, m - v / 2 + extra)), off = vh > vw ? vh * 0.2 : 0;
+    // player sits above centre and the view may run past the bottom wall, so the door fight never hides under the thumbs
+    cam.centerOn(Math.round(c(this.player.x, mw, vw)), Math.round(c(this.player.y + off, mh, vh, off)));
     this.dark?.setPosition(this.player.x, this.player.y);
     const inDoor = this.exit.contains(this.player.x, this.player.y + 4);
     if (!inDoor) this.armed = true;
-    if (inDoor && this.armed && !this.leaving && !this.player.busy && this.player.body.velocity.y > 0) this.leave();
+    if (inDoor && this.armed && !this.leaving && !this.player.busy && this.player.body.velocity.y > 0) {
+      if (this.locked) { this.player.setPosition(this.player.x, this.exit.y - 6); if (this.time.now > this.said) { this.said = this.time.now + 2500; toast('The door is barred. Clear the room first.'); } }
+      else this.leave();
+    }
   }
-  leave() {
+  leave(fainted = false) {
     if (this.leaving || !this.sys.isActive()) return;
+    if (fainted) { const w = this.scene.get('World') as any; this.leaving = true; this.cameras.main.fadeOut(300); this.cameras.main.once('camerafadeoutcomplete', () => {
+      G.st.roomPos = undefined; G.st.room = null; persist(); this.scene.stop(); this.scene.wake('World'); w.exitRoom(this.id); }); return; }
     this.leaving = true; this.player.setVelocity(0, 0); bossBar(null);
     this.cameras.main.fadeOut(200); this.cameras.main.once('camerafadeoutcomplete', () => {
       G.st.roomPos = undefined;

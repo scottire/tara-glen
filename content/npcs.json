@@ -15,8 +15,8 @@
    "talk": [
     {
      "lines": [
-      "Wayne: I know everything that happens in Tara Glen. EVERYTHING.",
-      "Want a hint? I charge nothing. I'm a giver."
+      "Wayne: Things have been off all day. Doors banging, dust moving on its own.",
+      "Want to know where to start?"
      ],
      "choices": [
       {
@@ -30,81 +30,13 @@
       {
        "text": "What's going on?",
        "reply": [
-        "Manhunt's been going since lunch. Half the park's still hiding.",
-        "And there's... dust. Moving dust. In the mobiles. Not normal dust."
+        "The empty mobiles are the worst. Something's nested in them.",
+        "Clear one out and the dust settles. For a while, anyway."
        ]
       },
       {
        "text": "Bye, Wayne"
       }
-     ]
-    }
-   ]
-  },
-  "ciaran": {
-   "name": "Ciarán",
-   "sprite": 2,
-   "at": {
-    "zone": "z1",
-    "near": "door:127",
-    "off": [
-     -4,
-     3
-    ]
-   },
-   "talk": [
-    {
-     "when": [
-      "kids>=12",
-      "!@manhunt_won"
-     ],
-     "moment": "manhunt",
-     "lines": [
-      "Ciarán: You found EVERYONE? Even my brother?!",
-      "By the ancient rules of Tara Glen, you are Manhunt Champion. FOREVER.",
-      "Here, my lucky heart sticker. It's a real heart now. That's how it works."
-     ],
-     "effects": [
-      {
-       "maxhp": 1
-      },
-      {
-       "set": "manhunt_won"
-      }
-     ]
-    },
-    {
-     "when": [
-      "kids>=6",
-      "!@manhunt_half"
-     ],
-     "lines": [
-      "Ciarán: Six found! You're halfway! Here, my emergency coins."
-     ],
-     "effects": [
-      {
-       "give": "coin",
-       "n": 3
-      },
-      {
-       "set": "manhunt_half"
-      }
-     ]
-    },
-    {
-     "when": [
-      "@evening"
-     ],
-     "lines": [
-      "Ciarán: Mam says we can stay up for the bonfire! On the beach! In the DARK!"
-     ]
-    },
-    {
-     "lines": [
-      "Ciarán: Are you IT? You can't be it. You're in the mobile. You're on base.",
-      "Everyone's still hiding. My big brother's been hiding since dinner time yesterday.",
-      "Find them all and you win manhunt forever. That's the rules.",
-      "Find six and I'll give you my emergency coins. Find all twelve and... I'll think of something."
      ]
     }
    ]
@@ -126,8 +58,8 @@
       "peg_bag"
      ],
      "lines": [
-      "Mrs Kehoe: My peg bag! You went into 131? With the dust? You're braver than my husband.",
-      "Here. A sausage off the barbecue. And a bit of string, I'd only lose it."
+      "Mrs Kehoe: My peg bag! You went into 131 for it? Good on you.",
+      "Take a sausage off the barbecue. And this string, you'll find a use for it."
      ],
      "effects": [
       {
@@ -149,14 +81,14 @@
       "@kehoe_done"
      ],
      "lines": [
-      "Mrs Kehoe: Lovely drying day. You can't beat a Wexford breeze."
+      "Mrs Kehoe: Mind yourself out there."
      ]
     },
     {
      "lines": [
-      "Mrs Kehoe: A gust took my peg bag clean through the window of 131.",
-      "Nobody's been in 131 since the Furlongs went home. It's full of dust bunnies. Big ones.",
-      "If you're feeling brave, I'll make it worth your while. I've a barbecue on."
+      "Mrs Kehoe: The wind took my peg bag in through the window of 131.",
+      "Nobody's lived there since the Furlongs left. It's crawling with dust bunnies now.",
+      "Get it back and I'll see you right."
      ],
      "effects": [
       {
@@ -183,14 +115,13 @@
       "@evening"
      ],
      "lines": [
-      "Mr Doyle: Tide's out. Eleven years I've waited for a tide that far out. The boat's nearly ready."
+      "Mr Doyle: The tide's well out tonight. You could walk to the Rock."
      ]
     },
     {
      "lines": [
-      "Mr Doyle: Eleven years I've been building her. The Saoirse. Ocean-going.",
-      "She's in the garden because the gate is too narrow. A design flaw. Not mine. The gate's.",
-      "Tip: the sea goes out a long way at night. Further than you'd think."
+      "Mr Doyle: The sea goes out a long way after dark.",
+      "Watch for the sandbar off the North Strand."
      ]
     }
    ]
@@ -212,9 +143,8 @@
       "can"
      ],
      "lines": [
-      "Shauna: Is that a Club Orange? For us? You're sound, actually.",
-      "Deco, give the child your batteries.",
-      "Deco: They're for my torch. ...Fine. Here."
+      "Shauna: A Club Orange? Sound.",
+      "Here, take Deco's batteries. He won't miss them."
      ],
      "effects": [
       {
@@ -233,14 +163,14 @@
       "@teens_done"
      ],
      "lines": [
-      "Shauna: We were never here. You never saw us. This den doesn't exist."
+      "Shauna: Go on, we're grand here."
      ]
     },
     {
      "lines": [
-      "Shauna: This is the den. Teenagers only. You're not a teenager.",
-      "Deco: Leave them. Here, kid, get us a Club Orange from the van and I'll give you these batteries.",
-      "Shauna: The van's down by the pitch. Tony. He does a lovely 99 too."
+      "Shauna: This is our den. What do you want?",
+      "Batteries? Bring us a Club Orange from Tony's van and they're yours.",
+      "The van's down by the pitch."
      ],
      "effects": [
       {
@@ -264,7 +194,7 @@
    "talk": [
     {
      "lines": [
-      "Deco: I'm not smoking, it's a lollipop. It's a lollipop stick. Leave me alone."
+      "Deco: Shauna does the talking."
      ]
     }
    ]
@@ -286,13 +216,13 @@
       "@swing_done"
      ],
      "lines": [
-      "Aoife: Keep the deck. It's got no wheels anyway. The old pram behind 210 has wheels..."
+      "Aoife: Keep the deck. It needs wheels. There's an old pram behind 210."
      ]
     },
     {
      "lines": [
-      "Aoife: I'm the swing champion of Playground Row. Three summers running.",
-      "Beat me on the swings and you can have my old skateboard deck."
+      "Aoife: Nobody beats me on the swings.",
+      "Beat me and you can have my old skateboard deck."
      ]
     }
    ]
@@ -315,11 +245,10 @@
      ],
      "moment": "nana",
      "lines": [
-      "Nana Breda: Is that... where did you find this?",
-      "Oh, look at us. Summer 1987. That's my Tom with the fishing rod, and that's me in the hat.",
-      "He caught nothing all summer. Not one fish. Said the sea was 'having a think'.",
-      "...You keep the rod, love. He'd want it out there, not in my wardrobe.",
-      "And take a slice of tart. You've got his look about you. Mischief."
+      "Nana Breda: Where did you find this?",
+      "Summer 1987. That's my Tom with the fishing rod.",
+      "Keep the rod, love. He'd want it used.",
+      "And take a slice of tart for the road."
      ],
      "effects": [
       {
@@ -341,14 +270,14 @@
       "@photo_returned"
      ],
      "lines": [
-      "Nana Breda: The sun's going down. Go on to the bonfire. I'll watch from the step."
+      "Nana Breda: Go on down to the bonfire. I'll watch from the step."
      ]
     },
     {
      "lines": [
-      "Nana Breda: Hello, pet. Forty summers I've been in 210.",
-      "I lost my photo album years ago. At the clubhouse, I think, in the cellar after a dance.",
-      "Silly thing to miss. It's only pictures."
+      "Nana Breda: Hello, pet.",
+      "I lost my photo album years ago, down in the clubhouse cellar.",
+      "Nobody goes down there now. Something lives in the dark."
      ],
      "effects": [
       {
@@ -375,12 +304,12 @@
       "@keepy_done"
      ],
      "lines": [
-      "Big Mick: Mind the BMX. The back brake is more of a suggestion."
+      "Big Mick: Look after that BMX."
      ]
     },
     {
      "lines": [
-      "Big Mick: Ten keepy-uppies and the BMX is yours. I've a moped now. Basically.",
+      "Big Mick: Ten keepy-uppies and the BMX is yours.",
       "It's a moped in my heart."
      ]
     }
@@ -415,7 +344,7 @@
    "talk": [
     {
      "lines": [
-      "Tony: Tony's Ices! Since 1979! What'll it be?"
+      "Tony: Tony's Ices. What'll it be?"
      ],
      "choices": [
       {
@@ -433,7 +362,7 @@
         }
        ],
        "reply": [
-        "Tony: Ice cold. Like my heart. Joking."
+        "Tony: There you go."
        ]
       },
       {
@@ -451,7 +380,7 @@
         }
        ],
        "reply": [
-        "Tony: With a flake. I'm not an animal."
+        "Tony: One 99, flake and all."
        ]
       },
       {
@@ -500,8 +429,8 @@
       "!@biscuit_fed"
      ],
      "lines": [
-      "Biscuit sniffs the sausage. Biscuit LOVES the sausage.",
-      "Biscuit wanders off happy. Something was under him the whole time."
+      "Biscuit takes the sausage and trots off.",
+      "He was lying on a golf ball."
      ],
      "effects": [
       {
@@ -517,13 +446,13 @@
       "@biscuit_fed"
      ],
      "lines": [
-      "Biscuit rolls over. He is a good boy. The best boy."
+      "Biscuit wags his tail."
      ]
     },
     {
      "lines": [
-      "A dog called Biscuit (it says on his collar) is lying on something.",
-      "He growls in a friendly way. He wants something. He looks at your mouth hopefully."
+      "Biscuit the dog is lying on something and won't budge.",
+      "He'd move for food."
      ]
     }
    ]
@@ -545,8 +474,8 @@
       "golf_ball>=3"
      ],
      "lines": [
-      "Sully: Three of my balls! I count them every night, you know. Every night.",
-      "Here, take the torch. It's only clutter to me. Mind the cellar under the clubhouse; there's eyes down there."
+      "Sully: All three. Thanks.",
+      "Take the torch. Mind the cellar under the clubhouse; there's eyes down there."
      ],
      "effects": [
       {
@@ -566,13 +495,13 @@
       "@sully_done"
      ],
      "lines": [
-      "Sully: Nobody walks on my greens. Nobody."
+      "Sully: Keep off the greens."
      ]
     },
     {
      "lines": [
-      "Sully: Golf balls. Kids keep robbing my golf balls. Three gone this week.",
-      "Bring me three and I'll give you something useful. A torch. Is that useful? It's useful."
+      "Sully: Three of my golf balls are gone.",
+      "Bring them back and I'll give you my torch."
      ],
      "effects": [
       {
@@ -599,7 +528,7 @@
       "@clubhouse_open"
      ],
      "lines": [
-      "Tadhg: In you go. The quiz is on. Your mam's winning."
+      "Tadhg: In you go."
      ]
     },
     {
@@ -607,7 +536,7 @@
       "@knows_password"
      ],
      "lines": [
-      "Tadhg: Members and adults only. Unless... you know the word?"
+      "Tadhg: Members only. Unless you know the word."
      ],
      "choices": [
       {
@@ -618,7 +547,7 @@
         }
        ],
        "reply": [
-        "Tadhg: ...Fair enough. In you go. Don't tell anyone I'm sixteen."
+        "Tadhg: Right so. In you go."
        ]
       },
       {
@@ -631,8 +560,8 @@
     },
     {
      "lines": [
-      "Tadhg: Members and adults only. There's a quiz on.",
-      "Unless you know the word. Which you don't. Because it's secret."
+      "Tadhg: Members only.",
+      "Not without the password."
      ],
      "effects": [
       {
@@ -662,8 +591,8 @@
       "cone"
      ],
      "lines": [
-      "Róisín: Is that a 99? For me? I've been on this chair since ten o'clock.",
-      "Here, take the fins. Spare pair. You can wade the shallows now, just don't tell my boss."
+      "Róisín: A 99? You're a star.",
+      "Take my spare fins. You'll get across the shallows with them."
      ],
      "effects": [
       {
@@ -682,13 +611,13 @@
       "@roisin_done"
      ],
      "lines": [
-      "Róisín: The gulls have the flag out on the Rock. When the tide's out you could nearly walk it. Nearly."
+      "Róisín: Big Gerry has the flag out on the Rock. At low tide you can reach it."
      ]
     },
     {
      "lines": [
-      "Róisín: No swimming past the flags. Actually, someone took the flags.",
-      "I'd kill for a 99. Tony's van usually comes down at dusk."
+      "Róisín: Stay off the Rock. The gulls are vicious this year.",
+      "I'd do anything for a 99. Tony brings the van down at dusk."
      ],
      "effects": [
       {
@@ -714,14 +643,13 @@
       "flag_tg"
      ],
      "lines": [
-      "Sandy Acres kid: You got it back off Big Gerry?! Fair play. Rematch next summer."
+      "Sandy Acres kid: You got the flag back off Big Gerry. Fair play."
      ]
     },
     {
      "lines": [
-      "Sandy Acres kid: We're from Sandy Acres. Our park has a SLIDE into a POOL.",
-      "Your flag's out on the Rock. Big Gerry took it. He's the biggest gull in Wexford.",
-      "Tara Glen kids are scared of gulls. Everyone knows that."
+      "Sandy Acres kid: Your flag's out on the Rock.",
+      "Big Gerry took it. Biggest gull in Wexford."
      ]
     }
    ]
@@ -739,7 +667,7 @@
    "talk": [
     {
      "lines": [
-      "Sandy Acres kid: We have a wave machine. It's broken. But we HAVE one."
+      "Sandy Acres kid: Beat our challenge first."
      ]
     }
    ]
@@ -754,8 +682,7 @@
    "talk": [
     {
      "lines": [
-      "Father Murphy: Round six! Wexford sports. What's the nickname of the Wexford hurlers?",
-      "...The Model County! Five points to Table Two!"
+      "Father Murphy: Final round coming up."
      ]
     }
    ]
@@ -795,11 +722,9 @@
      ],
      "moment": "bonfire",
      "lines": [
-      "Mam: Is that the Tara Glen flag? Off the Rock? Look at you.",
-      "Dad: When I was your age I hid in manhunt for so long they went home without me.",
-      "Dad: 1994. Your nana found me at eleven o'clock at night in a wheelie bin.",
-      "Mam: He's never been found since, emotionally.",
-      "Mam: Come here. Sit with us. Best summer yet, wasn't it?"
+      "Mam: Is that the Tara Glen flag? Off the Rock?",
+      "Dad: Well done. Nobody's got it back in years.",
+      "Mam: Come here and sit with us. Best summer yet."
      ],
      "effects": [
       {
@@ -818,13 +743,13 @@
       "@evening"
      ],
      "lines": [
-      "Mam: There you are! Come sit by the fire. Did someone say the gulls have the flag?"
+      "Mam: There you are. Come sit by the fire."
      ]
     },
     {
      "lines": [
-      "Mam: What are you doing in here? You're supposed to be in the mobile!",
-      "...Ah go on, we're winning. Don't tell your father I said that. He thinks it's him."
+      "Mam: What are you doing here? You're meant to be in the mobile!",
+      "Go on then. Be careful."
      ]
     }
    ]
@@ -862,12 +787,12 @@
       "@evening"
      ],
      "lines": [
-      "Dad: Grand fire. I built it. Your mother says she built it. History will decide."
+      "Dad: Grand fire."
      ]
     },
     {
      "lines": [
-      "Dad: Shh, this is the music round. I know this one. It's... Daniel O'Donnell. It's always Daniel O'Donnell."
+      "Dad: Shh, music round."
      ]
     }
    ]

@@ -5,7 +5,7 @@ const base = document.getElementById('stick')!, knob = document.getElementById('
 const R = 40;
 let id: number | null = null, ox = 0, oy = 0;
 addEventListener('pointerdown', (e) => {
-  if (e.pointerType !== 'touch' || id !== null || !stickCtl.enabled) return;
+  if (e.pointerType !== 'touch' || id !== null || !stickCtl.enabled || e.clientX > innerWidth * 0.6) return; // left side only: right thumb is for combat
   id = e.pointerId; ox = e.clientX; oy = e.clientY;
   base.style.left = ox + 'px'; base.style.top = oy + 'px'; base.style.display = 'block';
 });

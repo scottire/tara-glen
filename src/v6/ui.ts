@@ -1,4 +1,5 @@
 // UI: Rex TextBox dialogue (typewriter, paged, queued) with DOM choice buttons, HUD, bag/combine panel, zone banner, boss bar, end card.
+import { objectiveText } from '../v9/arena';
 import Phaser from 'phaser';
 import TextBox from 'phaser4-rex-plugins/templates/ui/textbox/TextBox.js';
 import RoundRectangle from 'phaser4-rex-plugins/plugins/roundrectangle.js';
@@ -29,6 +30,9 @@ export class UI extends Phaser.Scene {
     this.scale.on('resize', () => this.time.delayedCall(50, () => this.relayout()));
   }
   say(m: Msg) {
+    // v10: never open an empty box. Rex's typing never finishes on an empty page, and skipping it then loops forever (the "room clear freeze")
+    m = { ...m, lines: (m.lines ?? []).filter((l) => typeof l === 'string' && l.trim().length > 0) };
+    if (!m.lines.length) { if (m.choices?.length) m.lines = ['…']; else { try { m.done?.(); } catch (e) { console.error(e); } return; } }
     if (this.box || this.cur) { this.queue.push(m); return; }
     this.cur = m; G.paused = true; document.body.classList.add('talking');
     this.render(m);
@@ -83,9 +87,14 @@ export class UI extends Phaser.Scene {
   advance() {
     const b = this.box; if (!b) return;
     if ($('choices').style.display === 'flex') return; // must pick a choice
-    if (b.isTyping) b.stop(true);
-    else if (!b.isLastPage) b.typeNextPage();
-    else this.close();
+    try {
+      const t = b.typing; // clamp so Rex's skip-to-end loop always terminates
+      if (t && t.typingIndex > t.textLength) t.typingIndex = t.textLength;
+      if (b.isTyping && t && t.textLength === 0) return this.close();
+      if (b.isTyping) b.stop(true);
+      else if (!b.isLastPage) b.typeNextPage();
+      else this.close();
+    } catch (e) { console.error('dialogue advance failed, closing', e); this.close(); }
   }
   close() {
     const m = this.cur, b = this.box as any;
@@ -95,6 +104,12 @@ export class UI extends Phaser.Scene {
     else this.time.delayedCall(150, () => { if (!this.box) { G.paused = bagOpen(); document.body.classList.remove('talking'); } });
     m?.done?.();
   }
+}
+/** error boundary helper: drop any dialogue and unpause so the game never stays stuck */
+export function recoverUI() {
+  const ui = (G as any).ui as UI | undefined; if (!ui) return;
+  try { ui.queue = []; if (ui.box || ui.cur) ui.close(); } catch { ui.box = undefined; ui.cur = undefined; }
+  $('choices').style.display = 'none'; G.paused = bagOpen(); document.body.classList.remove('talking', 'moment');
 }
 export const say = (lines: string[], choices?: Choice[], done?: () => void) => {
   const ui = (G as any).ui as UI | undefined;
@@ -111,13 +126,11 @@ export function hud() {
   $('shells').textContent = count('shell') ? `🐚${count('shell')}` : '';
   $('kids').textContent = count('kids') ? `🙈${count('kids')}/12` : '';
   $('abilities').textContent = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map((k) => I[k].icon).join('');
-  const f = $('fire'); f.style.display = count('throw') ? 'flex' : 'none';
-  f.innerHTML = `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !count('balloons'));
-  $('dash').style.display = count('skateboard') ? 'flex' : 'none';
+  const f = $('fire'), chip = count('chip') > 0; f.style.display = chip || count('throw') ? 'flex' : 'none';
+  f.innerHTML = chip ? '⛳' : `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !chip && !count('balloons'));
+  $('dash').textContent = count('skateboard') ? '🛹' : '💨';
   $('hint-btn').style.display = count('walkie') || document.body.classList.contains('hints') ? 'flex' : 'none';
-  if (document.body.classList.contains('hints')) {
-    const h = G.w.hints.find((h: any) => cond(h.when)); $('objective').textContent = h ? '🎯 ' + h.tiers[0] : '🎯 Explore!';
-  }
+  $('objective').textContent = '🎯 ' + objectiveText(); // v9: short current objective, tap to fold
 }
 
 // ---------- bag / combine ----------

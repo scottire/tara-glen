@@ -7,13 +7,13 @@ export function throwBalloon(scene: Phaser.Scene, player: Player, walls: any[], 
   if (G.paused || player.busy || !count('throw')) return;
   if (!count('balloons')) return toast(S('noAmmo'));
   G.st.items.balloons--; changed();
-  const [vx, vy] = DIRV[player.facing], speed = 190;
+  const aim = (scene as any).combat?.aim?.(), [vx, vy] = aim !== undefined ? [Math.cos(aim), Math.sin(aim)] : DIRV[player.facing], speed = 190;
   const b = scene.physics.add.image(player.x + vx * 8, player.y + vy * 8, 'balloon').setDepth(player.depth + 1);
   b.setVelocity(vx * speed, vy * speed).setAngularVelocity(360);
   const pop = () => { if (!b.active) return; const p = scene.add.circle(b.x, b.y, 3, 0x7fc8ff, 0.8).setDepth(b.depth);
     scene.tweens.add({ targets: p, scale: 3, alpha: 0, duration: 250, onComplete: () => p.destroy() }); b.destroy(); };
   scene.physics.add.collider(b, walls, pop);
-  scene.physics.add.overlap(b, targets.filter((t) => t.active), (_b, t) => { (t as Character).hurt(b, G.w.player.balloonDamage, 160); pop(); });
+  scene.physics.add.overlap(b, targets.filter((t) => t.active), (_b, t) => { const c = t as any; if (c.hitBy) c.hitBy(null, G.w.player.balloonDamage, 160, false, b); else c.hurt(b, G.w.player.balloonDamage, 160); pop(); });
   scene.time.delayedCall(700, pop);
 }
 export function zoneAt(tx: number, ty: number) {

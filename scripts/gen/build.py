@@ -210,7 +210,7 @@ for z in WD['zones']:
 KNOCK = C['decor']['knock']
 for d in sorted(ALL_DOORS.values(), key=lambda d: d['seg']):
     if d.get('used') or T(*d['tile']) not in OPEN: continue
-    DOORS.append({'x': d['x'], 'y': d['y'], 'out': d['out'], 'knock': rng.choice(KNOCK)})
+    if KNOCK: DOORS.append({'x': d['x'], 'y': d['y'], 'out': d['out'], 'knock': rng.choice(KNOCK)})  # v9: no knock gags (empty list)
 
 def slot_px(rid, slot):
     s = ROOM_DATA[rid]['slots'].get(str(slot))
@@ -282,14 +282,15 @@ for zid, rids in proc_rooms.items():
             if b['hiders'] > 1 and r < 0.25: b['hiders'] -= 1; add_ent(dict(hider_ent(), id=nid('hider')), {'room': rid, 'slot': k})
             elif b['coins'] > 0 and r < 0.6: b['coins'] -= 1; add_ent({'id': nid('coin'), 'type': 'pickup', 'item': 'coin'}, {'room': rid, 'slot': k})
             elif b['notes'] > 0 and r < 0.8 and notes_pool: b['notes'] -= 1; add_ent({'id': nid('note'), 'type': 'note', 'text': notes_pool.pop()}, {'room': rid, 'slot': k})
-        es = data['eslots']; n = min(len(es), 1 + tier // 2)
-        for p in es[:n]:
-            et = rng.choice(ZONES[zid]['enemy'])
+        es = data['eslots']; n = min(len(es), 2 + tier // 2)  # v9: compact combat rooms, mixed archetypes
+        off = rng.randrange(len(ZONES[zid]['enemy']))
+        for ei, p in enumerate(es[:n]):
+            et = ZONES[zid]['enemy'][(ei + off) % len(ZONES[zid]['enemy'])]
             ENT.append({'id': nid('e'), 'type': 'enemy', 'etype': et, 'stats': estats(et, tier), 'room': rid, 'zone': zid, 'x': p[0] * 16 + 8, 'y': p[1] * 16 + 8})
 for rid in RC['rooms']:  # curated rooms: enemy slots get the zone's first enemy type
     zid = RC['rooms'][rid]['zone']
-    for p in ROOM_DATA[rid]['eslots']:
-        et = ZONES[zid]['enemy'][0]
+    for ei, p in enumerate(ROOM_DATA[rid]['eslots'][:2 + tier_of(zid) // 2]):  # v9: compact encounters
+        et = ZONES[zid]['enemy'][ei % len(ZONES[zid]['enemy'])]
         ENT.append({'id': nid('e'), 'type': 'enemy', 'etype': et, 'stats': estats(et, tier_of(zid)), 'room': rid, 'zone': zid, 'x': p[0] * 16 + 8, 'y': p[1] * 16 + 8})
 
 # ---------------- procedural fill: outdoors ----------------
@@ -329,6 +330,37 @@ for z in WD['zones']:
             if acceptable(*t, sep=2) and all((t[0] - p[0]) ** 2 + (t[1] - p[1]) ** 2 > 64 for p in interest_points()[:0] + [(n['x'] // 16, n['y'] // 16) for nn in NPCS.values() for n in nn['at'] if 'room' not in n]):
                 occupy(t); et = z['enemy'][len([e for e in ENT if e.get('zone') == zid and e['type'] == 'enemy' and 'room' not in e]) % len(z['enemy'])]
                 ENT.append({'id': nid('e'), 'type': 'enemy', 'etype': et, 'stats': estats(et, z['tier']), 'x': px(t)[0], 'y': px(t)[1], 'zone': zid}); break
+
+# v9 outdoor arenas: an open rectangle per listed zone, away from NPCs and doors; posts close it until the waves are cleared
+ARENAS = []
+for ad in WD.get('arenas', []):
+    zid = ad['zone']; aw, ah = ad.get('size', [9, 7]); best, bd = None, -1e18
+    npc_t = [(n['x'] // 16, n['y'] // 16) for nn in NPCS.values() for n in nn['at'] if 'room' not in n] + [(e['x'] // 16, e['y'] // 16) for e in ENT if 'room' not in e and e['type'] != 'pickup']
+    zx = sum(i % W for i in ZT[zid]) / len(ZT[zid]); zy = sum(i // W for i in ZT[zid]) / len(ZT[zid])
+    for i in ZT[zid][::3]:
+        x0, y0 = i % W, i // W
+        if not all(acceptable(x0 + dx, y0 + dy, zone=zid) for dx in range(aw) for dy in range(ah)): continue
+        if any(G.inb(x0 + dx, y0 + dy) and G.block[T(x0 + dx, y0 + dy)] for dx in range(-1, aw + 1) for dy in range(ah, ah + 3)): continue  # tree canopies overhang from below
+        cx, cy = x0 + aw / 2, y0 + ah / 2; d = min([(cx - a) ** 2 + (cy - b_) ** 2 for a, b_ in npc_t] or [999])
+        d = min(d, 64) * 1000 - ((cx - zx) ** 2 + (cy - zy) ** 2)  # clear of NPCs first, then near the middle of the zone
+        if d > bd: bd, best = d, (x0, y0)
+    if not best: err(f"arena {ad['id']}: no open {aw}x{ah} rectangle in {zid}"); continue
+    x0, y0 = best
+    for dx in range(aw):
+        for dy in range(ah): OCC.add(T(x0 + dx, y0 + dy))
+    waves = [[[t, ad.get('n', 2 + tier_of(zid) // 2)] for t in w] for w in ad['waves']]
+    ARENAS.append({'id': ad['id'], 'zone': zid, 'name': ad['name'], 'rect': [x0 * 16, y0 * 16, (x0 + aw) * 16, (y0 + ah) * 16], 'waves': waves,
+                   'stats': {t: estats(t, tier_of(zid)) for w in ad['waves'] for t in w}, 'reward': ad.get('reward', [])})
+
+# v10 combat-gated rewards: clearing a room or an arena is an 'encounter' entity the solver can collect
+for a in ARENAS:
+    if a['reward']: ENT.append({'id': 'enc_' + a['id'], 'type': 'encounter', 'arena': a['id'], 'effects': a['reward'], 'x': (a['rect'][0] + a['rect'][2]) // 2, 'y': (a['rect'][1] + a['rect'][3]) // 2, 'zone': a['zone']})
+for enc in WD.get('encounters', []):
+    rid = enc['room']
+    if rid not in ROOMS: err(f"encounter room {rid} does not exist"); continue
+    if not any(e['type'] == 'enemy' and e.get('room') == rid for e in ENT): err(f"encounter room {rid} has no enemies to clear")
+    sx, sy = ROOMS[rid]['spawn']
+    ENT.append({'id': 'enc_' + rid, 'type': 'encounter', 'room': rid, 'effects': enc['reward'], 'x': sx * 16 + 8, 'y': sy * 16 + 4, 'zone': ROOMS[rid]['zone']})
 
 # decor near caravans / on the beach / in the open
 rules = DC['rules']
@@ -472,7 +504,8 @@ def solve(record=True):
                 if t == 'pickup': eff = [{'give': e['item'], 'n': e.get('n', 1)}]
                 elif t in ('chest', 'whisper', 'hider', 'interact') and ok(e.get('req'), st): eff = e.get('effects', [])
                 elif t == 'activity': eff = e['reward']
-                elif t == 'enemy' and e['stats'].get('boss') and st['items'].get('throw'): eff = e.get('drops', []) + e['stats'].get('drops', [])
+                elif t == 'enemy' and e['stats'].get('boss') and ok(e.get('req'), st): eff = e.get('drops', []) + e['stats'].get('drops', [])  # v10: the club beats bosses; guarded ones need their ability
+                elif t == 'encounter': eff = e['effects']
                 elif t in ('note', 'vista'): eff = []
                 if eff is None: continue
                 if t == 'interact' and any('refill' in x for x in eff): eff = []
@@ -524,6 +557,16 @@ if never: err(f'{len(never)} entities never collectable: {never[:12]}')
 for nid_, n in NPCS.items():
     for i, tk in enumerate(n['talk']):
         if (nid_, i) not in matched and tk.get('when') and 'evening' not in ' '.join(tk['when']): warn(f'talk entry {nid_}[{i}] never shown on the critical path')
+# v10: fight abilities must come from fights (an encounter or a boss) and be reachable, and their gates must open after them
+FIGHT_ABIL = [k for k, v in ITEMS.items() if v.get('how')]
+for k in FIGHT_ABIL:
+    src = [(i, l) for i, sp in enumerate(spheres) for l in sp['log'] if f'give:{k}' in l]
+    if not src: err(f'ability {k} is never earned'); continue
+    if not src[0][1].startswith(('encounter', 'enemy')): err(f'ability {k} is earned outside a fight: {src[0][1]}')
+    for l in locks:
+        if k in mentions(l['req']):
+            gate_sp = next((i for i, sp in enumerate(spheres) if l['id'] in {x['id'] for x in locks if ok(x['req'], {'items': sp['state']['items'], 'flags': set(sp['state']['flags']), 'maxhp': sp['state']['maxhp']})}), None)
+            if gate_sp is None or gate_sp < src[0][0]: err(f'gate {l["id"]} ({k}) opens before {k} is earned')
 # ramp: zone tiers should not decrease along the unlock order
 order = sorted(zone_sphere, key=zone_sphere.get); prev = 0
 for zid in order:
@@ -533,6 +576,26 @@ for zid in order:
 for i, s in enumerate(spheres[:-1]):
     stt = {'items': s['state']['items'], 'flags': set(s['state']['flags'])}
     if not any(ok(h['when'], stt) for h in STORY['hints']): err(f'hint gap at sphere {i}')
+# v10 hint audit: the current hint at every sphere must be doable then. If its target is a lock, boss or interact whose req isn't met yet,
+# the HUD objective is asking for something the player can't do (e.g. "beat Gerry" before Putt Parry).
+HINT_TRACE = []
+for i, s in enumerate([{'state': {'items': {}, 'flags': [], 'maxhp': WD['start']['hp']}}] + spheres[:-1]):
+    stt = {'items': s['state']['items'], 'flags': set(s['state']['flags']), 'maxhp': s['state']['maxhp']}
+    hi = next((j for j, h in enumerate(STORY['hints']) if ok(h['when'], stt)), None)
+    if hi is None: continue
+    h = STORY['hints'][hi]; HINT_TRACE.append(hi); tg = h.get('target')
+    if isinstance(tg, list): tg = next((t['to'] for t in tg if ok(t.get('when'), stt)), None)
+    if not tg: continue
+    obj = LOCKS.get(tg) or next((e for e in ENT if e.get('id') == tg), None)
+    if obj and obj.get('req') and not ok(obj['req'], stt): err(f"hint {hi} ('{h['tiers'][0]}') at sphere {i} points at {tg}, which needs {obj['req']} the player hasn't got")
+if '-v' in sys.argv: print('hint per sphere:', HINT_TRACE)
+# off the solver's path too: a hint whose target needs a fight ability must sit below a hint that asks for that ability ('!k'),
+# so the objective can never say "go through X" while X is still shut to you
+for j, h in enumerate(STORY['hints']):
+    for tg in ([h['target']] if isinstance(h.get('target'), str) else [t['to'] for t in h.get('target') or []]):
+        obj = LOCKS.get(tg) or next((e for e in ENT if e.get('id') == tg), None)
+        for k in (mentions(obj.get('req')) if obj else []):
+            if k in FIGHT_ABIL and not any('!' + k in g['when'] for g in STORY['hints'][:j]): err(f"hint {j} ('{h['tiers'][0]}') targets {tg} needing {k}, but no earlier hint asks for {k}")
 # hint targets (for ?hints arrow): id of an entity / NPC / lock, or [{when, to}] (first match wins); resolved to outdoor px
 def outdoor_of_room(rid):
     r = ROOMS[rid]
@@ -561,7 +624,7 @@ coin_spend = sum(x.get('n', 1) for n in NPCS.values() for t in n['talk'] for c i
 if coin_supply < coin_spend * 2: warn(f'coin supply {coin_supply} is tight vs shop prices {coin_spend}')
 shells = sum(1 for e in ENT if e.get('item') == 'shell') + sum(1 for e in ENT for x in e.get('reward', []) if x.get('give') == 'shell')
 kids = sum(1 for e in ENT if e['type'] == 'hider')
-if kids < 12: err(f'only {kids} hiders placed (Ciarán needs 12)')
+if 'ciaran' in NPCS and kids < 12: err(f'only {kids} hiders placed (Ciarán needs 12)')
 
 # snapshots: state at the start of each sphere, positioned next to the first thing done in it
 def snap_pos(at):
@@ -590,10 +653,10 @@ counts = {}
 for e in ENT: counts.setdefault(e['zone'], {}).setdefault(e['type'], 0); counts[e['zone']][e['type']] += 1
 stats = {'tilesOpen': len(OPEN2), 'coverage': round(c0, 4), 'fills': fills, 'entities': len(ENT), 'npcs': len(NPCS), 'ambient': len(AMB), 'decor': len(decor),
          'rooms': len(ROOMS), 'knockDoors': sum(1 for d in DOORS if d.get('knock')), 'hiders': kids, 'shells': shells, 'coinSupply': coin_supply, 'coinSpend': coin_spend,
-         'maxhpEnd': st['maxhp'], 'spheres': len(spheres), 'zoneSphere': zone_sphere, 'perZone': counts, 'errors': errors, 'warnings': warns}
+         'maxhpEnd': st['maxhp'], 'arenas': len(ARENAS), 'spheres': len(spheres), 'zoneSphere': zone_sphere, 'perZone': counts, 'errors': errors, 'warnings': warns}
 world = {'v': 6, 'seed': WD['seed'], 'title': WD['title'], 'strings': WD['strings'], 'minigames': WD['minigames'], 'progression': [s['log'] for s in spheres], 'start': dict(WD['start'], out=px(START_T)), 'player': WD['player'], 'items': ITEMS, 'itemSprites': ITEM_SPRITES,
          'recipes': RECIPES, 'zones': [{'id': z['id'], 'name': z['name'], 'tier': z['tier'], 'rects': rects_of(z), 'beach': bool(z.get('beach'))} for z in WD['zones']],
-         'tide': TIDE, 'entities': ENT, 'npcs': NPCS, 'ambient': AMB, 'decor': decor, 'decorSizes': DECOR, 'locks': locks, 'barrierTiles': barrier_tiles, 'doors': DOORS,
+         'tide': TIDE, 'entities': ENT, 'npcs': NPCS, 'ambient': AMB, 'decor': decor, 'decorSizes': DECOR, 'locks': locks, 'barrierTiles': barrier_tiles, 'doors': DOORS, 'arenas': ARENAS,
          'rooms': ROOMS, 'events': STORY['events'], 'hints': STORY['hints'], 'end': STORY['end'], 'snapshots': SNAPS, 'monsters': MONSTER_ORDER,
          'enemyTypes': {k: v.get('bark') for k, v in C['enemies']['types'].items() if v.get('bark')}, 'stats': stats}
 rooms_out = {rid: {k: d[k] for k in ('w', 'h', 'floor', 'walls', 'furn')} for rid, d in ROOM_DATA.items()}

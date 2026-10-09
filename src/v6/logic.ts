@@ -1,6 +1,8 @@
 // Condition DSL + effects + world events + hints. Same semantics as scripts/gen/logic.py (the solver).
 // cond = AND list of terms: 'item' | 'item>=3' | '@flag' | '!term' | 'a|b'
+import { abilityMoment } from '../v9/combat';
 import { G, persist, toast, S } from '../mech/core';
+import { SAVE_VERSION } from '../state';
 import { say, hud, showEnd } from './ui';
 
 export const count = (k: string) => G.st.items[k] ?? 0;
@@ -20,8 +22,10 @@ const listeners: (() => void)[] = [];
 export const onChange = (fn: () => void) => { listeners.push(fn); return () => listeners.splice(listeners.indexOf(fn), 1); };
 
 export function give(k: string, n = 1, quiet = false) {
-  const d = G.w.items[k] ?? {}; let v = count(k) + n; if (d.max) v = Math.min(d.max, v);
+  const d = G.w.items[k] ?? {}, had = count(k); let v = had + n; if (d.max) v = Math.min(d.max, v);
   G.st.items[k] = v;
+  if (d.how && !had) { // v10: fight ability unlocked -> pose + banner with the how-to
+    const w = window as any, sc = w.room?.sys?.isActive() ? w.room : w.tg; setTimeout(() => sc && abilityMoment(sc, k), 250); return; }
   if (!quiet && !d.hidden) toast(S('got', { icon: d.icon ?? '', name: d.name ?? k, n: n > 1 ? ` x${n}` : '' }));
 }
 export function take(k: string, n = 1) { G.st.items[k] = Math.max(0, count(k) - n); }
@@ -79,4 +83,27 @@ export function tryCombine(a: string, b: string): boolean {
   for (const c of r.consume) { if (typeof c === 'string') take(c); else for (const [k, v] of Object.entries<number>(c)) take(k, v); }
   apply(r.effects, true);
   say([r.text]); changed(); return true;
+}
+
+/** v10 save migration (idempotent; runs on every load once G.w exists). Older saves won fights that now carry rewards
+ * (v9: boss131 had no drop, arenas paid coins, rooms paid nothing). Anything already beaten whose v10 reward is missing is granted
+ * here, so a v9 player who beat the Big Dust Bunny gets Power Drive instead of an objective asking them to beat it again.
+ * Returns the fight abilities granted so the caller can show their banners. */
+export function migrateSave(): string[] {
+  const st = G.st, granted: string[] = [], from = st.v ?? 0;
+  const grant = (effects: any[] = []) => { for (const e of effects) {
+    if (e.give && G.w.items[e.give]?.how) { if (!count(e.give)) { st.items[e.give] = 1; granted.push(e.give); } }
+    else if (e.maxhp) st.maxhp = Math.min(G.w.player.maxhpCap, st.maxhp + e.maxhp);
+    else if (e.give) st.items[e.give] = count(e.give) + (e.n ?? 1);
+    if (e.set) setFlag(e.set);
+  } };
+  for (const e of G.w.entities) {
+    if (e.type === 'enemy' && st.got.includes(e.id)) // beaten boss: only its fight abilities (other drops were paid at the time)
+      grant((e.drops ?? []).filter((d: any) => d.give && G.w.items[d.give]?.how));
+    else if (e.type === 'encounter' && !st.got.includes(e.id) && flag(e.arena ? 'arena:' + e.arena : 'clear:' + e.room)) {
+      st.got.push(e.id); grant(e.effects); }
+  }
+  st.v = SAVE_VERSION;
+  if (granted.length || from !== SAVE_VERSION) persist();
+  return granted;
 }
