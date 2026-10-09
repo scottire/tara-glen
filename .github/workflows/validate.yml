@@ -2,8 +2,8 @@
 # and the committed generated files (public/world.json, public/rooms.json, gen-report.md) must match content/.
 name: validate
 on:
-  push: { branches: [mechanics] }
-  pull_request: { branches: [mechanics] }
+  push: { branches: [main, mechanics] }
+  pull_request: { branches: [main, mechanics] }
 jobs:
   validate:
     runs-on: ubuntu-latest
