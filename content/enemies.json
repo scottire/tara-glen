@@ -1,0 +1,13 @@
+{
+  "_readme": "Enemy types. Stats scale by zone tier: value = base + perTier*(tier-1). sheet = monster atlas row (scripts/gen/art.py). ai: chase | hop | dart | swoop | scuttle. boss = mini-boss (bigger, more hp, charges).",
+  "types": {
+    "dust":    { "name": "Dust bunny", "sheet": "dust",  "ai": "chase",   "hp": 2, "dmg": 1, "speed": 26, "chase": 44, "sight": 72, "perTier": { "hp": 1, "speed": 4 } },
+    "slime":   { "name": "Slime",      "sheet": "slime", "ai": "hop",     "hp": 3, "dmg": 1, "speed": 22, "chase": 40, "sight": 64, "perTier": { "hp": 1, "speed": 3 } },
+    "wasp":    { "name": "Wasp",       "sheet": "wasp",  "ai": "dart",    "hp": 1, "dmg": 1, "speed": 40, "chase": 80, "sight": 90, "perTier": { "hp": 1, "speed": 6 } },
+    "eye":     { "name": "Cellar eye", "sheet": "eye",   "ai": "chase",   "hp": 3, "dmg": 1, "speed": 30, "chase": 58, "sight": 80, "perTier": { "hp": 1, "speed": 4 } },
+    "crab":    { "name": "Crab",       "sheet": "crab",  "ai": "scuttle", "hp": 4, "dmg": 1, "speed": 30, "chase": 60, "sight": 70, "perTier": { "hp": 1, "speed": 4 } },
+    "gull":    { "name": "Gull",       "sheet": "gull",  "ai": "swoop",   "hp": 3, "dmg": 2, "speed": 40, "chase": 95, "sight": 110, "perTier": { "hp": 1, "speed": 5 } },
+    "bigdust": { "name": "The Big Dust Bunny", "sheet": "dust", "ai": "chase", "boss": true, "scale": 2, "hp": 8, "dmg": 1, "speed": 24, "chase": 40, "sight": 120, "drops": [{ "give": "coin", "n": 3 }], "bark": "The Big Dust Bunny rises from under the bed. It is mostly hair." },
+    "gerry":   { "name": "Big Gerry",  "sheet": "gull",  "ai": "swoop", "boss": true, "scale": 2, "hp": 16, "dmg": 2, "speed": 44, "chase": 100, "sight": 140, "bark": "BIG GERRY: SKRAAAAA! (He has the Tara Glen flag in his beak.)" }
+  }
+}

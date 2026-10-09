@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen": "python3 scripts/gen/art.py && python3 scripts/gen/build.py",
+    "validate": "python3 scripts/gen/build.py --check"
   },
   "dependencies": {
-    "phaser": "^4.2.1"
+    "easystarjs": "^0.4.4",
+    "phaser": "^4.2.1",
+    "phaser4-rex-plugins": "^4.2.0"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

@@ -1,0 +1,18 @@
+# v6 content pipeline check: the solver must find the game completable, coverage/hint/supply checks must pass,
+# and the committed generated files (public/world.json, public/rooms.json, gen-report.md) must match content/.
+name: validate
+on:
+  push: { branches: [mechanics] }
+  pull_request: { branches: [mechanics] }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow
+      - run: python3 scripts/gen/build.py --check
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci && npm run build

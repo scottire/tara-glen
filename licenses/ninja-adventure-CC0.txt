@@ -5,3 +5,7 @@ License: Creative Commons Zero v1.0 Universal (CC0) - https://creativecommons.or
 
 Tiles (public/assets/tiles.png) = Ninja Adventure background tileset by Pixel-boy, from
 https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure (repository licence: CC0 1.0, see superpowers-asset-packs-CC0-LICENSE.txt)
+
+v6 additions (public/assets/v6/chars.png, dog.png, monsters.png) = Ninja Adventure characters 1-25, dog and monsters 3/7/9/14/17
+by Pixel-boy, from https://github.com/sparklinlabs/superpowers-asset-packs/tree/master/ninja-adventure (CC0 1.0),
+repacked by scripts/gen/art.py. Everything else in public/assets/v6/ is drawn procedurally by that script and released CC0.

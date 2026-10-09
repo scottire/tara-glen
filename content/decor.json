@@ -1,0 +1,444 @@
+{
+ "_readme": "Procedural life + decoration pools. The generator places these per zone (seeded), collision-safe, then tops up until every walkable tile is near something interesting (world.density). Lines make decor tappable.",
+ "curated": [
+  {
+   "id": "shed",
+   "sprite": "shed",
+   "solid": true,
+   "at": {
+    "zone": "z4",
+    "near": "lm:30",
+    "off": [
+     0,
+     -3
+    ]
+   }
+  },
+  {
+   "id": "hut",
+   "sprite": "hut",
+   "solid": true,
+   "at": {
+    "zone": "z5",
+    "near": [
+     186,
+     116
+    ]
+   }
+  },
+  {
+   "id": "frame_sign",
+   "sprite": "sign",
+   "at": {
+    "zone": "z2",
+    "near": "lm:10",
+    "off": [
+     3,
+     4
+    ]
+   },
+   "lines": [
+    "PLAYGROUND RULES: 1. No adults on the swings. 2. Especially you, Gerard."
+   ]
+  },
+  {
+   "id": "beach_sign",
+   "sprite": "sign",
+   "at": {
+    "zone": "z5",
+    "near": [
+     184,
+     170
+    ]
+   },
+   "lines": [
+    "BEWARE OF THE GULLS. They are organised."
+   ]
+  },
+  {
+   "id": "groyne_sign",
+   "sprite": "sign",
+   "at": {
+    "zone": "z5",
+    "near": [
+     186,
+     103
+    ]
+   },
+   "lines": [
+    "DANGER: Do not walk round the groyne. (Unless the tide's out, obviously.)"
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "sprite": "washing",
+   "solid": false,
+   "where": "caravan",
+   "weight": 3,
+   "lines": [
+    "Somebody's washing. A Wexford GAA jersey, three socks, no pairs.",
+    "Washing line. The pegs are all different colours. Chaos.",
+    "A towel that says 'COURTOWN 1996'."
+   ]
+  },
+  {
+   "sprite": "bbq",
+   "solid": true,
+   "where": "caravan",
+   "weight": 2,
+   "lines": [
+    "A barbecue, still warm. Somebody's burgers are cremated.",
+    "Disposable barbecue balanced on two bricks. Risky."
+   ]
+  },
+  {
+   "sprite": "kidbike",
+   "solid": false,
+   "where": "caravan",
+   "weight": 2,
+   "lines": [
+    "A kid's bike with stabilisers and a Wexford flag on the back.",
+    "A bike with a playing card in the spokes. Brrrrrrr."
+   ]
+  },
+  {
+   "sprite": "gas",
+   "solid": true,
+   "where": "caravan",
+   "weight": 2,
+   "lines": [
+    "A gas bottle. Somebody's written 'FULL?' on it in marker. It is not full."
+   ]
+  },
+  {
+   "sprite": "gnome",
+   "solid": true,
+   "where": "caravan",
+   "weight": 1,
+   "lines": [
+    "A garden gnome with a tiny Wexford jersey.",
+    "A gnome fishing in a puddle. Relatable.",
+    "This gnome is looking at you."
+   ]
+  },
+  {
+   "sprite": "trampoline",
+   "solid": true,
+   "where": "open",
+   "weight": 1,
+   "lines": [
+    "A trampoline with a hole in it. A kid is bouncing on the bit that still works."
+   ]
+  },
+  {
+   "sprite": "pool",
+   "solid": false,
+   "where": "caravan",
+   "weight": 1,
+   "lines": [
+    "A paddling pool. Mostly grass clippings now.",
+    "A paddling pool with one sad rubber duck."
+   ]
+  },
+  {
+   "sprite": "chairs",
+   "solid": true,
+   "where": "caravan",
+   "weight": 2,
+   "lines": [
+    "Two camping chairs facing nothing in particular. Perfect.",
+    "A camping chair with a can-holder. The can is still there."
+   ]
+  },
+  {
+   "sprite": "cat",
+   "solid": false,
+   "where": "caravan",
+   "weight": 1,
+   "anim": true,
+   "lines": [
+    "A cat that belongs to nobody and everybody.",
+    "The cat blinks at you slowly. You've been accepted."
+   ]
+  },
+  {
+   "sprite": "flowers",
+   "solid": false,
+   "where": "caravan",
+   "weight": 2
+  },
+  {
+   "sprite": "windbreak2",
+   "solid": true,
+   "where": "beach",
+   "weight": 3,
+   "lines": [
+    "A stripy windbreak. It is losing to the wind.",
+    "Somebody's windbreak, sandwiches and a radio playing the Wexford game."
+   ]
+  },
+  {
+   "sprite": "castle",
+   "solid": false,
+   "where": "beach",
+   "weight": 3,
+   "lines": [
+    "A sandcastle with a lollipop stick flag.",
+    "A sandcastle. There's a crab living in it now."
+   ]
+  },
+  {
+   "sprite": "towel",
+   "solid": false,
+   "where": "beach",
+   "weight": 2
+  },
+  {
+   "sprite": "gullsit",
+   "solid": false,
+   "where": "beach",
+   "weight": 2,
+   "anim": true,
+   "lines": [
+    "A gull. It's staring at your pockets.",
+    "This gull is clearly on lookout duty for Big Gerry."
+   ]
+  }
+ ],
+ "knock": [
+  "Nobody home. There's a note on the door: 'GONE TO COURTOWN. BACK WHENEVER.'",
+  "A voice inside: 'We don't want any.' You weren't selling anything.",
+  "You knock. A dog barks. Then a man barks. Then they both stop.",
+  "'Is that the pizza?' It is not the pizza.",
+  "Locked. Through the window: a jigsaw of the Hook Lighthouse, 999 pieces done.",
+  "Somebody's watching the Rose of Tralee on full volume. They won't hear you.",
+  "'If you're looking for Darren, he's not here. If you ARE Darren, go home.'",
+  "Locked. A sign says 'NO BALL GAMES' and someone has added 'OR FUN'.",
+  "You knock. A tiny old man opens the door, hands you a Kimberley biscuit and shuts it again.",
+  "The curtains twitch. That's all you're getting.",
+  "Locked tight. Smells like rashers.",
+  "You hear a kettle click on. Then off. Then on. They're deciding about you.",
+  "A sticker on the door: 'THIS MOBILE IS PROTECTED BY A VERY NERVOUS JACK RUSSELL'.",
+  "'We're on our holidays!' shouts someone. So are you, to be fair.",
+  "Locked. There's a full Monopoly game going on inside. Nobody can leave until it's done.",
+  "Nobody answers. Wind chimes made of spoons tinkle at you.",
+  "'Come back after the Angelus.'",
+  "You knock. Somebody inside knocks back. You knock again. They knock again. This could go on.",
+  "Locked. A wetsuit hangs off the gutter like a very relaxed ghost.",
+  "A note: 'GONE FOR CHIPS. ALL OF US.'",
+  "'Come in, come in, the kettle's on!' ...Sorry, wrong child. Door closes.",
+  "A child opens the door, looks at you, and closes it again without a word.",
+  "You can hear the Angelus on the radio inside. Best not interrupt.",
+  "'If you're collecting for the bonfire we've a pallet out the back. Take it.'",
+  "Nobody answers, but the telly's on and someone shouts 'GO ON WEXFORD!'",
+  "A note: 'Back from Mass at 12. Back from the pub at 6. Don't wait up.'",
+  "'Are you one of the Murphys? You have the Murphy look.' You are not a Murphy.",
+  "'Shoes OFF if you're coming in. We've a new rug.' You were not coming in.",
+  "There's a smell of rashers. Nobody comes to the door. You are haunted by it.",
+  "A woman in a dressing gown hands you a Club Orange and closes the door. Grand.",
+  "'We're not in.' You can see them through the window.",
+  "A wind chime made of old CDs spins. The Corrs, mostly.",
+  "'Tell your mother I have her Pyrex dish since 2019 and I am NOT giving it back.'",
+  "You knock. Silence. Then a tiny voice: 'Is it the ice cream van?'",
+  "The door has a sticker: 'This caravan is protected by a very nervous Jack Russell.'",
+  "'Ah, it's yourself!' A long pause. 'Who are you, now?'",
+  "A man opens the door, holding a fishing rod indoors for no reason. 'Grand day for it.'",
+  "Someone inside is losing at Monopoly very loudly. You leave them to it.",
+  "'Have you seen a red bucket? Me nephew's bucket?' You have not. Different bucket.",
+  "The door opens a crack. A hand passes you a Penguin bar. The door closes. A good omen."
+ ],
+ "barks": {
+  "z1": [
+   "Lovely day for it.",
+   "Have you seen a small lad in a Wexford jersey? He's mine. Somewhere.",
+   "Don't walk on the grass, it's just been cut. By me. Badly.",
+   "Is it going to rain? It's going to rain.",
+   "That's the third manhunt this week."
+  ],
+  "z2": [
+   "Mind the roundabout, it's possessed.",
+   "My Nana says the old pram behind 210 is older than her.",
+   "PUSH ME! Push me higher!",
+   "I'm not crying, I fell off the slide on purpose."
+  ],
+  "z3": [
+   "Up the Model County!",
+   "Don't stand behind the goals. I learned that one the hard way.",
+   "Tony gives you a free flake if you say he looks like Daniel O'Donnell."
+  ],
+  "z4": [
+   "Mind the greens, Sully's watching.",
+   "Is the quiz still on? My husband's been in there since half seven.",
+   "Fore! ...Sorry. Fore was ages ago, you're grand."
+  ],
+  "z5": [
+   "Is it warm? It's not warm. It's the Irish Sea.",
+   "Mind the crabs, they're cheeky.",
+   "My sandwich has more sand in it than the beach."
+  ],
+  "z6": [
+   "The gulls are getting bolder. I've lost two choc ices.",
+   "When the tide goes out you can nearly walk to Wales. Nearly."
+  ]
+ },
+ "ambientSprites": [
+  1,
+  11,
+  15,
+  18,
+  20,
+  21,
+  23,
+  2,
+  4,
+  5,
+  8,
+  12
+ ],
+ "notes": [
+  [
+   "A crumpled flyer: 'TARA GLEN TALENT SHOW. Last year's winner: Kevin, for Eating A Whole Onion.'"
+  ],
+  [
+   "A list: 'MANHUNT RULES. 1. Base is the clubhouse bin. 2. No hiding in the sea. 3. No hiding in your own mobile, KEVIN.'"
+  ],
+  [
+   "A postcard: 'Dear Sandy Acres, our park is better. Love, Tara Glen.'",
+   "Someone has written underneath: 'NO IT'S NOT'."
+  ],
+  [
+   "A shopping list: 'Rashers, sausages, white pudding, 6 batch loaves, Tayto, more Tayto, firelighters, sun cream (lol)'."
+  ],
+  [
+   "A page of a diary: 'Day 4. It rained. Day 5. It rained. Day 6. Sunny for an hour. Got burnt. Best holiday ever.'"
+  ],
+  [
+   "A notice: 'LOST: one wellington boot, child's, left foot, green. Reward: the other wellington boot.'"
+  ],
+  [
+   "A drawing in crayon: a huge gull with a crown. Labelled 'GERRY'."
+  ],
+  [
+   "A bingo card. Every number is crossed off. Someone was robbed."
+  ],
+  [
+   "A note on a lollipop stick: 'I hid here in 1994. Nobody found me. - D.'"
+  ],
+  [
+   "A flyer: 'TONY'S ICES. Since 1979. Ask about our 99s. Do not ask about the van's NCT.'"
+  ],
+  [
+   "A receipt from the clubhouse: '14 x Club Orange, 9 x Tayto, 1 x Babycham (Father Murphy)'."
+  ],
+  [
+   "A note: 'If found, this sock belongs to the Kehoes. If found again, it's a different sock.'"
+  ],
+  [
+   "A page from a quiz: 'Q7. Which county is the Model County? (If you get this wrong, leave Wexford.)'"
+  ],
+  [
+   "A little sign stuck in the grass: 'Here lies Goldie the goldfish. Won at Courtown. Lost at Tara Glen.'"
+  ]
+ ],
+ "whispers": [
+  "'...Sully counts his golf balls every night... over...'",
+  "'...the Furlongs left 131 in a state... dust everywhere... over...'",
+  "'...Tony's van hasn't passed an NCT since 1999... over...'",
+  "'...Big Gerry took Mrs Kehoe's ham sandwich right out of her hand... over...'",
+  "'...whoever finds every hider wins manhunt FOREVER... that's the rule... over...'",
+  "'...Róisín can't actually swim... don't tell anyone... over...'",
+  "'...there's a crab in the beach shower... over...'",
+  "'...Father Murphy has the quiz answers written on his hand... over...'",
+  "'...the Sandy Acres crowd stole our flag last year too... over...'",
+  "'...Mr Doyle's boat has a sofa in it... over...'",
+  "'...Nana Breda used to be the fastest manhunter in the park... over...'",
+  "'...Deco can't ride a bike... over... DECO STOP...'"
+ ],
+ "hiders": [
+  {
+   "name": "Small Jack",
+   "line": "Small Jack: Aw! I've been here since lunch! Is it dinner?"
+  },
+  {
+   "name": "Saoirse",
+   "line": "Saoirse: How did you see me?! I'm basically invisible."
+  },
+  {
+   "name": "Big Jack",
+   "line": "Big Jack: Don't tell Small Jack where I am. ...Oh. You're IT."
+  },
+  {
+   "name": "The twins",
+   "line": "Twin: There's only one of me here. The other one's... also here. Hi."
+  },
+  {
+   "name": "Cillian",
+   "line": "Cillian: I fell asleep. Is it still Tuesday?"
+  },
+  {
+   "name": "Ellie",
+   "line": "Ellie: FOUND? Ugh. I had snacks and everything."
+  },
+  {
+   "name": "Oisín",
+   "line": "Oisín: Fair play. Nobody's found me in two summers."
+  },
+  {
+   "name": "Clodagh",
+   "line": "Clodagh: I was hiding from my brother, not manhunt. But fine."
+  },
+  {
+   "name": "Rory",
+   "line": "Rory: I'm not hiding, I'm doing a nature survey. ...Okay I'm hiding."
+  },
+  {
+   "name": "Niamh",
+   "line": "Niamh: SHHH. Oh you're IT. Grand, I'm bored anyway."
+  },
+  {
+   "name": "Dara",
+   "line": "Dara: I've a leaf in my mouth. Camouflage."
+  },
+  {
+   "name": "Fiadh",
+   "line": "Fiadh: You win this time. Next summer, I'm hiding in the sea."
+  },
+  {
+   "name": "Senan",
+   "line": "Senan: I was sure the bin was the best spot. It was not."
+  },
+  {
+   "name": "Grace",
+   "line": "Grace: Nobody looks behind a gnome. Except you, apparently."
+  }
+ ],
+ "fill": [
+  {
+   "sprite": "flowers",
+   "lines": [
+    "Wild flowers. A bee is having the best day of its life."
+   ]
+  },
+  {
+   "sprite": "flipflop",
+   "lines": [
+    "A single flip-flop. Its partner is out there somewhere.",
+    "A flip-flop. Size 'adult giant'."
+   ]
+  },
+  {
+   "sprite": "ball",
+   "lines": [
+    "A burst football. It's had a good career.",
+    "A tennis ball. Biscuit's, probably."
+   ]
+  },
+  {
+   "sprite": "crisps",
+   "lines": [
+    "An empty packet of Tayto. Cheese and onion. The good stuff."
+   ]
+  }
+ ]
+}
