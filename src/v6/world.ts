@@ -1,5 +1,6 @@
 // Outdoor scene: the traced park map + everything from world.json (locks, barriers, doors, entities, NPCs, decor, life, events).
 import Phaser from 'phaser';
+import { urlParam, urlHas, stripUrlState } from '../state';
 import { stickCtl } from '../joystick';
 import { G, $, S, toast, persist, Player, DIRS } from '../mech/core';
 import { Pather } from '../mech/path';
@@ -148,7 +149,7 @@ export class World extends Phaser.Scene implements Host {
     const cullAll = () => { const v = this.cameras.main.worldView, m = 48; for (let i = 0; i < statics.length; i++) { const r = sb[i]; statics[i].setVisible(r.right > v.x - m && r.x < v.right + m && r.bottom > v.y - m && r.y < v.bottom + m); } };
     this.time.addEvent({ delay: 150, loop: true, callback: cullAll }); this.events.once('postupdate', cullAll);
     const spawnAt = G.w.start.out;
-    const at = params.get('at')?.split(',').map(Number);
+    const at = urlParam('at')?.split(',').map(Number);
     const start = at ? [at[0] * 16 + 8, at[1] * 16 + 8] : G.st.pos ?? spawnAt;
     this.lastSafe = [spawnAt[0], spawnAt[1]];
     this.player = new Player(this, start[0], start[1]);
@@ -193,7 +194,15 @@ export class World extends Phaser.Scene implements Host {
     document.title = G.w.title; wireButtons(); wireObjective(); debugPanel(this);
     (window as any).tg = this;
     if (!G.st.started) { G.st.started = true; if (!at && !this.overview && G.st.room === undefined) G.st.room = G.w.start.room; }
-    if (params.get('room')) G.st.room = params.get('room');
+    if (urlParam('room')) G.st.room = urlParam('room');
+    stripUrlState(); // v11.2: one-shot; a reload (iOS tab eviction) must never re-apply ?snap/?fresh over real progress
+    persist();
+    // v11.2: save when the tab is hidden, closed or frozen (iOS evicts backgrounded tabs without warning)
+    const flush = () => { try { if (!G.st.room && this.player?.active) G.st.pos = [Math.round(this.player.x), Math.round(this.player.y)];
+      const r = (window as any).room; if (G.st.room && r?.player?.active) G.st.roomPos = [Math.round(r.player.x), Math.round(r.player.y)]; persist(); } catch { /* ignore */ } };
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+    window.addEventListener('pagehide', flush); document.addEventListener('freeze', flush); window.addEventListener('beforeunload', flush);
+    (window as any).tgFlush = flush;
     hud(); changed();
     this.migrated.forEach((k, i) => setTimeout(() => abilityMoment((window as any).room?.sys?.isActive() ? (window as any).room : this, k), 900 + i * 2600)); // v10: rewards for fights won in an older save
     if (G.st.done && flag('ending')) showEnd();
