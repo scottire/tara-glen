@@ -72,7 +72,7 @@ Sources (read at HEAD on 2026-10-09):
 | rollCancelAfterMs | 60 | a roll can cancel a swing after its first 60 ms (the hit frames); Minish Cap lets the roll interrupt the sword's recovery |
 | rollIframeMs | 220 | i-frames from the first frame of the roll for its whole length (existing `dashing` flag) |
 | cornerPx / cornerStep | 5 / 1 | Celeste-style corner correction: when blocked pushing along an axis, if shifting up to 5 px sideways frees the path, slide 1 px/frame that way (Celeste corrects up to 4 px on dashes/jumps, Player.cs DashCornerCorrection / UpwardCornerCorrection) |
-| camLead / camLeadBike / camLerp | 22 / 10 / 0.06 | camera look-ahead in the movement direction (px), eased per frame; reduced on the bike |
+| camLead / camLeadBike / camLerp | 5 / 2 / 0.06 (Scott: 5) | camera look-ahead in the movement direction (px), eased per frame; reduced on the bike |
 | trailMs | 180 | fading crescent slash trail along the swing arc (yellow on heavy hits) |
 | grassEveryMs | 260 | green blade particles when the ground pixel under the feet is grassy |
 | vibrateMs / vibrateFinisherMs | 18 / 40 | navigator.vibrate on hit / finisher / hurt (Android; no-op on iOS) |
