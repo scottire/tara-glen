@@ -23,14 +23,17 @@ export const onChange = (fn: () => void) => { listeners.push(fn); return () => l
 
 export function give(k: string, n = 1, quiet = false) {
   const d = G.w.items[k] ?? {}, had = count(k); let v = had + n; if (d.max) v = Math.min(d.max, v);
-  G.st.items[k] = v;
+  G.st.items[k] = v; persistSoon();
   if (d.how && !had) { // v10: fight ability unlocked -> pose + banner with the how-to
     const w = window as any, sc = w.room?.sys?.isActive() ? w.room : w.tg; setTimeout(() => sc && abilityMoment(sc, k), 250); return; }
   if (!quiet && !d.hidden) toast(S('got', { icon: d.icon ?? '', name: d.name ?? k, n: n > 1 ? ` x${n}` : '' }));
 }
 export function take(k: string, n = 1) { G.st.items[k] = Math.max(0, count(k) - n); }
-export function setFlag(f: string) { if (!flag(f)) G.st.flags.push(f); }
-export function clearFlag(f: string) { G.st.flags = G.st.flags.filter((x) => x !== f); }
+export function setFlag(f: string) { if (!flag(f)) { G.st.flags.push(f); persistSoon(); } }
+export function clearFlag(f: string) { G.st.flags = G.st.flags.filter((x) => x !== f); persistSoon(); }
+/** v11.2: every meaningful change (pickup, flag, ability, zone entry) is saved within a moment */
+let saveTimer = 0;
+export function persistSoon() { if (!saveTimer) saveTimer = window.setTimeout(() => { saveTimer = 0; persist(); }, 250); }
 
 /** Apply effects; returns lines to say (callers usually pass them straight to say()). */
 export function apply(effects: any[] = [], quiet = false): string[] {

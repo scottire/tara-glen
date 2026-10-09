@@ -9,20 +9,56 @@ export interface Save {
 }
 export const SAVE_VERSION = 11;
 const params = new URLSearchParams(location.search);
-// URL-driven states (?snap, ?state, ?give, ?flag) use a scratch save so testing never clobbers a real playthrough
-export const DEBUG_STATE = ['snap', 'state', 'give', 'flag'].some((k) => params.has(k));
-const KEY = DEBUG_STATE ? 'tara-glen-save-v6-debug' : 'tara-glen-save-v6';
+// v11.2 save safety. Scott lost progress after an iOS tab eviction: he had opened a ?snap link, the snap session lived in a
+// scratch key, and the evicted tab reloaded the same URL, which re-applied the snapshot over everything he had played.
+// Now: URL states (?snap ?state ?give ?flag ?fresh ?tp ?room ?at) apply only on a fresh navigation (never on reload or
+// back/forward), are stripped from the address bar right after, and play on in the real save. Before a link replaces a
+// real save that has progress, that save is kept in BEFORE_LINK. Every write also keeps a rolling backup slot.
+const URL_STATE = ['snap', 'state', 'give', 'flag', 'fresh', 'tp', 'room', 'at'];
+const navType = (() => { try { return (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming)?.type ?? 'navigate'; } catch { return 'navigate'; } })();
+const hasUrlState = URL_STATE.some((k) => params.has(k));
+/** a link's state is applied only when the user actually opened it (not when iOS or the user reloads that tab) */
+export const URL_INTENT = hasUrlState && navType === 'navigate';
+export const DEBUG_STATE = URL_INTENT && ['snap', 'state', 'give', 'flag'].some((k) => params.has(k));
+export const urlParam = (k: string) => (URL_INTENT || !URL_STATE.includes(k) ? params.get(k) : null);
+export const urlHas = (k: string) => (URL_INTENT || !URL_STATE.includes(k)) && params.has(k);
+const KEY = 'tara-glen-save-v6', BAK = KEY + '-bak', BEFORE_LINK = KEY + '-before-link', OLD_DEBUG = KEY + '-debug';
 export const fresh = (): Save => ({ items: {}, flags: [], got: [], defeated: [], maxhp: 3, hp: 3, elapsed: 0, hintTier: {}, seenZones: [], v: SAVE_VERSION });
-export function load(): Save {
-  if (DEBUG_STATE || params.has('fresh')) return fresh();
-  try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || '{}'), s: Save = { ...fresh(), v: raw.v ?? 0, ...raw };
-    // v11 redrew the zones: a pre-v11 position may now sit behind a new border, so older saves wake up at home (127)
-    if (raw.items && (s.v ?? 0) < 11) { s.pos = undefined; s.room = null; s.roomPos = undefined; s.cp = undefined; }
-    return s;
-  } catch { return fresh(); }
+const progress = (s: any) => (s && s.items ? (s.got?.length ?? 0) + (s.flags?.length ?? 0) : -1);
+function read(key: string): any | null {
+  try { const raw = localStorage.getItem(key); if (!raw) return null; const o = JSON.parse(raw); return o && typeof o === 'object' && o.items ? o : null; } catch { return null; }
 }
-export function save(s: Save) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode */ } }
-export function reset() { localStorage.removeItem(KEY); }
+/** strip the one-shot URL state so a reload can never re-run it (debug/god/hints/physics stay) */
+export function stripUrlState() {
+  if (!hasUrlState) return;
+  const q = new URLSearchParams(location.search); URL_STATE.forEach((k) => q.delete(k));
+  const s = q.toString(); try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch { /* ignore */ }
+}
+export function load(): Save {
+  let raw = read(KEY);
+  if (!raw && localStorage.getItem(KEY)) raw = read(BAK); // a corrupt main slot falls back to the backup
+  // one-off rescue: v11 kept link sessions (?snap etc.) in a scratch key; if that holds more progress than the real save, adopt it
+  const dbg = read(OLD_DEBUG);
+  if (dbg && progress(dbg) > progress(raw)) { if (raw) try { localStorage.setItem(BEFORE_LINK, JSON.stringify(raw)); } catch { /* */ } raw = dbg; try { localStorage.setItem(KEY, JSON.stringify(dbg)); } catch { /* */ } }
+  if (dbg) try { localStorage.removeItem(OLD_DEBUG); } catch { /* */ }
+  if (URL_INTENT && (DEBUG_STATE || params.has('fresh'))) {
+    if (progress(raw) > 0) try { localStorage.setItem(BEFORE_LINK, JSON.stringify(raw)); } catch { /* */ }
+    return fresh();
+  }
+  if (!raw) return fresh();
+  const s: Save = { ...fresh(), v: raw.v ?? 0, ...raw };
+  // v11 redrew the zones: a pre-v11 position may now sit behind a new border, so older saves wake up at home (127)
+  if ((s.v ?? 0) < 11) { s.pos = undefined; s.room = null; s.roomPos = undefined; s.cp = undefined; }
+  return s;
+}
+let lastBak = 0;
+export function save(s: Save) {
+  try {
+    const json = JSON.stringify(s), now = Date.now();
+    if (now - lastBak > 20000) { const prev = localStorage.getItem(KEY); if (prev && read(KEY)) localStorage.setItem(BAK, prev); lastBak = now; }
+    localStorage.setItem(KEY, json);
+  } catch { /* private mode / quota */ }
+}
+export function reset() { localStorage.removeItem(KEY); localStorage.removeItem(BAK); }
 export const fmt = (t: string, v: Record<string, any> = {}) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
 export const clock = (ms: number) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };

@@ -1,10 +1,11 @@
 // State-bouncing for preview testing.
 // URL: ?snap=<name> (solver snapshot) · ?state=<base64 save> · ?give=item,item:3 · ?flag=a,b · ?tp=z3 | 120,40 | room:131
 //      ?room=<id> · ?at=x,y · ?god · ?hints · ?physics · ?fresh · ?debug (panel)
-// URL states use a scratch save key, so a real playthrough is never touched.
+// URL states apply once on a fresh navigation, are then stripped from the URL, and play on in the real save
+// (the save they replaced is kept in tara-glen-save-v6-before-link). See state.ts.
 import { say } from './ui';
 import { G, $, persist, toast } from '../mech/core';
-import { fresh } from '../state';
+import { fresh, urlParam, urlHas } from '../state';
 import { changed, setFlag, clearFlag, give, currentHint } from './logic';
 
 const params = new URLSearchParams(location.search);
@@ -25,11 +26,11 @@ function tpTarget(v: string): { room?: string; x?: number; y?: number } | null {
   return n ? { x: n.x, y: n.y + 16 } : null;
 }
 export function applyUrlState() {
-  if (params.has('snap')) loadSnapshot(params.get('snap')!);
-  if (params.has('state')) { try { G.st = { ...fresh(), ...JSON.parse(decodeURIComponent(escape(atob(params.get('state')!)))) }; } catch { toast('bad ?state'); } }
-  for (const g of (params.get('give') ?? '').split(',').filter(Boolean)) { const [k, n] = g.split(':'); give(k, Number(n ?? 1), true); }
-  for (const f of (params.get('flag') ?? '').split(',').filter(Boolean)) setFlag(f);
-  if (params.has('tp')) { const t = tpTarget(params.get('tp')!); if (t?.room) G.st.room = t.room; else if (t) { G.st.room = null; G.st.pos = [t.x!, t.y!]; } }
+  if (urlHas('snap')) loadSnapshot(urlParam('snap')!);
+  if (urlHas('state')) { try { G.st = { ...fresh(), ...JSON.parse(decodeURIComponent(escape(atob(urlParam('state')!)))) }; } catch { toast('bad ?state'); } }
+  for (const g of (urlParam('give') ?? '').split(',').filter(Boolean)) { const [k, n] = g.split(':'); give(k, Number(n ?? 1), true); }
+  for (const f of (urlParam('flag') ?? '').split(',').filter(Boolean)) setFlag(f);
+  if (urlHas('tp')) { const t = tpTarget(urlParam('tp')!); if (t?.room) G.st.room = t.room; else if (t) { G.st.room = null; G.st.pos = [t.x!, t.y!]; } }
   if (params.has('god')) G.god = true;
   if (params.has('hints')) document.body.classList.add('hints');
 }
