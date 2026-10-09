@@ -58,8 +58,19 @@ GLEN_GAP, GLEN_OUT = pick_edge('z1', FD['glenDoor'])
 GLEN_EXIT_GAP, GLEN_EXIT = pick_edge('z2', FD['glenExit'])
 BORDERS[:] = [b for b in BORDERS if (b[0], b[1]) not in (GLEN_GAP, GLEN_EXIT_GAP)]
 BORDERS += [[GLEN_GAP[0], GLEN_GAP[1], 'gap'], [GLEN_EXIT_GAP[0], GLEN_EXIT_GAP[1], 'gap']]  # the two paths into the trees
+# v11.1: the outdoor forest was only solid to the solver (G.block); the game had no collision there, so you could walk
+# between the trunks under the canopy (Scott went 1 -> 3 that way). Every forest tile now gets the invisible wall tile,
+# except the two gap tiles that hold the Glen doors.
+for j in sorted(FOREST):
+    t = (j % W, j // W)
+    if t not in (GLEN_GAP, GLEN_EXIT_GAP): barrier_tiles.append([t[0], t[1], WALL_GID])
 
-BORDER = ZN.border_tiles(ZMAP, G.free, W, H)
+# v11.1: borders use the runtime notion of solid. G.free also treats a tile as blocked when a caravan/building/prop body
+# merely clips it, but the game's body can leave a strip of up to ~12px there that the 10x8 player fits through, so a
+# border that skipped such a tile leaked. Only whole-tile collision (sea, objects layer, forest) counts as a wall here.
+OBJ = G.objects
+def hard_free(x, y): return G.inb(x, y) and G.ground[T(x, y)] != SEA and not OBJ[T(x, y)] and T(x, y) not in FOREST
+BORDER = ZN.border_tiles(ZMAP, hard_free, W, H)
 GATE_TILES = {}
 for gd in WD['gates']:
     ts = ZN.gate_tiles(BORDER, ZIDX[gd['from']], ZIDX[gd['to']], gd['near'], gd.get('width', 3))
@@ -70,7 +81,7 @@ for bd in WD.get('blockers', []):
     for t in ZN.gate_tiles(BORDER, ZIDX[bd['pair'][0]], ZIDX[bd['pair'][1]], bd['near'], 4): BLOCKER_TILES[t] = bd['id']
 # staircase corners: art + collision so the line reads continuous (never next to a gate, so gates stay straight cuts)
 _near_gate = {(x + dx, y + dy) for (x, y) in list(GATE_TILES) + list(BLOCKER_TILES) for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
-BORDER.update(ZN.corner_tiles(BORDER, ZMAP, G.free, W, H, skip=_near_gate))
+BORDER.update(ZN.corner_tiles(BORDER, ZMAP, hard_free, W, H, skip=_near_gate))
 def style_of(t, pair):
     a, b = (WD['zones'][k - 1]['id'] for k in pair)
     if G.g(*t) == ROAD and WD['borderStyle'].get(f'{a}|{b}') != 'bank': return 'road'
