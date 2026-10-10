@@ -66,7 +66,7 @@ const SFX: Record<Blip, [OscillatorType, number, number, number, boolean]> = { /
   swing: ['triangle', 900, 300, 70, true], hit: ['square', 320, 90, 90, true], heavy: ['square', 220, 50, 140, true], roll: ['sine', 260, 520, 90, true], hurt: ['sawtooth', 420, 110, 200, false], finisher: ['square', 160, 35, 260, true],
 };
 export function sfx(name: Blip) {
-  if (!F.sound || G.paused) return; const a = audio(); if (!a || a.state !== 'running') return;
+  if (!F.sound || G.paused || (window as any).tgAudio?.muted) return; const a = audio(); // v12: the menu mute covers Rob's blips too if (!a || a.state !== 'running') return;
   const [type, f0, f1, ms, noise] = SFX[name], t = a.currentTime, d = ms / 1000;
   const g = a.createGain(); g.gain.setValueAtTime(F.sound, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); g.connect(a.destination);
   const o = a.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d); o.connect(g); o.start(t); o.stop(t + d);
@@ -161,7 +161,7 @@ export function feelOverlay() {
 }
 
 // ---------- v2 polish ----------
-export const vibrate = (ms: number) => { try { if (ms > 0) navigator.vibrate?.(ms); } catch { /* iOS: no-op */ } };
+export const vibrate = (ms: number) => { try { if (ms > 0 && (navigator as any).userActivation?.hasBeenActive !== false) navigator.vibrate?.(ms); } catch { /* iOS: no-op */ } };
 /** slash trail: a fading crescent along the swing arc */
 export function slashTrail(scene: Phaser.Scene, x: number, y: number, a: number, reach: number, arc: number, heavy: boolean, depth: number) {
   if (F.trailMs <= 0) return;
