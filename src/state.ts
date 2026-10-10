@@ -57,14 +57,20 @@ export function load(): Save {
 }
 let lastBak = 0;
 export function save(s: Save) {
-  if (TOUR) return; // tours never touch the real save
+  if (TOUR || wiped) return; // tours never touch the real save; nothing may re-save after a reset
   try {
     const json = JSON.stringify(s), now = Date.now();
     if (now - lastBak > 20000) { const prev = localStorage.getItem(KEY); if (prev && read(KEY)) localStorage.setItem(BAK, prev); lastBak = now; }
     localStorage.setItem(KEY, json);
   } catch { /* private mode / quota */ }
 }
+// v12.2: reset used to be undone by the pagehide/beforeunload flush, which re-saved the in-memory game as the page navigated
+// away, and it left the before-link slot behind. Now reset blocks every later save on this page and wipes every save slot.
+let wiped = false;
 export function reset() {
-  if (TOUR) return; localStorage.removeItem(KEY); localStorage.removeItem(BAK); }
+  if (TOUR) return;
+  wiped = true;
+  try { Object.keys(localStorage).filter((k) => k.startsWith('tara-glen-save')).forEach((k) => localStorage.removeItem(k)); } catch { /* */ }
+}
 export const fmt = (t: string, v: Record<string, any> = {}) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
 export const clock = (ms: number) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };

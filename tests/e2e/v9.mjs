@@ -69,7 +69,7 @@ await ev(() => { const a = tgTest.G.w.arenas[0]; tg.player.body.reset((a.rect[0]
 await page.waitForTimeout(1500);
 R.arena = await ev(() => ({ active: !!tg.arenas.active, posts: tg.arenas.active?.posts.length, enemies: tg.enemies.filter((e) => e.active).length, objective: document.getElementById('objective').textContent }));
 await page.waitForTimeout(1500); await shot('arena');
-for (let w = 0; w < 3; w++) { await ev(() => { for (const e of tg.enemies) if (e.active && e.sm.current !== 'dead') { e.armor = 0; e.life.life = 1; e.hitBy(null, 5, 100, true, tg.player); } }); await page.waitForTimeout(1800); }
+for (let w = 0; w < 3; w++) { await ev(() => { for (const e of tg.enemies) if (e.active && e.life && e.sm?.current !== 'dead') { e.armor = 0; e.life.life = 1; e.hitBy(null, 5, 100, true, tg.player); } }); await page.waitForTimeout(1800); }
 R.arenaDone = await ev(() => ({ active: !!tg.arenas.active, flag: tgTest.G.st.flags.filter((f) => f.startsWith('arena:')) }));
 await ev(() => tgTest.adv(10));
 // attention: caravan with door glow + NPC bubble
