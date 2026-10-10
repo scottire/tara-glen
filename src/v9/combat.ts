@@ -5,6 +5,7 @@ import { F, sfx, squash, slashTrail, vibrate } from '../v12/feel';
 import { G, DIRV, toast, type Dir, type Player, type Character } from '../mech/core';
 
 const COMBO = [{ dmg: 1, push: 110, reach: 22, arc: 1.25 }, { dmg: 1, push: 120, reach: 22, arc: 1.25 }, { dmg: 2, push: 210, reach: 25, arc: 1.5 }, { dmg: 3, push: 260, reach: 27, arc: 1.7 }];
+const PUNCH = [{ dmg: 1, push: 70, reach: 15, arc: 1.3 }, { dmg: 1, push: 90, reach: 15, arc: 1.3 }];
 const has = (k: string) => (G.st.items[k] ?? 0) > 0;
 const CHARGE_START = 260, CHARGE_FULL = 700, AIM_CONE = 1.25, AIM_RANGE = 56;
 const MAX_ATTACKERS = 2, MAX_ENGAGED = 3;
@@ -104,10 +105,11 @@ export class Combat {
   attack() {
     const now = this.h.time.now;
     if (now < this.swingUntil) { this.queue = this.queue.filter((t) => t >= now); if (this.queue.length < F.bufferMax) this.queue.push(now + F.bufferMs * (this.queue.length + 1)); return; } // v12: multi-press buffer queue
-    const n = has('combo4') ? 4 : 3;
+    const club = has('club'), n = club ? (has('combo4') ? 4 : 3) : PUNCH.length; // v13: bare hands until the club is won back
     if (now > this.chainUntil || this.step >= n) this.step = 0;
-    const c = COMBO[this.step], a = this.aim(); this.finisher = this.step === n - 1; this.swingStart = now;
-    this.swing(a, c.reach, c.arc, c.dmg, c.push, this.step >= 2, Math.min(3, this.step + 1));
+    const c = club ? COMBO[this.step] : PUNCH[this.step], a = this.aim(); this.finisher = club && this.step === n - 1; this.swingStart = now;
+    if (club) this.swing(a, c.reach, c.arc, c.dmg, c.push, this.step >= 2, Math.min(3, this.step + 1));
+    else this.punch(a, c.reach, c.arc, c.dmg, c.push);
     this.swingUntil = now + F.swingMs; this.chainUntil = now + F.swingMs + F.chainMs; this.step = (this.step + 1) % n; this.stats.swings++;
   }
   /** auto-aim: nearest enemy inside a wide cone around the stick/facing direction snaps the swing */
@@ -129,10 +131,18 @@ export class Combat {
     frames.forEach((f, i) => this.h.time.delayedCall(i * 55, () => o.active && o.setFrame(f)));
     this.h.tweens.add({ targets: o, alpha: 0, delay: 110, duration: 90, onComplete: () => o.destroy() });
   }
+  /** v13 starting move: a short jab with a little puff; low knockback, fine for little kids */
+  punch(a: number, reach: number, arc: number, dmg: number, push: number) {
+    const p = this.p; p.setVelocity(Math.cos(a) * F.lungeSpeed * 0.6, Math.sin(a) * F.lungeSpeed * 0.6); sfx('swing'); squash(p, 1.1, 0.92);
+    p.pose('swing1', F.swingMs); const fx = this.h.add.image(p.x + Math.cos(a) * 10, p.y + 1 + Math.sin(a) * 10, 'fx-smoke').setDepth(p.depth + 1).setScale(0.5);
+    this.h.tweens.add({ targets: fx, scale: 0.9, alpha: 0, duration: 160, onComplete: () => fx.destroy() });
+    this.hitArc(a, reach, arc, dmg, push, false); (this.stats as any).punches = ((this.stats as any).punches ?? 0) + 1;
+  }
   swing(a: number, reach: number, arc: number, dmg: number, push: number, heavy: boolean, anim: number) {
     const p = this.p; p.setVelocity(Math.cos(a) * F.lungeSpeed, Math.sin(a) * F.lungeSpeed); sfx('swing'); squash(p, 1.15, 0.88); // small lunge
     p.pose('swing' + anim, F.swingMs + 40); this.swoosh(a, heavy); slashTrail(this.h, p.x, p.y, a, reach, arc, heavy, p.depth);
     this.hitArc(a, reach, arc, dmg, push, heavy);
+    this.h.driveHit?.(p.x + Math.cos(a) * 14, p.y + Math.sin(a) * 14, 12); // v13: the club itself cuts briars
   }
   spin() {
     const p = this.p; this.stats.spins++; p.pose('spin', 280);
@@ -226,7 +236,7 @@ export class Combat {
     const now = this.h.time.now, p = this.p; if (!p?.active) return;
     if (this.queue.length && now >= this.swingUntil) { const t = this.queue.shift()!; if (now <= t + F.swingMs && !G.paused && !p.busy && !p.dashing) this.attack(); else this.queue = []; }
     if (now < this.swingUntil) p.slow = F.swingSlow; else p.slow = this.holding ? 0.55 : 1;
-    if (this.holding && has('drive') && now - this.holdAt > CHARGE_START && now >= this.swingUntil && !G.paused) {
+    if (this.holding && (has('drive') || has('club')) && now - this.holdAt > CHARGE_START && now >= this.swingUntil && !G.paused) {
       const k = Math.min(1, (now - this.holdAt - CHARGE_START) / (CHARGE_FULL - CHARGE_START)), g = this.ring.clear();
       p.pose('charge', 120);
       g.lineStyle(2, 0x000000, 0.35).strokeCircle(p.x, p.y + 4, 13);

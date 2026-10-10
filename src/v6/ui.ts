@@ -112,10 +112,12 @@ export function recoverUI() {
   try { ui.queue = []; if (ui.box || ui.cur) ui.close(); } catch { ui.box = undefined; ui.cur = undefined; }
   $('choices').style.display = 'none'; G.paused = bagOpen(); document.body.classList.remove('talking', 'moment');
 }
+/** v13: {friend} etc. come from world.strings so names are one edit */
+export const fill = (t: string) => typeof t === 'string' ? t.replace(/\{(\w+)\}/g, (m, k) => G.w.strings?.[k] ?? m) : t;
 export const say = (lines: string[], choices?: Choice[], done?: () => void) => {
   const ui = (G as any).ui as UI | undefined;
   if (!ui) return console.warn('say before UI ready', lines);
-  ui.say({ lines, choices, done });
+  ui.say({ lines: lines.map(fill), choices, done });
 };
 export const dialogOpen = () => !!((G as any).ui?.box);
 
@@ -124,14 +126,14 @@ export function hud() {
   const st = G.st, I = G.w.items; if (!I) return;
   $('hearts').textContent = Array.from({ length: st.maxhp }, (_, i) => (i < st.hp ? '❤️' : '🤍')).join('');
   $('coins').textContent = `🪙${count('coin')}`;
-  $('shells').textContent = count('shell') ? `🐚${count('shell')}` : '';
+  $('shells').textContent = (count('shell') ? `🐚${count('shell')} ` : '') + (count('wood') ? `🪵${count('wood')}` : ''); // v13: bonfire wood, just a number
   $('kids').textContent = count('kids') ? `🙈${count('kids')}/12` : '';
   $('abilities').textContent = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map((k) => I[k].icon).join('');
   const f = $('fire'), chip = count('chip') > 0; f.style.display = chip || count('throw') ? 'flex' : 'none';
   f.innerHTML = chip ? '⛳' : `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !chip && !count('balloons'));
   $('dash').textContent = count('skateboard') ? '🛹' : '💨';
-  $('hint-btn').style.display = count('walkie') || document.body.classList.contains('hints') ? 'flex' : 'none';
-  $('objective').textContent = '🎯 ' + objectiveText(); // v9: short current objective, tap to fold
+  $('hint-btn').style.display = 'none'; // v13: no hints, no objective: exploration is self-guided (signs, people)
+  $('objective').textContent = ''; void objectiveText;
 }
 
 // ---------- bag / combine ----------

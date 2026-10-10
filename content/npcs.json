@@ -1,131 +1,6 @@
 {
  "_readme": "NPCs. sprite = Ninja Adventure character number (1-25) or 'dog'. at = position ref, or a list of {when, at} (first match wins = schedule). talk = list of entries; first entry whose `when` matches is used. Entries: lines (pages), choices [{text, when, effects, reply}], effects, once (flag name set after). Conditions: 'item', 'item>=3', '@flag', '!x', 'a|b'.",
  "npcs": {
-  "wayne": {
-   "name": "Wayne the Know-All",
-   "sprite": 16,
-   "at": {
-    "zone": "z1",
-    "near": "door:127",
-    "off": [
-     3,
-     1
-    ]
-   },
-   "talk": [
-    {
-     "lines": [
-      "Wayne: Things have been off all day. Doors banging, dust moving on its own.",
-      "Want to know where to start?"
-     ],
-     "choices": [
-      {
-       "text": "Give me a hint",
-       "effects": [
-        {
-         "hint": true
-        }
-       ]
-      },
-      {
-       "text": "What's going on?",
-       "reply": [
-        "The empty mobiles are the worst. Something's nested in them.",
-        "Clear one out and the dust settles. For a while, anyway."
-       ]
-      },
-      {
-       "text": "Bye, Wayne"
-      }
-     ]
-    }
-   ]
-  },
-  "kehoe": {
-   "name": "Mrs Kehoe",
-   "sprite": 4,
-   "at": {
-    "zone": "z1",
-    "near": "caravan:123",
-    "off": [
-     2,
-     3
-    ]
-   },
-   "talk": [
-    {
-     "when": [
-      "peg_bag"
-     ],
-     "lines": [
-      "Mrs Kehoe: My peg bag! You went into 131 for it? Good on you.",
-      "Take a sausage off the barbecue. And this string, you'll find a use for it."
-     ],
-     "effects": [
-      {
-       "take": "peg_bag"
-      },
-      {
-       "give": "sausage"
-      },
-      {
-       "give": "string"
-      },
-      {
-       "set": "kehoe_done"
-      }
-     ]
-    },
-    {
-     "when": [
-      "@kehoe_done"
-     ],
-     "lines": [
-      "Mrs Kehoe: Mind yourself out there."
-     ]
-    },
-    {
-     "lines": [
-      "Mrs Kehoe: The wind took my peg bag in through the window of 131.",
-      "Nobody's lived there since the Furlongs left. It's crawling with dust bunnies now.",
-      "Get it back and I'll see you right."
-     ],
-     "effects": [
-      {
-       "set": "kehoe_asked"
-      }
-     ]
-    }
-   ]
-  },
-  "doyle": {
-   "name": "Mr Doyle",
-   "sprite": 14,
-   "at": {
-    "zone": "z1",
-    "near": "caravan:126",
-    "off": [
-     1,
-     3
-    ]
-   },
-   "talk": [
-    {
-     "when": [
-      "@evening"
-     ],
-     "lines": [
-      "Mr Doyle: There's a bonfire on the strand tonight. Half the park's down there."
-     ]
-    },
-    {
-     "lines": [
-      "Mr Doyle: They've the road dug up at the bottom again.",
-      "Only way out of here now is through the Glen, and that's all briars."
-     ]
-    }
-   ]
-  },
   "shauna": {
    "name": "Shauna",
    "sprite": 12,
@@ -726,6 +601,156 @@
     {
      "lines": [
       "Dad: Shh, music round."
+     ]
+    }
+   ]
+  },
+  "friend": {
+   "name": "{friend}",
+   "sprite": 12,
+   "at": {
+    "zone": "z1",
+    "near": "decor:skip_z1",
+    "off": [
+     2,
+     1
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "!@bag_dropped"
+     ],
+     "lines": [
+      "Someone is half inside the skip, legs in the air, chucking out planks.",
+      "'Is that you? Drop that bag in, I'm busy.'"
+     ]
+    },
+    {
+     "when": [
+      "!club"
+     ],
+     "lines": [
+      "{friend}: 'Briars behind your mobile. Club. 177. Go.'",
+      "{friend}: 'Mind the small ones on the road, they'll rob the eyes out of your head.'"
+     ]
+    },
+    {
+     "lines": [
+      "{friend}: 'You got it back! Now go and cut through those briars. I'll keep looking for wood.'"
+     ]
+    }
+   ]
+  },
+  "neighbour": {
+   "name": "Mrs Furlong",
+   "sprite": 4,
+   "at": {
+    "zone": "z1",
+    "near": "caravan:136",
+    "off": [
+     2,
+     2
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "!@cat_asked"
+     ],
+     "lines": [
+      "Mrs Furlong: 'Have you seen Tiger? Big ginger lump. He's gone under one of the caravans and he won't come out for me.'",
+      "'He'd come out for treats. I've none left. Would you have a look, love?'"
+     ],
+     "effects": [
+      {
+       "set": "cat_asked"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@cat_found",
+      "!@cat_thanked"
+     ],
+     "lines": [
+      "Mrs Furlong: 'TIGER! Oh you bold thing.'",
+      "'Thanks, love. Here, have a slice of the tart. You look like you need feeding.'",
+      "'My Jim used to find him every time. Forty summers we came here. Jim always said the cat only stayed for the bonfire.'",
+      "'Now it's just the two of us. Me and the eejit cat.'"
+     ],
+     "effects": [
+      {
+       "maxhp": 1
+      },
+      {
+       "set": "cat_thanked"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@cat_thanked"
+     ],
+     "lines": [
+      "Mrs Furlong: 'He's asleep on Jim's chair. Same as always.'"
+     ]
+    },
+    {
+     "lines": [
+      "Mrs Furlong: 'Treats. Salmon ones. Somebody must have some.'"
+     ]
+    }
+   ]
+  },
+  "oisin": {
+   "name": "Oisín",
+   "sprite": 2,
+   "at": {
+    "zone": "z1",
+    "near": [
+     78,
+     69
+    ],
+    "off": [
+     2,
+     1
+    ]
+   },
+   "talk": [
+    {
+     "when": [
+      "football",
+      "!@ball_back"
+     ],
+     "lines": [
+      "Oisín: 'MY BALL! Thanks!'",
+      "'Here, I found this by the hedge. It's wood. For the bonfire.'",
+      "'And I saw the big Cove lads going into the forest. They've a den by the stream, under the rope swing. Don't tell them I told you.'"
+     ],
+     "effects": [
+      {
+       "take": "football"
+      },
+      {
+       "give": "wood"
+      },
+      {
+       "set": "ball_back"
+      }
+     ]
+    },
+    {
+     "when": [
+      "@ball_back"
+     ],
+     "lines": [
+      "Oisín: 'Den by the stream. Under the rope swing. You didn't hear it from me.'"
+     ]
+    },
+    {
+     "lines": [
+      "Oisín: 'My ball's stuck on top of the frame. I'm not allowed climb it.'"
      ]
     }
    ]

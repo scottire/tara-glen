@@ -6,7 +6,7 @@ const errs = [], R = {};
 async function open(ctxOpts, q = '') {
   const ctx = await b.newContext(ctxOpts), page = await ctx.newPage();
   page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-  await page.goto(base + '?fresh' + q); await page.waitForTimeout(3500); await page.evaluate(() => tgTest.adv(20));
+  await page.goto(base + '?fresh&feelyard' + q); await page.waitForTimeout(3500); await page.evaluate(() => tgTest.adv(20));
   if (await page.evaluate(() => !!tgTest.G.st.room)) { await page.evaluate(() => window.room.leave()); await page.waitForTimeout(1500); await page.evaluate(() => tgTest.adv(20)); }
   return page;
 }

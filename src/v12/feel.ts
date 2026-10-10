@@ -118,7 +118,7 @@ function freeSpot(scene: any, x: number, y: number, tries: [number, number][]) {
   return null;
 }
 export function practiceYard(scene: any) {
-  if (params.has('nofeelyard') || params.has('overview')) return;
+  if (!params.has('feelyard') || params.has('overview')) return; // v13: the practice yard is opt-in (?feelyard); zone one has real kids now
   const [ox, oy] = G.w.start.out as [number, number], spots: [number, number][] = [];
   for (let r = 40; r <= 120; r += 16) for (let a = 0; a < 12; a++) spots.push([Math.round(Math.cos(a / 12 * Math.PI * 2 + 0.3) * r), Math.round(Math.sin(a / 12 * Math.PI * 2 + 0.3) * r)]);
   const used: number[][] = [];

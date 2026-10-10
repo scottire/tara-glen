@@ -25,11 +25,10 @@
       "name": "Glen Top",
       "tier": 1,
       "enemy": [
-        "dust",
-        "slime"
+        "kid"
       ],
       "rooms": 5,
-      "shells": 2,
+      "shells": 0,
       "coins": 2,
       "hiders": 0,
       "notes": 0,
@@ -78,16 +77,20 @@
           61
         ],
         [
-          96,
-          65
+          99,
+          63
         ],
         [
-          93,
-          72
+          104,
+          67
         ],
         [
-          92,
-          80
+          105,
+          79
+        ],
+        [
+          97,
+          82
         ],
         [
           93,
@@ -139,10 +142,7 @@
       "id": "z2",
       "name": "Playground Row",
       "tier": 1,
-      "enemy": [
-        "dust",
-        "slime"
-      ],
+      "enemy": [],
       "rooms": 5,
       "shells": 2,
       "coins": 2,
@@ -246,11 +246,7 @@
       "id": "z3",
       "name": "The Crescent",
       "tier": 2,
-      "enemy": [
-        "dust",
-        "wasp",
-        "slime"
-      ],
+      "enemy": [],
       "rooms": 5,
       "shells": 2,
       "coins": 2,
@@ -402,11 +398,7 @@
       "id": "z4",
       "name": "The Links",
       "tier": 3,
-      "enemy": [
-        "eye",
-        "slime",
-        "crab"
-      ],
+      "enemy": [],
       "rooms": 3,
       "shells": 2,
       "coins": 2,
@@ -590,11 +582,7 @@
       "id": "z5",
       "name": "Eighteen",
       "tier": 4,
-      "enemy": [
-        "wasp",
-        "crab",
-        "slime"
-      ],
+      "enemy": [],
       "rooms": 3,
       "shells": 2,
       "coins": 2,
@@ -754,11 +742,7 @@
       "id": "z6",
       "name": "The Clubhouse",
       "tier": 5,
-      "enemy": [
-        "eye",
-        "crab",
-        "gull"
-      ],
+      "enemy": [],
       "rooms": 0,
       "shells": 2,
       "coins": 2,
@@ -767,7 +751,6 @@
       "whispers": 0,
       "ambient": 2,
       "decor": 0.6,
-      "outdoorEnemies": 3,
       "poly": [
         [
           150,
@@ -823,10 +806,7 @@
       "id": "z7",
       "name": "The Strand",
       "tier": 5,
-      "enemy": [
-        "gull",
-        "crab"
-      ],
+      "enemy": [],
       "rooms": 0,
       "shells": 2,
       "coins": 2,
@@ -836,8 +816,7 @@
       "ambient": 1,
       "decor": 1.2,
       "xmin": 182,
-      "beach": true,
-      "outdoorEnemies": 2
+      "beach": true
     }
   ],
   "gates": [
@@ -970,90 +949,14 @@
     "playAgain": "Play again",
     "keepExploring": "Keep exploring",
     "resetConfirm": "Reset all progress?",
-    "hintNone": "Nothing new on the walkie.",
+    "hintNone": "No walkie hints any more. Ask around, read the signs.",
     "heal": "Hearts refilled.",
-    "found": "Found {n}/12 hiders!"
+    "found": "Found {n}/12 hiders!",
+    "friend": "Ciara"
   },
-  "arenas": [
-    {
-      "id": "arena_field",
-      "zone": "z2",
-      "name": "The Back Field",
-      "waves": [
-        [
-          "dust"
-        ],
-        [
-          "dust",
-          "slime"
-        ]
-      ],
-      "reward": [
-        {
-          "give": "chip"
-        }
-      ]
-    },
-    {
-      "id": "arena_links",
-      "zone": "z4",
-      "name": "The Ninth Hole",
-      "waves": [
-        [
-          "eye",
-          "dust"
-        ],
-        [
-          "crab",
-          "slime"
-        ]
-      ],
-      "reward": [
-        {
-          "give": "parry"
-        }
-      ]
-    },
-    {
-      "id": "arena_green",
-      "zone": "z5",
-      "name": "The Green",
-      "waves": [
-        [
-          "crab",
-          "slime"
-        ],
-        [
-          "wasp",
-          "crab"
-        ]
-      ],
-      "reward": [
-        {
-          "maxhp": 1
-        }
-      ]
-    }
-  ],
+  "arenas": [],
   "_readme_arenas": "v9: outdoor arenas. build.py finds an open size (default 9x7 tiles) rectangle in the zone; waves list enemy types (count = 2 + tier//2 each). Reward effects apply once.",
-  "encounters": [
-    {
-      "zone": "z3",
-      "reward": [
-        {
-          "give": "dashstrike"
-        }
-      ]
-    },
-    {
-      "zone": "z4",
-      "reward": [
-        {
-          "give": "combo4"
-        }
-      ]
-    }
-  ],
+  "encounters": [],
   "_readme_encounters": "Room clears that award a fight ability. {zone} = the first procedural mobile in that zone (deterministic), or {room: id}.",
   "forest": {
     "_readme": "Segmentation woodland ids that are solid outdoors (the forest behind 127). The only way through is the Glen room.",
@@ -1104,5 +1007,6 @@
       ],
       "text": "Roadworks. A skip, a van and a trench right across the road. Nobody's getting out this way."
     }
-  ]
+  ],
+  "_readme_v13": "v13 zone one story: old enemy types removed everywhere; zones 2-7 have no enemies yet. The fight abilities they used to award (chip, dashstrike, parry, combo4) come from stub_* pickups placed in those zones (content/story.json) until their new encounters exist; build.py accepts stub_* as a temporary ability source."
 }

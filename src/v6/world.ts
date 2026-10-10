@@ -58,6 +58,9 @@ export class World extends Phaser.Scene implements Host {
     this.load.image('interior6img', V('assets/v6/interior.png'));
     // v11: Glen rope-swing tree + caravan furniture cut from the AI props sheet (scripts/gen/restyle.py v11)
     this.load.image('glen-tree', V('assets/v6/glen-tree.png'));
+    // v13 zone-one placeholder art (scripts/gen/z1art.py)
+    this.load.spritesheet('d-parksign', V('assets/v13/parksign.png'), { frameWidth: 16, frameHeight: 20 });
+    for (const k of ['wood', 'binbag', 'treats', 'junk', 'frame']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
     for (const k of ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']) this.load.image('ip-' + k, V(`assets/v6/ip/${k}.png`));
     this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', V('assets/balloon.png'));
@@ -144,7 +147,7 @@ export class World extends Phaser.Scene implements Host {
     }
     // generated decor (solid ones get bodies)
     for (const d of G.w.decor) {
-      const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite).setOrigin(0.5, 1).setDepth(d.y * 16 + 14));
+      const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite, d.frame ?? 0).setOrigin(0.5, 1).setDepth(d.y * 16 + 14));
       if (d.anim || G.w.decorAnim.includes(d.sprite)) s.play({ key: 'd-' + d.sprite, startFrame: Math.floor(Math.random() * 2) });
       if (d.solid) { const w = s.width; body(d.x * 16 + 8 - w / 2 + 2, d.y * 16 + 4, w - 4, 11); }
       (d as any).obj = s;
@@ -259,7 +262,7 @@ export class World extends Phaser.Scene implements Host {
     const l = o.l, r = o.body!.getBounds(), has = cond(l.req);
     if (l.kind === 'climb' && has) return this.hop(o);
     if (l.kind === 'solid' && has) return this.openLock(o, '🔓 Unlocked!');
-    if (l.kind === 'crack' && has) return this.sayOnce(l.id, r, ['Hold ⚔️ and let go when the ring glows to drive through it.'], true);
+    if (l.kind === 'crack' && has) return this.sayOnce(l.id, r, ['Swing your club ⚔️ at the briars.'], true);
     if (l.kind === 'dash' && has) return this.sayOnce(l.id, r, [S('dashHint')], true);
     if (l.kind === 'ride' && has) return this.sayOnce(l.id, r, [S('rideHint')], true);
     if (l.kind === 'jump' && has) { if (this.riding) return this.hop(o, true); return this.sayOnce(l.id + 'r', r, ['Get on the bike 🚲 and hit the ramp.'], true); }
@@ -276,7 +279,7 @@ export class World extends Phaser.Scene implements Host {
       const b = o.body.getBounds(); this.cameras.main.shake(200, 0.008);
       for (let i = 0; i < 10; i++) { const p = this.add.rectangle(b.centerX + (Math.random() - 0.5) * b.width, b.centerY, 3, 2, 0x8d5537).setDepth(9e4);
         this.tweens.add({ targets: p, x: p.x + (Math.random() - 0.5) * 40, y: p.y - 10 - Math.random() * 20, alpha: 0, angle: 180, duration: 600, onComplete: () => p.destroy() }); }
-      this.openLock(o, 'The rotten gate gives way.');
+      this.openLock(o, o.l.id === 'glen_brambles' ? 'You hack through the briars. The Glen opens up.' : 'The rotten gate gives way.');
     }
   }
   hop(o: (typeof this.lockObjs)[number], jump = false) {

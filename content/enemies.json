@@ -1,135 +1,51 @@
 {
-  "_readme": "Enemy types. Stats scale by zone tier: value = base + perTier*(tier-1). sheet = monster atlas row. ai (v9 archetypes): chaser (closes in, telegraphed lunge) | charger (flashes + ground line, then dashes) | spitter (keeps distance, telegraphed visible projectile) | tank (armour absorbs normal hits; charged attack breaks it). boss = mini-boss with phases (see phases).",
+  "_readme": "v13: kid (harmless pest: shoves, nicks a coin, runs home when beaten) and maint (zone-one boss, 3 phases: sweeper brush / blower cone / lobber on a bucket; yields instead of dying). char = chars.png character used as placeholder art. All older types removed.",
   "types": {
-    "dust": {
-      "name": "Dust bunny",
+    "kid": {
+      "name": "Little kid",
       "sheet": "dust",
+      "char": 1,
+      "chars": [
+        1,
+        11,
+        15,
+        18,
+        20,
+        21,
+        23
+      ],
       "ai": "chaser",
       "hp": 2,
-      "dmg": 1,
-      "speed": 26,
-      "chase": 44,
-      "sight": 72,
-      "perTier": {
-        "hp": 1,
-        "speed": 4
-      }
-    },
-    "slime": {
-      "name": "Slime",
-      "sheet": "slime",
-      "ai": "tank",
-      "hp": 3,
-      "dmg": 1,
+      "dmg": 0,
       "speed": 22,
-      "chase": 30,
-      "sight": 64,
-      "perTier": {
-        "hp": 1,
-        "speed": 3
-      },
-      "armor": 3
-    },
-    "wasp": {
-      "name": "Wasp",
-      "sheet": "wasp",
-      "ai": "spitter",
-      "hp": 2,
-      "dmg": 1,
-      "speed": 40,
-      "chase": 50,
-      "sight": 90,
-      "perTier": {
-        "hp": 1,
-        "speed": 6
-      }
-    },
-    "eye": {
-      "name": "Cellar eye",
-      "sheet": "eye",
-      "ai": "spitter",
-      "hp": 3,
-      "dmg": 1,
-      "speed": 30,
       "chase": 40,
-      "sight": 80,
-      "perTier": {
-        "hp": 1,
-        "speed": 4
-      }
-    },
-    "crab": {
-      "name": "Crab",
-      "sheet": "crab",
-      "ai": "charger",
-      "hp": 4,
-      "dmg": 1,
-      "speed": 30,
-      "chase": 60,
       "sight": 70,
+      "flee": true,
+      "nick": true,
       "perTier": {
-        "hp": 1,
-        "speed": 4
+        "hp": 0
       }
     },
-    "gull": {
-      "name": "Gull",
-      "sheet": "gull",
-      "ai": "charger",
-      "hp": 3,
-      "dmg": 2,
-      "speed": 40,
-      "chase": 95,
-      "sight": 110,
-      "perTier": {
-        "hp": 1,
-        "speed": 5
-      },
-      "fly": true
-    },
-    "bigdust": {
-      "name": "The Big Dust Bunny",
+    "maint": {
+      "name": "The Maintenance Man",
       "sheet": "dust",
+      "char": 14,
       "ai": "boss",
       "boss": true,
-      "scale": 2,
-      "hp": 14,
+      "phases": [
+        "sweeper",
+        "blower",
+        "lobber"
+      ],
+      "hp": 9,
       "dmg": 1,
-      "speed": 24,
-      "chase": 40,
-      "sight": 120,
-      "drops": [
-        {
-          "give": "coin",
-          "n": 3
-        }
-      ],
-      "bark": "The Big Dust Bunny. Phases: chases, then charges, then spits and calls for help.",
-      "phases": [
-        "chaser",
-        "charger",
-        "spitter"
-      ]
-    },
-    "gerry": {
-      "name": "Big Gerry",
-      "sheet": "gull",
-      "ai": "boss",
-      "boss": true,
-      "scale": 2,
-      "hp": 20,
-      "dmg": 2,
-      "speed": 44,
-      "chase": 100,
+      "speed": 20,
+      "chase": 28,
       "sight": 140,
-      "bark": "Big Gerry has the flag. His wings turn your swings while he hovers. Putt his shots back to knock him down; hit him when he charges.",
-      "fly": true,
-      "phases": [
-        "spitter",
-        "charger",
-        "spitter"
-      ],
-      "guard": true
+      "scale": 1.25,
+      "summon": false,
+      "yield": true,
+      "bark": "OI! Off the green! ...Oh, it's you. You're not getting that club back."
     }
   }
 }

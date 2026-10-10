@@ -6,7 +6,7 @@ import type { Pather } from '../mech/path';
 import { cond, apply, changed, count, give, onChange } from './logic';
 import { say } from './ui';
 import { Enemy } from './enemies';
-import { ensureFxTextures, burst } from '../v9/combat';
+import { ensureFxTextures, burst, popup } from '../v9/combat';
 
 export interface Host extends Phaser.Scene {
   player: Player; walls: any[]; roomId: string | null; pather?: Pather; enemies: Enemy[];
@@ -39,13 +39,13 @@ export class Ents {
       if (got && (e.type === 'interact' || e.type === 'activity')) continue;
       let obj: Thing['obj'];
       switch (e.type) {
-        case 'pickup': obj = h.add.image(e.x, e.y, 'items', itemFrame(G.w.items[e.item]?.sprite));
+        case 'pickup': { const tex = G.w.items[e.item]?.tex; obj = tex ? h.add.image(e.x, e.y, tex) : h.add.image(e.x, e.y, 'items', itemFrame(G.w.items[e.item]?.sprite)); } // v13: own textures for wood/bag/treats
           h.tweens.add({ targets: obj, y: e.y - 2, duration: 600 + Math.random() * 200, yoyo: true, repeat: -1, ease: 'Sine.inOut' }); break;
         case 'chest': obj = h.physics.add.staticImage(e.x, e.y, 'chest', got ? 1 : 0); (obj.body as Phaser.Physics.Arcade.StaticBody).setSize(14, 10).setOffset(1, 5);
           h.physics.add.collider(h.player, obj); break;
         case 'note': obj = h.add.image(e.x, e.y, 'items', itemFrame('note')); break;
         case 'vista': case 'whisper': obj = h.add.sprite(e.x, e.y, 'd-sparkle').play('d-sparkle'); break;
-        case 'interact': obj = h.add.image(e.x, e.y - 4, 'd-' + (e.kind === 'hook' ? 'whitethorn' : 'tap')); break;
+        case 'interact': obj = e.sprite === 'none' ? h.add.image(e.x, e.y, 'fx-dot').setAlpha(0) : e.sprite === 'frame' ? h.add.image(e.x, e.y - 8, 'v13-frame') : h.add.image(e.x, e.y - 4, 'd-' + (e.sprite ?? (e.kind === 'hook' ? 'whitethorn' : 'tap'))); break;
         case 'activity': obj = h.add.image(e.x, e.y, 'spot'); h.tweens.add({ targets: obj, scale: 1.3, alpha: 0.6, angle: 45, duration: 800, yoyo: true, repeat: -1 }); break;
         case 'hider': obj = h.add.sprite(e.x, e.y, 'd-bush').play('d-bush'); break;
         case 'door': obj = h.physics.add.staticImage(e.x, e.y, 'interior6', 29); h.physics.add.collider(h.player, obj, () => this.use({ kind: 'door', e, obj })); break;
@@ -86,7 +86,9 @@ export class Ents {
     h.physics.add.overlap(h.player, en, () => {
       if (!en.active || en.sm.current === 'dead') return;
       if (h.player.dashing) { if (count('skateboard')) en.hitBy(null as any, G.w.player.dashDamage, 200, true, h.player); return; } // dodge = i-frames
-      if (en.attacking) h.player.hurt(en, en.s.dmg, G.w.player.knockback); // contact only hurts mid-attack (telegraphed)
+      if (en.attacking) { // contact only hurts mid-attack (telegraphed)
+        if (en.s.nick && !(en as any).nicked && count('coin') > 0 && !h.player.invuln.invulnerable) { (en as any).nicked = true; G.st.items.coin--; changed(); popup(h, h.player.x, h.player.y - 10, 'nicked a coin!', '#ffd23f'); } // v13: little kids rob you
+        h.player.hurt(en, en.s.dmg, en.s.dmg ? G.w.player.knockback : 110); }
     });
     en.onDeath = () => {
       if (e.stats.boss) { G.st.defeated.push(e.id); G.st.got.push(e.id); const lines = apply([...(e.drops ?? []), ...(e.stats.drops ?? [])]); say([...(e.text ?? []), ...lines]); changed(); }

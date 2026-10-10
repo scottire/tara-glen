@@ -10,8 +10,9 @@
    },
    "text": [
     "A note from Mam on the table:",
-    "'Gone to the clubhouse quiz. Stay in the mobile.'",
-    "'And stay away from 131. Love, Mam.'"
+    "'Gone up to the clubhouse. It's captain's night, so don't wait up.'",
+    "'Take the bin bag down to the skip on your way out. NOT the hedge. Love, Mam.'",
+    "'PS: last bonfire of the summer tonight. Wear a jacket.'"
    ]
   },
   {
@@ -118,15 +119,6 @@
    "locked": "A tap."
   },
   {
-   "id": "peg131",
-   "type": "pickup",
-   "item": "peg_bag",
-   "at": {
-    "room": "131",
-    "slot": 2
-   }
-  },
-  {
    "id": "chest131",
    "type": "chest",
    "at": {
@@ -140,23 +132,6 @@
    ],
    "text": [
     "Trainers with grippy soles. You run a bit faster in these."
-   ]
-  },
-  {
-   "id": "boss131",
-   "type": "enemy",
-   "etype": "bigdust",
-   "at": {
-    "room": "131",
-    "slot": 9
-   },
-   "drops": [
-    {
-     "give": "drive"
-    }
-   ],
-   "text": [
-    "The Big Dust Bunny falls apart."
    ]
   },
   {
@@ -383,29 +358,6 @@
    }
   },
   {
-   "id": "gerry",
-   "type": "enemy",
-   "etype": "gerry",
-   "at": {
-    "room": "clubhouse",
-    "slot": 3
-   },
-   "drops": [
-    {
-     "give": "flag_tg"
-    },
-    {
-     "set": "gerry_beaten"
-    }
-   ],
-   "text": [
-    "Big Gerry drops the flag and the terrace key, and flaps off out the window."
-   ],
-   "req": [
-    "parry"
-   ]
-  },
-  {
    "id": "bonfire",
    "type": "decor",
    "sprite": "bonfire",
@@ -447,10 +399,418 @@
     "Carved into the big beech: TOM + BREDA 1986.",
     "Under it, smaller: 'the swing is OURS'."
    ]
+  },
+  {
+   "id": "skip_drop",
+   "type": "interact",
+   "kind": "skip",
+   "sprite": "none",
+   "at": {
+    "zone": "z1",
+    "near": "decor:skip_z1",
+    "off": [
+     0,
+     1
+    ]
+   },
+   "req": [
+    "binbag"
+   ],
+   "effects": [
+    {
+     "take": "binbag"
+    },
+    {
+     "set": "bag_dropped"
+    }
+   ],
+   "text": [
+    "You heave the bag over the side. It lands with a soft thump on something that yelps.",
+    "{friend} pops up out of the skip, cobwebs in her hair.",
+    "{friend}: 'Watch it! I'm rooting for wood.'",
+    "{friend}: 'The Tara Cove crowd robbed the whole bonfire pile last night. Every log. Dragged it into the forest behind your mobile.'",
+    "{friend}: 'And the gap into the Glen is choked with briars. If you had your club back you'd get through that.'",
+    "{friend}: 'You know where it is. Your man at 177 took it off you after you were lamping balls off the green into the caravans.'",
+    "{friend}: 'Go on. Get it back.'"
+   ],
+   "locked": "The big yellow skip. Bin bags go in here."
+  },
+  {
+   "id": "maint",
+   "type": "enemy",
+   "etype": "maint",
+   "at": {
+    "room": "177",
+    "slot": 1
+   },
+   "drops": [
+    {
+     "give": "club"
+    },
+    {
+     "set": "maint_beaten"
+    }
+   ],
+   "text": [
+    "The maintenance man stops. Leans on his brush. Sits down on the bucket with a groan.",
+    "'Alright. Alright. You win.'",
+    "He reaches behind the door and hands you your club.",
+    "'Go on. Just don't tell them I gave it to you.'",
+    "He looks out the window, towards the Strand.",
+    "'I used to light that bonfire. Twenty-two years. They gave it to a company this year.'"
+   ]
+  },
+  {
+   "id": "frame_ball",
+   "type": "interact",
+   "kind": "hook",
+   "sprite": "frame",
+   "at": {
+    "zone": "z1",
+    "near": [
+     78,
+     69
+    ]
+   },
+   "req": [
+    "club"
+   ],
+   "effects": [
+    {
+     "give": "football"
+    }
+   ],
+   "text": [
+    "You reach up with the club and knock the football off the top of the climbing frame. It bounces into your arms."
+   ],
+   "locked": "A football, stuck right on top of the climbing frame. Way out of reach."
+  },
+  {
+   "id": "cat",
+   "type": "interact",
+   "kind": "cat",
+   "sprite": "cat",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:146",
+    "off": [
+     2,
+     -1
+    ]
+   },
+   "req": [
+    "treats",
+    "@cat_asked"
+   ],
+   "effects": [
+    {
+     "take": "treats"
+    },
+    {
+     "set": "cat_found"
+    }
+   ],
+   "text": [
+    "You rattle the treats. Two green eyes under the caravan. A ginger cat slinks out and eats out of your hand.",
+    "You carry him home."
+   ],
+   "locked": "Something is hissing under this caravan."
+  },
+  {
+   "id": "treats_pick",
+   "type": "pickup",
+   "item": "treats",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:119",
+    "off": [
+     -2,
+     1
+    ]
+   },
+   "text": [
+    "Under the decking at 119: a pouch of cat treats. Salmon flavour."
+   ]
+  },
+  {
+   "id": "wood_z1_1",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:113",
+    "off": [
+     2,
+     -2
+    ]
+   }
+  },
+  {
+   "id": "wood_z1_2",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:118",
+    "off": [
+     -3,
+     -2
+    ]
+   }
+  },
+  {
+   "id": "wood_z1_3",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:125",
+    "off": [
+     3,
+     1
+    ]
+   }
+  },
+  {
+   "id": "wood_z1_4",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:134",
+    "off": [
+     -2,
+     -2
+    ]
+   }
+  },
+  {
+   "id": "wood_z1_5",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:159",
+    "off": [
+     3,
+     0
+    ]
+   }
+  },
+  {
+   "id": "wood_z1_6",
+   "type": "pickup",
+   "item": "wood",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:176",
+    "off": [
+     -3,
+     1
+    ]
+   }
+  },
+  {
+   "id": "kid_z1_1",
+   "type": "enemy",
+   "etype": "kid",
+   "at": {
+    "zone": "z1",
+    "near": [
+     86,
+     41
+    ],
+    "off": [
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": "kid_z1_2",
+   "type": "enemy",
+   "etype": "kid",
+   "at": {
+    "zone": "z1",
+    "near": [
+     80,
+     31
+    ],
+    "off": [
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": "kid_z1_3",
+   "type": "enemy",
+   "etype": "kid",
+   "at": {
+    "zone": "z1",
+    "near": [
+     89,
+     58
+    ],
+    "off": [
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": "kid_z1_4",
+   "type": "enemy",
+   "etype": "kid",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:177",
+    "off": [
+     -2,
+     2
+    ]
+   }
+  },
+  {
+   "id": "kid_z1_5",
+   "type": "enemy",
+   "etype": "kid",
+   "at": {
+    "zone": "z1",
+    "near": "caravan:177",
+    "off": [
+     -4,
+     0
+    ]
+   }
+  },
+  {
+   "id": "stub_chip",
+   "type": "pickup",
+   "item": "chip",
+   "stub": true,
+   "at": {
+    "zone": "z2",
+    "near": "lm:10",
+    "off": [
+     3,
+     3
+    ]
+   },
+   "text": [
+    "(Placeholder: this ability will come from a new encounter here later.)"
+   ]
+  },
+  {
+   "id": "stub_dashstrike",
+   "type": "pickup",
+   "item": "dashstrike",
+   "stub": true,
+   "at": {
+    "zone": "z3",
+    "near": "lm:14",
+    "off": [
+     -3,
+     2
+    ]
+   },
+   "text": [
+    "(Placeholder: this ability will come from a new encounter here later.)"
+   ]
+  },
+  {
+   "id": "stub_parry",
+   "type": "pickup",
+   "item": "parry",
+   "stub": true,
+   "at": {
+    "zone": "z4",
+    "near": "lm:30",
+    "off": [
+     4,
+     -2
+    ]
+   },
+   "text": [
+    "(Placeholder: this ability will come from a new encounter here later.)"
+   ]
+  },
+  {
+   "id": "stub_combo4",
+   "type": "pickup",
+   "item": "combo4",
+   "stub": true,
+   "at": {
+    "zone": "z4",
+    "near": "lm:31",
+    "off": [
+     -3,
+     2
+    ]
+   },
+   "text": [
+    "(Placeholder: this ability will come from a new encounter here later.)"
+   ]
+  },
+  {
+   "id": "stub_gerry",
+   "type": "interact",
+   "kind": "flag",
+   "sprite": "sign",
+   "at": {
+    "room": "clubhouse",
+    "slot": 3
+   },
+   "req": [
+    "parry"
+   ],
+   "effects": [
+    {
+     "give": "flag_tg"
+    },
+    {
+     "set": "gerry_beaten"
+    }
+   ],
+   "text": [
+    "(Placeholder for the clubhouse boss.) The Tara Glen flag and the terrace key, left on the bar."
+   ],
+   "locked": "(Placeholder) The flag's behind the bar. Come back with Putt Parry."
+  },
+  {
+   "id": "stub_sausage",
+   "type": "pickup",
+   "item": "sausage",
+   "stub": true,
+   "at": {
+    "zone": "z2",
+    "near": "door:203",
+    "off": [
+     -3,
+     2
+    ]
+   },
+   "text": [
+    "A burnt sausage, abandoned on a BBQ. (Placeholder: Mrs Kehoe's old z1 errand used to give this.)"
+   ]
   }
  ],
  "locks": [],
  "events": [
+  {
+   "id": "start_bag",
+   "when": [
+    "!@bag_given"
+   ],
+   "effects": [
+    {
+     "give": "binbag"
+    },
+    {
+     "set": "bag_given"
+    }
+   ]
+  },
   {
    "id": "evening",
    "when": [
@@ -473,181 +833,6 @@
  "end": [
   "@ending"
  ],
- "hints": [
-  {
-   "when": [
-    "!throw"
-   ],
-   "tiers": [
-    "Fill your balloons: combine the bucket with the pack.",
-    "Open your bag 🎒 and combine the balloons with the bucket.",
-    "🎒 → 'Pack of balloons', then 'Bucket of water'. The bucket's in the bathroom."
-   ]
-  },
-  {
-   "when": [
-    "!drive"
-   ],
-   "tiers": [
-    "Beat the Big Dust Bunny in 131.",
-    "131 is just south-west of 127. Clear the room.",
-    "Clear 131. Its boss teaches you the Power Drive."
-   ],
-   "target": "boss131"
-  },
-  {
-   "when": [
-    "!@visited_z2"
-   ],
-   "tiers": [
-    "Clear the brambles behind 127 and go down through the Glen.",
-    "There's a gap in the trees just behind 127, choked with brambles.",
-    "Stand at the brambles, hold ⚔️ and let go when the ring glows."
-   ],
-   "target": "glen_brambles"
-  },
-  {
-   "when": [
-    "@visited_z2",
-    "!chip"
-   ],
-   "tiers": [
-    "Clear the arena in the Back Field.",
-    "Look for the marked square of grass in Playground Row.",
-    "Stand inside the marked square and beat both waves."
-   ]
-  },
-  {
-   "when": [
-    "!skateboard"
-   ],
-   "tiers": [
-    "Build a skateboard: Aoife's deck and some wheels.",
-    "Win the swing game, then check behind Nana Breda's mobile (210).",
-    "Combine the deck and the pram wheels in your bag 🎒."
-   ]
-  },
-  {
-   "when": [
-    "!@visited_z3"
-   ],
-   "tiers": [
-    "Slide under the ROAD CLOSED pole on the road south.",
-    "The pole is across the road at the bottom of Playground Row.",
-    "Face the pole and dodge on the skateboard to slide under it."
-   ],
-   "target": "road70"
-  },
-  {
-   "when": [
-    "!bike"
-   ],
-   "tiers": [
-    "Win Big Mick's BMX at the roundabout.",
-    "Do ten keepy-uppies for Big Mick.",
-    "Talk to Big Mick by the roundabout on the Crescent."
-   ],
-   "target": "mick"
-  },
-  {
-   "when": [
-    "!@visited_z4"
-   ],
-   "tiers": [
-    "Jump the washed-out gully onto the Links.",
-    "The road south off the Crescent drops into a gully. There's a ramp.",
-    "Get on the bike 🚲 and ride straight at the ramp."
-   ],
-   "target": "chasm"
-  },
-  {
-   "when": [
-    "!@sully_done"
-   ],
-   "tiers": [
-    "Find Sully's three golf balls.",
-    "One's under Biscuit, one's at crazy golf, one's stuck in a whin bush.",
-    "Feed Biscuit the sausage, win crazy golf, chip the ball out of the whin. Then see Sully."
-   ],
-   "target": "sully"
-  },
-  {
-   "when": [
-    "!@match_joined"
-   ],
-   "tiers": [
-    "Pay Shauna the den fee to join the football match.",
-    "The match is blocking the road east. It's a fiver to join; Sully's paying for golf balls.",
-    "Talk to Shauna at the side of the match with Sully's fiver."
-   ],
-   "target": "shauna"
-  },
-  {
-   "when": [
-    "!dashstrike"
-   ],
-   "tiers": [
-    "Learn the Dash Strike: clear the marked mobile on the Crescent.",
-    "One of the mobiles on the Crescent has something nasty in it.",
-    "Clear that mobile's room to learn the Dash Strike."
-   ],
-   "target": null
-  },
-  {
-   "when": [
-    "can<2",
-    "!@bribed"
-   ],
-   "tiers": [
-    "Get two cans from the groundsman's shed.",
-    "The shed is on Eighteen. Its door is rotten at the hinges.",
-    "Dash Strike the shed door, then grab both cans."
-   ],
-   "target": "shed_can1"
-  },
-  {
-   "when": [
-    "!@bribed"
-   ],
-   "tiers": [
-    "Bribe Tadhg with the cans to get to the clubhouse.",
-    "Tadhg's minding the rope into the clubhouse grounds.",
-    "Talk to Tadhg with two cans."
-   ],
-   "target": "tadhg"
-  },
-  {
-   "when": [
-    "!parry"
-   ],
-   "tiers": [
-    "Clear the arena on the Ninth Hole.",
-    "The marked square of grass is out on the links. Beat every wave.",
-    "Win the Ninth Hole arena to learn Putt Parry: you need it for Big Gerry."
-   ],
-   "target": "enc_arena_links"
-  },
-  {
-   "when": [
-    "!flag_tg"
-   ],
-   "tiers": [
-    "Take the flag back from Big Gerry in the clubhouse.",
-    "Big Gerry's flown into the clubhouse bar.",
-    "Swing just as one of his shots reaches you to putt it back. Hit him while he's dazed, or while he's charging."
-   ],
-   "target": "gerry"
-  },
-  {
-   "when": [
-    "!@ending"
-   ],
-   "tiers": [
-    "Take the flag to the bonfire on the strand.",
-    "Go out the terrace gate behind the clubhouse.",
-    "Talk to Mam at the bonfire."
-   ],
-   "target": "mam"
-  }
- ]
+ "hints": [],
+ "_readme_v13": "v13: no objective line / hint arrow. Zone one story: bin bag -> skip -> friend -> 177 boss -> club -> briars. Text uses {friend} (world.strings.friend)."
 }

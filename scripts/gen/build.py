@@ -101,8 +101,8 @@ lock_defs = list(C['story']['locks'])
 for gd in WD['gates']:
     ts = [t for t, i in GATE_TILES.items() if i == gd['id']]
     if ts: lock_defs.append(dict({k: v for k, v in gd.items() if k not in ('near', 'width')}, tiles_=ts))
-lock_defs.append({'id': 'glen_brambles', 'kind': 'crack', 'req': ['drive'], 'art': 'brambles', 'tiles_': [GLEN_OUT],
-                  'text': "Brambles choke the gap into the trees behind 127. A charged drive would clear them."})
+lock_defs.append({'id': 'glen_brambles', 'kind': 'crack', 'req': ['club'], 'art': 'brambles', 'tiles_': [GLEN_OUT],  # v13: the golf club itself cuts the briars
+                  'text': "Briars choke the gap into the trees behind 127. Thick as your arm. You'd need something to hack through them."})
 def rect_tiles(r): return [(x, y) for y in range(r[1], r[3] + 1) for x in range(r[0], r[2] + 1)]
 for L in lock_defs:
     tiles = L.pop('tiles_') if 'tiles_' in L else rect_tiles(L['rect'])
@@ -196,6 +196,7 @@ for d in C['decor']['curated']:
     t = resolve(d['at'], sep=1, foot=(foot or []) + [(0, 1)])
     e = {'id': d['id'], 'sprite': d['sprite'], 'x': t[0], 'y': t[1], 'solid': bool(d.get('solid'))}
     if d.get('lines'): e['lines'] = d['lines']
+    if 'frame' in d: e['frame'] = d['frame']
     decor.append(e); CURATED_DECOR[d['id']] = e
     for f in foot or [(0, 0)]: occupy((t[0] + f[0], t[1] + f[1])); G.block[T(t[0] + f[0], t[1] + f[1])] = 1 if d.get('solid') else 0
     if d.get('solid'): DOOR_TILES.add(T(t[0], t[1] + 1))
@@ -297,6 +298,7 @@ for nid, n in C['npcs']['npcs'].items():
         at_out.append(p)
     NPCS[nid] = dict({k: v for k, v in n.items() if k != 'at'}, at=at_out)
 
+NO_FILL = {'177'}  # v13: the boss hut has only its boss
 # ---------------- procedural fill: rooms ----------------
 DC = C['decor']
 notes_pool = list(DC['notes']); rng.shuffle(notes_pool)
@@ -321,6 +323,7 @@ for zid, rids in proc_rooms.items():
             if b['hiders'] > 1 and r < 0.25: b['hiders'] -= 1; add_ent(dict(hider_ent(), id=nid('hider')), {'room': rid, 'slot': k})
             elif b['coins'] > 0 and r < 0.6: b['coins'] -= 1; add_ent({'id': nid('coin'), 'type': 'pickup', 'item': 'coin'}, {'room': rid, 'slot': k})
             elif b['notes'] > 0 and r < 0.8 and notes_pool: b['notes'] -= 1; add_ent({'id': nid('note'), 'type': 'note', 'text': notes_pool.pop()}, {'room': rid, 'slot': k})
+        if not ZONES[zid]['enemy']: continue  # v13: zones without enemies yet
         es = data['eslots']; n = min(len(es), 2 + tier // 2)  # v9: compact combat rooms, mixed archetypes
         off = rng.randrange(len(ZONES[zid]['enemy']))
         for ei, p in enumerate(es[:n]):
@@ -328,6 +331,7 @@ for zid, rids in proc_rooms.items():
             ENT.append({'id': nid('e'), 'type': 'enemy', 'etype': et, 'stats': estats(et, tier), 'room': rid, 'zone': zid, 'x': p[0] * 16 + 8, 'y': p[1] * 16 + 8})
 for rid in RC['rooms']:  # curated rooms: enemy slots get the zone's first enemy type
     zid = RC['rooms'][rid]['zone']
+    if not ZONES[zid]['enemy'] or rid in NO_FILL: continue
     for ei, p in enumerate(ROOM_DATA[rid]['eslots'][:2 + tier_of(zid) // 2]):  # v9: compact encounters
         et = ZONES[zid]['enemy'][ei % len(ZONES[zid]['enemy'])]
         ENT.append({'id': nid('e'), 'type': 'enemy', 'etype': et, 'stats': estats(et, tier_of(zid)), 'room': rid, 'zone': zid, 'x': p[0] * 16 + 8, 'y': p[1] * 16 + 8})
@@ -630,7 +634,8 @@ FIGHT_ABIL = [k for k, v in ITEMS.items() if v.get('how')]
 for k in FIGHT_ABIL:
     src = [(i, l) for i, sp in enumerate(spheres) for l in sp['log'] if f'give:{k}' in l]
     if not src: err(f'ability {k} is never earned'); continue
-    if not src[0][1].startswith(('encounter', 'enemy')): err(f'ability {k} is earned outside a fight: {src[0][1]}')
+    if src[0][1].startswith('pickup stub_'): warn(f'ability {k} comes from a stub pickup (placeholder until its new encounter exists)')
+    elif not src[0][1].startswith(('encounter', 'enemy')): err(f'ability {k} is earned outside a fight: {src[0][1]}')
     for l in locks:
         if k in mentions(l['req']):
             gate_sp = next((i for i, sp in enumerate(spheres) if l['id'] in {x['id'] for x in locks if ok(x['req'], {'items': sp['state']['items'], 'flags': set(sp['state']['flags']), 'maxhp': sp['state']['maxhp']})}), None)
@@ -643,7 +648,7 @@ for zid in order:
 # hints: some hint must apply at every sphere until the end
 for i, s in enumerate(spheres[:-1]):
     stt = {'items': s['state']['items'], 'flags': set(s['state']['flags'])}
-    if not any(ok(h['when'], stt) for h in STORY['hints']): err(f'hint gap at sphere {i}')
+    if STORY['hints'] and not any(ok(h['when'], stt) for h in STORY['hints']): err(f'hint gap at sphere {i}')
 # v10 hint audit: the current hint at every sphere must be doable then. If its target is a lock, boss or interact whose req isn't met yet,
 # the HUD objective is asking for something the player can't do (e.g. "beat Gerry" before Putt Parry).
 HINT_TRACE = []

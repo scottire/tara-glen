@@ -18,7 +18,7 @@ export const VIBES: Record<string, { name: string; day: Grade; eve: Grade; tod: 
 };
 /** an enemy family per zone: recolour + a behaviour tweak; the stat ramp (tiers) is untouched */
 export const FAMILIES: Record<string, { name: string; tint: number; sight: number; pack?: number; hidden?: boolean }> = {
-  z1: { name: 'Fluffballs (sleepy: notice you late)', tint: 0xfff0d8, sight: 0.8 },
+  z1: { name: 'Little kids (v13: people, no recolour)', tint: 0xffffff, sight: 1 },
   z2: { name: 'Dust bunnies (swarm: one spots you, the pack wakes)', tint: 0xffe24a, sight: 1, pack: 70 },
   z3: { name: 'Weedlings (lurk in the weeds: short sight)', tint: 0x98b07a, sight: 0.7 },
   z4: { name: 'Links pests (open ground: see you from afar, and you them)', tint: 0xc8ffb0, sight: 1.4 },

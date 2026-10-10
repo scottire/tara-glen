@@ -68,6 +68,79 @@
    "lines": [
     "DANGER: deep water round the groyne at high tide."
    ]
+  },
+  {
+   "id": "skip_z1",
+   "sprite": "skip",
+   "solid": true,
+   "at": {
+    "zone": "z1",
+    "near": [
+     61,
+     13
+    ]
+   },
+   "lines": []
+  },
+  {
+   "id": "skipsign1",
+   "sprite": "parksign",
+   "frame": 2,
+   "at": {
+    "zone": "z1",
+    "near": [
+     104,
+     42
+    ]
+   },
+   "lines": [
+    "SKIP ← this way, along the road."
+   ]
+  },
+  {
+   "id": "skipsign2",
+   "sprite": "parksign",
+   "frame": 1,
+   "at": {
+    "zone": "z1",
+    "near": [
+     92,
+     36
+    ]
+   },
+   "lines": [
+    "SKIP ← Past the caravans, keep left."
+   ]
+  },
+  {
+   "id": "skipsign3",
+   "sprite": "parksign",
+   "frame": 1,
+   "at": {
+    "zone": "z1",
+    "near": [
+     78,
+     30
+    ]
+   },
+   "lines": [
+    "SKIP ← Up towards the road. Nearly there."
+   ]
+  },
+  {
+   "id": "skipsign4",
+   "sprite": "parksign",
+   "frame": 1,
+   "at": {
+    "zone": "z1",
+    "near": [
+     66,
+     19
+    ]
+   },
+   "lines": [
+    "SKIP ← Across from the field."
+   ]
   }
  ],
  "rules": [

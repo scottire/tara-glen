@@ -12,6 +12,8 @@ import { Character, G, ensureAnims, type Player } from '../mech/core';
 import type { Pather } from '../mech/path';
 import { say, bossBar } from './ui';
 import { familyOf } from './vibe';
+import { isMaintAi, maintThink, maintGuard, maintTextures } from '../v13/maint';
+import { bonk } from '../v13/fx';
 import { flash, burst, popup, spit, type Combat, type Foe } from '../v9/combat';
 
 type Mode = 'idle' | 'move' | 'windup' | 'attack' | 'recover';
@@ -19,11 +21,14 @@ export class Enemy extends Character implements Foe {
   t = 0; path: { x: number; y: number }[] = []; repath = 0; seen = false; home: { x: number; y: number };
   mode: Mode = 'idle'; mt = 0; mt0 = 1; dir = 0; attacking = false; windup = false; armor = 0; phase = 0; tele?: Phaser.GameObjects.Graphics; shield?: Phaser.GameObjects.Arc;
   strafe = Math.random() < 0.5 ? 1 : -1; sight: number; stunUntil = 0;
-  onDeath?: (e: Enemy) => void; fam: ReturnType<typeof familyOf>; alerted = false;
+  charN = 0; seatT = 0; hitDone = false; onDeath?: (e: Enemy) => void; fam: ReturnType<typeof familyOf>; alerted = false;
   constructor(scene: Phaser.Scene, public e: any, public target: Player, public pather?: Pather) {
-    super(scene, e.x, e.y, 'monsters', e.stats.hp, e.stats.hp, 140);
-    const s = e.stats; ensureAnims(scene, 'monsters', `m${s.sheet}-`, s.sheet * 16, 6);
-    this.setFrame(s.sheet * 16); this.play(`m${s.sheet}-down`);
+    super(scene, e.x, e.y, e.stats.char ? 'chars' : 'monsters', e.stats.hp, e.stats.hp, 140);
+    const s = e.stats;
+    if (s.char) { // v13: people (kids, the maintenance man) use the character sheet as placeholder art
+      this.charN = s.chars ? s.chars[Math.abs([...String(e.id)].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % s.chars.length] : s.char;
+      ensureAnims(scene, 'chars', `c${this.charN}-`, (this.charN - 1) * 16, 6); this.setFrame((this.charN - 1) * 16); this.play(`c${this.charN}-down`);
+    } else { ensureAnims(scene, 'monsters', `m${s.sheet}-`, s.sheet * 16, 6); this.setFrame(s.sheet * 16); this.play(`m${s.sheet}-down`); }
     if (s.scale) this.setScale(s.scale);
     this.setSize(12, 10).setOffset(2, 5); this.setCollideWorldBounds(true);
     this.home = { x: e.x, y: e.y };
@@ -52,6 +57,7 @@ export class Enemy extends Character implements Foe {
   }
   hitBy(_c: Combat | null, dmg: number, push: number, heavy: boolean, from: { x: number; y: number }) {
     if (this.invuln.invulnerable || this.sm.current === 'dead') return;
+    if (maintGuard(this, from)) return; // v13: brush / blower blocks from the front
     if (this.s.guard && this.ai === 'spitter' && this.scene.time.now > this.stunUntil && !(from as any).reflected) { // wings turn the club while he hovers and spits: parry a shot first (v11: a charging Gerry is open, so no phase is unwinnable)
       flash(this, 0xd6f0ff, 80); popup(this.scene, this.x, this.y, 'GUARD', '#d6f0ff'); burst(this.scene, this.x, this.y, 0xd6f0ff, 4, 25); return; }
     if (this.armor > 0) { // armour soaks the hit; heavy hits crack a plate and still stagger
@@ -61,7 +67,7 @@ export class Enemy extends Character implements Foe {
       const v = new Phaser.Math.Vector2(this.x - from.x, this.y - from.y).normalize().scale(heavy ? 120 : 50); this.setVelocity(v.x, v.y);
       this.target.setVelocity(-v.x * 0.8, -v.y * 0.8); return;
     }
-    flash(this); sfx(heavy ? 'heavy' : 'hit'); burst(this.scene, this.x, this.y - 2, 0xffffff, heavy ? 9 : 6, heavy ? 60 : 40); popup(this.scene, this.x, this.y, String(dmg), heavy ? '#ffe066' : '#fff');
+    flash(this); sfx(heavy ? 'heavy' : 'hit'); bonk(this.scene, this.x, this.y - 6, heavy ? 1.2 : 0.9); // v13: cute bonk puff + stars, no damage numbers
     const poise = this.s.boss && !heavy; // bosses only flinch on heavy hits
     if (!poise) this.cancel();
     if (poise) { this.life.takeDamage(dmg); this.onDamage(); if (this.life.life <= 0) this.sm.set('dead'); else this.checkPhase(); return; }
@@ -74,7 +80,8 @@ export class Enemy extends Character implements Foe {
     this.phase = k; this.cancel(); this.invuln.invulnerable = true; flash(this, 0xff5050, 400);
     this.scene.cameras.main.shake(250, 0.006); popup(this.scene, this.x, this.y - 12, `PHASE ${k + 1}`, '#ff8080');
     this.scene.time.delayedCall(700, () => { if (this.active) this.invuln.invulnerable = false; });
-    if (k === n - 1) this.summon();
+    if (k === n - 1 && this.s.summon !== false) this.summon();
+    if (isMaintAi(this.ai)) { this.mode = 'move'; this.mt = 600; this.tele?.clear(); popup(this.scene, this.x, this.y - 18, ['', "Right. The blower.", "Ah, me back..."][k] ?? '', '#fff'); }
   }
   summon() {
     const ents = (this.scene as any).ents; if (!ents) return;
@@ -155,6 +162,7 @@ export class Enemy extends Character implements Foe {
       for (const o of ((this.scene as any).enemies ?? []) as Enemy[]) if (o !== this && o.active && Phaser.Math.Distance.Between(o.x, o.y, this.x, this.y) < this.fam.pack) { o.alerted = true; o.sight = Math.max(o.sight, d + 40); } }
     if (sees && s.boss && !this.seen) { this.seen = true; bossBar(s.name, this.life.life / this.life.max); if (G.w.enemyTypes[s.type ?? this.e.etype]) say([G.w.enemyTypes[s.type ?? this.e.etype]]); }
     if (s.boss && this.seen && d > this.sight * 2) bossBar(null);
+    if (isMaintAi(this.ai)) { maintThink(this, dt, d); return; } // v13 boss phases (own windup/attack/recover)
     this.mt -= dt;
     switch (this.mode) {
       case 'windup': this.drawTele(1 - Math.max(0, this.mt) / this.mt0); if (this.mt <= 0) this.strike(); return this.anim();
@@ -185,13 +193,26 @@ export class Enemy extends Character implements Foe {
   anim() {
     const v = this.body.velocity; if (Math.hypot(v.x, v.y) < 1) return;
     const f = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 'right' : 'left') : (v.y > 0 ? 'down' : 'up');
-    this.anims.play(`m${this.s.sheet}-${f}`, true);
+    this.anims.play(this.charN ? `c${this.charN}-${f}` : `m${this.s.sheet}-${f}`, true);
   }
   die() {
     this.body.enable = false; if (this.s.boss) bossBar(null);
     this.combat?.disengage(this); this.tele?.destroy(); this.tele = undefined; this.clearTint();
-    burst(this.scene, this.x, this.y, 0xffffff, 10, 60);
+    bonk(this.scene, this.x, this.y - 4, 1.4);
     this.onDeath?.(this);
+    if (this.s.yield) { // v13: the boss gives up and sits down (stays put; the scene keeps him until you leave)
+      this.setVelocity(0, 0); this.anims.stop(); this.setFrame(this.charN ? (this.charN - 1) * 16 : 0);
+      maintTextures(this.scene); const seat = this.scene.add.image(this.x, this.y + 6, 'v13-junk', 'j0').setScale(1.4).setDepth(this.y - 1); void seat;
+      this.scene.tweens.add({ targets: this, y: this.y + 2, scaleY: (this.s.scale ?? 1) * 0.88, duration: 400, ease: 'Back.out' });
+      popup(this.scene, this.x, this.y - 18, 'I give up', '#fff'); return;
+    }
+    if (this.s.flee) { // v13: kids run home crying
+      const a = Phaser.Math.Angle.Between(this.target.x, this.target.y, this.x, this.y);
+      popup(this.scene, this.x, this.y - 12, ['WAAAH!', "I'm telling!", 'MAAAM!', 'not fair!'][Math.floor(Math.random() * 4)], '#bfe4ff');
+      this.anims.play(this.charN ? `c${this.charN}-${Math.abs(Math.cos(a)) > Math.abs(Math.sin(a)) ? (Math.cos(a) > 0 ? 'right' : 'left') : (Math.sin(a) > 0 ? 'down' : 'up')}` : this.anims.currentAnim?.key ?? '', true);
+      this.scene.tweens.add({ targets: this, x: this.x + Math.cos(a) * 90, y: this.y + Math.sin(a) * 90, alpha: 0, duration: 1300, ease: 'Quad.in', onComplete: () => this.destroy() });
+      return;
+    }
     this.scene.tweens.add({ targets: this, alpha: 0, scaleX: (this.s.scale ?? 1) * 1.6, scaleY: (this.s.scale ?? 1) * 0.3, duration: 300, onComplete: () => this.destroy() });
   }
 }

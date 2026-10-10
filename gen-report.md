@@ -1,37 +1,49 @@
 # Tara Glen generator report
 
-seed 1987 · 128 entities · 18 NPCs · 14 ambient walkers · 167 decor · 28 interiors · 0 knock doors
-coverage 62.2% (radius 12, 0 fill items) · hiders 0 · shells 15 · coins 21 (shop 0) · max hearts at end 8
+seed 1987 · 86 entities · 18 NPCs · 14 ambient walkers · 174 decor · 29 interiors · 0 knock doors
+coverage 62.8% (radius 12, 0 fill items) · hiders 0 · shells 13 · coins 21 (shop 0) · max hearts at end 7
 
 ## Progression (solver spheres)
 ### Sphere 0
 - enter Glen Top
 - pickup pack127 -> give:balloon_pack
 - pickup bucket127 -> give:bucket
-- pickup peg131 -> give:peg_bag
 - chest chest131 -> give:trainers
-- enemy boss131 -> give:drive, give:coin
-- talk kehoe -> give:sausage, give:string, set:kehoe_done
+- enemy maint -> give:club, set:maint_beaten
+- interact frame_ball -> give:football
+- pickup treats_pick -> give:treats
+- pickup wood_z1_1 -> give:wood
+- pickup wood_z1_2 -> give:wood
+- pickup wood_z1_3 -> give:wood
+- pickup wood_z1_4 -> give:wood
+- pickup wood_z1_5 -> give:wood
+- pickup wood_z1_6 -> give:wood
+- talk neighbour -> set:cat_asked
+- talk oisin -> give:wood, set:ball_back
 - combine fill_balloons
+- event start_bag
 ### Sphere 1
 - enter Playground Row
 - pickup wheels -> give:wheels
 - activity swing -> give:deck, set:swing_done
 - chest glen_chest -> maxhp:1
-- encounter enc_arena_field -> give:chip
+- interact skip_drop -> set:bag_dropped
+- interact cat -> set:cat_found
+- pickup stub_chip -> give:chip
+- pickup stub_sausage -> give:sausage
 - talk nana -> set:nana_asked
+- talk neighbour -> maxhp:1, set:cat_thanked
 - combine build_skate
-- combine necklace
 ### Sphere 2
 - enter The Crescent
 - activity keepy -> give:bike, set:keepy_done
-- encounter enc_m341 -> give:dashstrike
+- pickup stub_dashstrike -> give:dashstrike
 ### Sphere 3
 - enter The Links
 - activity putt -> give:golf_ball, set:putt_done
 - interact links_ball -> give:golf_ball
-- encounter enc_arena_links -> give:parry
-- encounter enc_m389 -> give:combo4
+- pickup stub_parry -> give:parry
+- pickup stub_combo4 -> give:combo4
 - talk biscuit -> set:biscuit_fed
 ### Sphere 4
 - pickup biscuit_ball -> give:golf_ball
@@ -42,13 +54,12 @@ coverage 62.2% (radius 12, 0 fill items) · hiders 0 · shells 15 · coins 21 (s
 - enter Eighteen
 - pickup shed_can1 -> give:can
 - pickup shed_can2 -> give:can
-- encounter enc_arena_green -> maxhp:1
 - choose tadhg: Give him the cans
 - event evening
 ### Sphere 7
 - enter The Clubhouse
 - chest photo_chest -> give:photo
-- enemy gerry -> give:flag_tg, set:gerry_beaten
+- interact stub_gerry -> give:flag_tg, set:gerry_beaten
 - talk nana -> give:rod, maxhp:1, set:photo_returned
 ### Sphere 8
 - enter The Strand
@@ -59,13 +70,13 @@ coverage 62.2% (radius 12, 0 fill items) · hiders 0 · shells 15 · coins 21 (s
 ## Zones
 | zone | tier | unlocked at sphere | entities |
 |---|---|---|---|
-| Glen Top | 1 | 0 | {'note': 2, 'pickup': 8, 'interact': 1, 'chest': 2, 'enemy': 15} |
-| Playground Row | 1 | 1 | {'pickup': 5, 'activity': 1, 'enemy': 10, 'encounter': 1} |
-| The Crescent | 2 | 2 | {'interact': 1, 'activity': 1, 'pickup': 4, 'enemy': 15, 'encounter': 1} |
-| The Links | 3 | 3 | {'pickup': 5, 'activity': 1, 'interact': 1, 'enemy': 8, 'encounter': 2} |
-| Eighteen | 4 | 6 | {'pickup': 6, 'enemy': 12, 'encounter': 1} |
-| The Clubhouse | 5 | 7 | {'interact': 1, 'door': 1, 'chest': 1, 'pickup': 5, 'enemy': 8} |
-| The Strand | 5 | 8 | {'activity': 1, 'pickup': 5, 'decor': 1, 'enemy': 2} |
+| Glen Top | 1 | 0 | {'note': 2, 'pickup': 12, 'interact': 4, 'chest': 2, 'enemy': 20} |
+| Playground Row | 1 | 1 | {'pickup': 7, 'activity': 1} |
+| The Crescent | 2 | 2 | {'interact': 1, 'activity': 1, 'pickup': 5} |
+| The Links | 3 | 3 | {'pickup': 7, 'activity': 1, 'interact': 1} |
+| Eighteen | 4 | 6 | {'pickup': 6} |
+| The Clubhouse | 5 | 7 | {'interact': 2, 'door': 1, 'chest': 1, 'pickup': 5} |
+| The Strand | 5 | 8 | {'activity': 1, 'pickup': 5, 'decor': 1} |
 
 ## Snapshots
 start, s00-fill_balloons, s01-build_skate, s02-crescent, s03-links, s04-sully, s05-shauna, s06-evening, s07-clubhouse, s08-necklace, night, end-ready, everything
@@ -74,4 +85,8 @@ start, s00-fill_balloons, s01-build_skate, s02-crescent, s03-links, s04-sully, s
 - none
 
 ## Warnings
-- none
+- ⚠️ talk entry friend[1] never shown on the critical path
+- ⚠️ ability chip comes from a stub pickup (placeholder until its new encounter exists)
+- ⚠️ ability dashstrike comes from a stub pickup (placeholder until its new encounter exists)
+- ⚠️ ability parry comes from a stub pickup (placeholder until its new encounter exists)
+- ⚠️ ability combo4 comes from a stub pickup (placeholder until its new encounter exists)

@@ -198,8 +198,7 @@
    "icon": "🏌️",
    "kind": "ability",
    "power": 3,
-   "desc": "Hold Attack to charge, release for a full drive swing all round you. Breaks armour and rotten wood.",
-   "how": "Hold ⚔️, let go when the ring glows."
+   "desc": "Comes with the club: hold ⚔️, let go when the ring glows."
   },
   "chip": {
    "name": "Chip Shot",
@@ -207,7 +206,8 @@
    "kind": "ability",
    "power": 3,
    "desc": "Chip a golf ball at enemies or at things out of reach.",
-   "how": "Tap the small ⛳ button to chip a ball."
+   "how": "Tap the small ⛳ button to chip a ball.",
+   "sprite": "star"
   },
   "dashstrike": {
    "name": "Dash Strike",
@@ -215,7 +215,8 @@
    "kind": "ability",
    "power": 3,
    "desc": "Attack during a dodge to lunge through enemies and squeeze through low gaps.",
-   "how": "Dodge 💨, then tap ⚔️ mid-roll."
+   "how": "Dodge 💨, then tap ⚔️ mid-roll.",
+   "sprite": "star"
   },
   "parry": {
    "name": "Putt Parry",
@@ -223,7 +224,8 @@
    "kind": "ability",
    "power": 3,
    "desc": "Tap Attack just as a shot reaches you to putt it straight back. Returned shots stun.",
-   "how": "Tap ⚔️ as a shot arrives to send it back."
+   "how": "Tap ⚔️ as a shot arrives to send it back.",
+   "sprite": "star"
   },
   "combo4": {
    "name": "Long Game",
@@ -231,7 +233,8 @@
    "kind": "ability",
    "power": 2,
    "desc": "Your combo gets a fourth, heavier swing.",
-   "how": "Tap ⚔️ four times in a row."
+   "how": "Tap ⚔️ four times in a row.",
+   "sprite": "star"
   },
   "fiver": {
    "name": "Sully's Fiver",
@@ -239,6 +242,40 @@
    "kind": "quest",
    "sprite": "coin",
    "desc": "Six quid for three golf balls. Five of it is the den fee."
+  },
+  "club": {
+   "name": "Your golf club",
+   "icon": "🏌️",
+   "kind": "ability",
+   "how": "Tap ⚔️ to swing. Hold, then let go, for a big drive. It cuts briars.",
+   "desc": "Your 7-iron. Confiscated, recovered."
+  },
+  "wood": {
+   "name": "Bonfire wood",
+   "icon": "🪵",
+   "kind": "collectible",
+   "tex": "v13-wood",
+   "desc": "Good dry wood. It'll matter on the night."
+  },
+  "binbag": {
+   "name": "Bin bag",
+   "icon": "🗑️",
+   "kind": "quest",
+   "tex": "v13-binbag",
+   "desc": "Mam's bin bag. You have a nose in it: under the teabags, your old match programme, Tara Glen U-12s, a photo of you in the front row with your eyes shut. She's thrown it out. You leave it in. It's only paper."
+  },
+  "treats": {
+   "name": "Cat treats",
+   "icon": "🐟",
+   "kind": "quest",
+   "tex": "v13-treats",
+   "desc": "Salmon flavour. Any cat would come out for these."
+  },
+  "football": {
+   "name": "Kid's football",
+   "icon": "⚽",
+   "kind": "quest",
+   "desc": "Scuffed. Somebody wrote OISIN on it in marker."
   }
  },
  "recipes": [
