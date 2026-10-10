@@ -22,6 +22,9 @@ export const URL_INTENT = hasUrlState && navType === 'navigate';
 export const DEBUG_STATE = URL_INTENT && ['snap', 'state', 'give', 'flag'].some((k) => params.has(k));
 export const urlParam = (k: string) => (URL_INTENT || !URL_STATE.includes(k) ? params.get(k) : null);
 export const urlHas = (k: string) => (URL_INTENT || !URL_STATE.includes(k)) && params.has(k);
+// v12.1 tour links (?tour=z3): view-only. Start from a fixed snapshot in the zone's intended time of day, never read or write
+// the real save, and stay in the URL so a reload just shows the same tour again.
+export const TOUR = /^z[1-7]$/.test(params.get('tour') ?? '') ? params.get('tour')! : null;
 const KEY = 'tara-glen-save-v6', BAK = KEY + '-bak', BEFORE_LINK = KEY + '-before-link', OLD_DEBUG = KEY + '-debug';
 export const fresh = (): Save => ({ items: {}, flags: [], got: [], defeated: [], maxhp: 3, hp: 3, elapsed: 0, hintTier: {}, seenZones: [], v: SAVE_VERSION });
 const progress = (s: any) => (s && s.items ? (s.got?.length ?? 0) + (s.flags?.length ?? 0) : -1);
@@ -35,6 +38,7 @@ export function stripUrlState() {
   const s = q.toString(); try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch { /* ignore */ }
 }
 export function load(): Save {
+  if (TOUR) return fresh();
   let raw = read(KEY);
   if (!raw && localStorage.getItem(KEY)) raw = read(BAK); // a corrupt main slot falls back to the backup
   // one-off rescue: v11 kept link sessions (?snap etc.) in a scratch key; if that holds more progress than the real save, adopt it
@@ -53,12 +57,14 @@ export function load(): Save {
 }
 let lastBak = 0;
 export function save(s: Save) {
+  if (TOUR) return; // tours never touch the real save
   try {
     const json = JSON.stringify(s), now = Date.now();
     if (now - lastBak > 20000) { const prev = localStorage.getItem(KEY); if (prev && read(KEY)) localStorage.setItem(BAK, prev); lastBak = now; }
     localStorage.setItem(KEY, json);
   } catch { /* private mode / quota */ }
 }
-export function reset() { localStorage.removeItem(KEY); localStorage.removeItem(BAK); }
+export function reset() {
+  if (TOUR) return; localStorage.removeItem(KEY); localStorage.removeItem(BAK); }
 export const fmt = (t: string, v: Record<string, any> = {}) => t.replace(/\{(\w+)\}/g, (_, k) => String(v[k] ?? ''));
 export const clock = (ms: number) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };

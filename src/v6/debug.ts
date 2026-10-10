@@ -5,7 +5,7 @@
 // (the save they replaced is kept in tara-glen-save-v6-before-link). See state.ts.
 import { say } from './ui';
 import { G, $, persist, toast } from '../mech/core';
-import { fresh, urlParam, urlHas } from '../state';
+import { fresh, urlParam, urlHas, TOUR } from '../state';
 import { changed, setFlag, clearFlag, give, currentHint } from './logic';
 
 const params = new URLSearchParams(location.search);
@@ -26,6 +26,13 @@ function tpTarget(v: string): { room?: string; x?: number; y?: number } | null {
   return n ? { x: n.x, y: n.y + 16 } : null;
 }
 export function applyUrlState() {
+  if (TOUR) { // view-only tour: everything unlocked, zones 1-5 in daylight, 6 at night, 7 at sunset
+    loadSnapshot('everything');
+    if (+TOUR[1] <= 5) G.st.flags = G.st.flags.filter((f) => f !== 'evening'); else if (!G.st.flags.includes('evening')) G.st.flags.push('evening');
+    const t = tpTarget(TOUR); G.st.room = null; if (t?.x) G.st.pos = [t.x, t.y!];
+    document.body.classList.add('tour'); setTimeout(() => toast('Tour mode: view only, your save is untouched'), 1500);
+    return;
+  }
   if (urlHas('snap')) loadSnapshot(urlParam('snap')!);
   if (urlHas('state')) { try { G.st = { ...fresh(), ...JSON.parse(decodeURIComponent(escape(atob(urlParam('state')!)))) }; } catch { toast('bad ?state'); } }
   for (const g of (urlParam('give') ?? '').split(',').filter(Boolean)) { const [k, n] = g.split(':'); give(k, Number(n ?? 1), true); }
