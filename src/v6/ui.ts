@@ -1,3 +1,4 @@
+import { audio } from '../audio';
 // UI: Rex TextBox dialogue (typewriter, paged, queued) with DOM choice buttons, HUD, bag/combine panel, zone banner, boss bar, end card.
 import { objectiveText } from '../v9/arena';
 import Phaser from 'phaser';
@@ -178,5 +179,7 @@ export function wireButtons() {
   $('hint-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); if (!G.paused) showHint(); });
   $('menu-btn').onclick = () => $('menu').classList.toggle('show');
   $('menu-close').onclick = () => $('menu').classList.remove('show');
+  const snd = $('menu-sound'), lab = () => (snd.textContent = audio.muted ? '🔇 Sound: off' : '🔊 Sound: on'); lab();
+  snd.onclick = () => { audio.setMuted(!audio.muted); lab(); };
   $('menu-reset').onclick = () => { if (confirm(S('resetConfirm'))) { reset(); location.href = location.pathname; } };
 }

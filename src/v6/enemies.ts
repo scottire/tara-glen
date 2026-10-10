@@ -11,6 +11,7 @@ import Phaser from 'phaser';
 import { Character, G, ensureAnims, type Player } from '../mech/core';
 import type { Pather } from '../mech/path';
 import { say, bossBar } from './ui';
+import { familyOf } from './vibe';
 import { flash, burst, popup, spit, type Combat, type Foe } from '../v9/combat';
 
 type Mode = 'idle' | 'move' | 'windup' | 'attack' | 'recover';
@@ -18,7 +19,7 @@ export class Enemy extends Character implements Foe {
   t = 0; path: { x: number; y: number }[] = []; repath = 0; seen = false; home: { x: number; y: number };
   mode: Mode = 'idle'; mt = 0; mt0 = 1; dir = 0; attacking = false; windup = false; armor = 0; phase = 0; tele?: Phaser.GameObjects.Graphics; shield?: Phaser.GameObjects.Arc;
   strafe = Math.random() < 0.5 ? 1 : -1; sight: number; stunUntil = 0;
-  onDeath?: (e: Enemy) => void;
+  onDeath?: (e: Enemy) => void; fam: ReturnType<typeof familyOf>; alerted = false;
   constructor(scene: Phaser.Scene, public e: any, public target: Player, public pather?: Pather) {
     super(scene, e.x, e.y, 'monsters', e.stats.hp, e.stats.hp, 140);
     const s = e.stats; ensureAnims(scene, 'monsters', `m${s.sheet}-`, s.sheet * 16, 6);
@@ -27,12 +28,15 @@ export class Enemy extends Character implements Foe {
     this.setSize(12, 10).setOffset(2, 5); this.setCollideWorldBounds(true);
     this.home = { x: e.x, y: e.y };
     this.sight = e.room ? 9999 : Math.max(s.sight, 90); // combat rooms: everyone wakes up
+    this.fam = familyOf(e); if (this.fam && !s.boss) { this.sight *= this.fam.sight; } this.untint(); // v12: zone family
     this.armor = s.armor ?? 0;
     if (this.armor) this.shield = scene.add.circle(e.x, e.y, 10, 0x6aa8ff, 0.18).setStrokeStyle(1, 0x9cc8ff, 0.9);
     this.sm.add({ name: 'live', onUpdate: (dt) => this.think(dt) }, this.hurtState('live'), { name: 'dead', onEnter: () => this.die() });
     this.sm.set('live');
     this.once('destroy', () => { this.tele?.destroy(); this.shield?.destroy(); });
   }
+  /** v12: back to the zone family's colour (bosses keep their own) */
+  untint() { if (this.fam && !this.s.boss) this.setTint(this.fam.tint).setTintMode(Phaser.TintModes.MULTIPLY); else this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY); return this; }
   get s() { return this.e.stats; }
   get flying() { return !!this.s.fly; }
   get combat(): Combat | undefined { return (this.scene as any).combat; }
@@ -84,7 +88,7 @@ export class Enemy extends Character implements Foe {
   cancel() {
     if (this.windup || this.attacking) this.combat?.done(this);
     this.windup = this.attacking = false; this.tele?.clear(); this.mode = 'recover'; this.mt = 450;
-    if (this.tintMode !== Phaser.TintModes.MULTIPLY || this.isTinted) this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+    if (this.tintMode !== Phaser.TintModes.MULTIPLY || this.isTinted) this.untint();
   }
   toward(speed: number, spread = 0) {
     const a = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, this.target.y) + spread;
@@ -128,10 +132,10 @@ export class Enemy extends Character implements Foe {
       g.lineStyle(1, 0xffffff, blink ? 0.8 : 0.3).lineBetween(this.x, this.y + 4, this.x + c * L * k, this.y + 4 + s * L * k); }
     else if (ai === 'spitter') { g.fillStyle(0xffa040, 0.5 + 0.3 * k).fillCircle(this.x + c * 9, this.y + s * 9, 1 + 3 * k); g.lineStyle(1, 0xffe08a, 0.8).strokeCircle(this.x, this.y, 14 - 8 * k); }
     else { g.lineStyle(1.5, 0xff3020, 0.3 + 0.5 * k).strokeCircle(this.x, this.y + 5, 6 + 10 * k * (this.s.scale ?? 1)); }
-    if (blink) this.setTint(ai === 'spitter' ? 0xffd040 : 0xff5040).setTintMode(Phaser.TintModes.FILL); else this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+    if (blink) this.setTint(ai === 'spitter' ? 0xffd040 : 0xff5040).setTintMode(Phaser.TintModes.FILL); else this.untint();
   }
   strike() {
-    this.windup = false; this.tele?.clear(); this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+    this.windup = false; this.tele?.clear(); this.untint();
     const ai = this.ai, c = Math.cos(this.dir), s = Math.sin(this.dir), boss = this.s.boss ? 1.25 : 1;
     if (ai === 'spitter') {
       const n = this.s.boss ? 3 : 1;
@@ -147,6 +151,8 @@ export class Enemy extends Character implements Foe {
     if (this.shield) this.shield.setPosition(this.x, this.y).setDepth(this.depth + 1).setAlpha(0.6 + 0.3 * Math.sin(this.scene.time.now / 200));
     if (G.paused || !tg.active || (this.scene as any).leaving) { this.setVelocity(0, 0); return; }
     const d = Phaser.Math.Distance.Between(this.x, this.y, tg.x, tg.y), sees = !tg.busy && d < this.sight;
+    if (sees && !this.alerted && this.fam?.pack) { this.alerted = true; // v12: swarm/rowdy families wake their neighbours
+      for (const o of ((this.scene as any).enemies ?? []) as Enemy[]) if (o !== this && o.active && Phaser.Math.Distance.Between(o.x, o.y, this.x, this.y) < this.fam.pack) { o.alerted = true; o.sight = Math.max(o.sight, d + 40); } }
     if (sees && s.boss && !this.seen) { this.seen = true; bossBar(s.name, this.life.life / this.life.max); if (G.w.enemyTypes[s.type ?? this.e.etype]) say([G.w.enemyTypes[s.type ?? this.e.etype]]); }
     if (s.boss && this.seen && d > this.sight * 2) bossBar(null);
     this.mt -= dt;
