@@ -622,8 +622,8 @@
       "!@bag_dropped"
      ],
      "lines": [
-      "Someone is half inside the skip, legs in the air, chucking out planks.",
-      "'Is that you? Drop that bag in, I'm busy.'"
+      "{friend} is leaning into the skip, chucking out planks.",
+      "{friend}: 'Is that Mam's bin bag? Fire it in, I'm busy.'"
      ]
     },
     {
@@ -708,12 +708,9 @@
    "sprite": 2,
    "at": {
     "zone": "z1",
-    "near": [
-     78,
-     69
-    ],
+    "near": "decor:slide_z1",
     "off": [
-     2,
+     3,
      1
     ]
    },
@@ -749,8 +746,65 @@
      ]
     },
     {
+     "when": [
+      "!club"
+     ],
      "lines": [
-      "Oisín: 'My ball's stuck on top of the frame. I'm not allowed climb it.'"
+      "Oisín: 'My ball's stuck on top of the slide. Can you get it down? I can't reach.'"
+     ]
+    },
+    {
+     "lines": [
+      "Oisín: 'You've a golf club! Give it a whack, it's on top of the slide!'"
+     ]
+    }
+   ]
+  },
+  "maint_out": {
+   "name": "The maintenance man",
+   "sprite": 14,
+   "at": [
+    {
+     "when": [
+      "!@bag_dropped"
+     ],
+     "at": {
+      "zone": "z1",
+      "near": "caravan:177",
+      "off": [
+       -2,
+       1
+      ]
+     }
+    },
+    {
+     "when": [
+      "@maint_beaten"
+     ],
+     "at": {
+      "zone": "z1",
+      "near": "caravan:177",
+      "off": [
+       -2,
+       1
+      ]
+     }
+    }
+   ],
+   "talk": [
+    {
+     "when": [
+      "!@bag_dropped"
+     ],
+     "lines": [
+      "The maintenance man: 'What do you want? Go on, I'm busy.'",
+      "He goes back to glaring at a lawnmower part."
+     ]
+    },
+    {
+     "lines": [
+      "The maintenance man is sitting on his bucket outside the shed, flask of tea in hand.",
+      "'Go on. And mind that club near the caravans.'"
      ]
     }
    ]

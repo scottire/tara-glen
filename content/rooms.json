@@ -235,13 +235,12 @@
   },
   "maint177": {
    "rows": [
-    "wwwwowwwwwowww",
-    "HHH,,,,,,,,XOO",
-    ",,,,,,,,,,,,,X",
-    ",,,,,,1,,,,,,,",
-    ",,,,,,,,,,,,,,",
-    "X,,,,,,,,,,,,O",
-    ",,,,,,,,,,,,,,"
+    "wwwwwowwwwww",
+    "HH.4...5..OO",
+    "............",
+    "X.....1....X",
+    "...........6",
+    "X2.......3.O"
    ]
   }
  },
@@ -320,12 +319,16 @@
    "kind": "forest"
   },
   "177": {
-   "name": "Maintenance Hut (177)",
+   "name": "The Maintenance Shed (177)",
    "chambers": [
     "maint177"
    ],
    "door": "caravan:177",
-   "zone": "z1"
+   "zone": "z1",
+   "req": [
+    "@bag_dropped"
+   ],
+   "locked": "A sign on the shed door: 'MAINTENANCE. STAFF ONLY.' It's bolted from the inside."
   }
  },
  "procedural": {

@@ -35,10 +35,10 @@ export function maintThink(en: any, dt: number, d: number) {
   if (ai === 'lobber') {
     en.setVelocity(0, 0); g.clear();
     if (!en.seatT) { en.seatT = 1; popup(sc, en.x, en.y - 14, '*wheeze*', '#fff'); en.setAngle(0); }
-    if (en.mode !== 'windup' && en.mt <= 0) { en.mode = 'windup'; en.mt = 650; en.mt0 = 650; face(); }
+    if (en.mode !== 'windup' && en.mt <= 0) { en.mode = 'windup'; en.mt = 850; en.mt0 = 850; face(); }
     if (en.mode === 'windup') {
       const k = 1 - Math.max(0, en.mt) / en.mt0; g.lineStyle(1, 0xffe08a, 0.4 + 0.5 * k).strokeCircle(tg.x, tg.y + 4, 12 - 6 * k);
-      if (en.mt <= 0) { lob(en, tg.x, tg.y); en.mode = 'move'; en.mt = 1500 - en.phase * 100; g.clear(); }
+      if (en.mt <= 0) { lob(en, tg.x, tg.y); en.mode = 'move'; en.mt = 2200; g.clear(); }
     }
     return;
   }
@@ -46,33 +46,33 @@ export function maintThink(en: any, dt: number, d: number) {
     const k = 1 - Math.max(0, en.mt) / en.mt0; g.clear();
     if (ai === 'sweeper') { g.fillStyle(0xff5030, 0.12 + 0.25 * k).beginPath().slice(en.x, en.y + 4, 34, en.dir - 1.2, en.dir + 1.2).fillPath(); g.lineStyle(1, 0xffffff, 0.6).beginPath().arc(en.x, en.y + 4, 34 * k, en.dir - 1.2, en.dir + 1.2).strokePath(); }
     else { g.fillStyle(0x9fd8ff, 0.1 + 0.2 * k).beginPath().slice(en.x, en.y + 4, 80, en.dir - 0.45, en.dir + 0.45).fillPath(); }
-    if (en.mt <= 0) { en.mode = 'attack'; en.mt = ai === 'sweeper' ? 260 : 1500; en.hitDone = false; }
+    if (en.mt <= 0) { en.mode = 'attack'; en.mt = ai === 'sweeper' ? 340 : 1300; en.hitDone = false; }
     return;
   }
   if (en.mode === 'attack') {
     g.clear();
     const pa = Phaser.Math.Angle.Between(en.x, en.y, tg.x, tg.y);
     if (ai === 'sweeper') { // the brush swings across the arc; one hit
-      const k = 1 - Math.max(0, en.mt) / 260, a = en.dir - 1.2 + 2.4 * k;
+      const k = 1 - Math.max(0, en.mt) / 340, a = en.dir - 1.2 + 2.4 * k;
       g.lineStyle(4, 0xc9a06a, 0.9).lineBetween(en.x, en.y + 2, en.x + Math.cos(a) * 30, en.y + 2 + Math.sin(a) * 30);
       if (!en.hitDone && d < 36 && ang(pa, en.dir) < 1.25 && !tg.dashing) { en.hitDone = true; tg.hurt(en, en.s.dmg, 170); }
-      if (en.mt <= 0) { en.mode = 'recover'; en.mt = 1000; popup(sc, en.x, en.y - 12, 'huff', '#fff'); burst(sc, en.x + Math.cos(en.dir) * 20, en.y + Math.sin(en.dir) * 20, 0xd8c8a0, 6, 30); }
+      if (en.mt <= 0) { en.mode = 'recover'; en.mt = 1400; popup(sc, en.x, en.y - 12, 'huff', '#fff'); burst(sc, en.x + Math.cos(en.dir) * 20, en.y + Math.sin(en.dir) * 20, 0xd8c8a0, 6, 30); }
     } else { // leaf blower: cone push, leaves fly
       en.dir += Phaser.Math.Angle.Wrap(pa - en.dir) * 0.02; // slowly tracks you
       g.fillStyle(0x9fd8ff, 0.18).beginPath().slice(en.x, en.y + 4, 80, en.dir - 0.45, en.dir + 0.45).fillPath();
       if (Math.random() < 0.5) { const l = sc.add.image(en.x + Math.cos(en.dir) * 10, en.y + Math.sin(en.dir) * 10, 'fx-dot').setTint(Math.random() < 0.5 ? 0xd8a040 : 0x7fb040).setDepth(9e4).setScale(0.7);
         const r = 50 + Math.random() * 30, aa = en.dir + (Math.random() - 0.5) * 0.8; sc.tweens.add({ targets: l, x: en.x + Math.cos(aa) * r, y: en.y + Math.sin(aa) * r, alpha: 0, angle: 180, duration: 450, onComplete: () => l.destroy() }); }
       if (d < 82 && ang(pa, en.dir) < 0.5 && !tg.dashing && !tg.busy) { const b = tg.body as Phaser.Physics.Arcade.Body; b.velocity.x += Math.cos(en.dir) * 40; b.velocity.y += Math.sin(en.dir) * 40; (tg as any).blown = ((tg as any).blown ?? 0) + 1; }
-      if (en.mt <= 0) { en.mode = 'recover'; en.mt = 900; popup(sc, en.x, en.y - 12, '*splutter*', '#fff'); }
+      if (en.mt <= 0) { en.mode = 'recover'; en.mt = 1300; popup(sc, en.x, en.y - 12, '*splutter*', '#fff'); }
     }
     return;
   }
   if (en.mode === 'recover') { g.clear(); en.setVelocity(0, 0); if (en.mt <= 0) en.mode = 'move'; return; }
   // move
   g.clear(); face();
-  const spd = en.s.chase * (1 + en.phase * 0.15), want = ai === 'sweeper' ? 26 : 56;
+  const spd = en.s.chase * (1 + en.phase * 0.1), want = ai === 'sweeper' ? 26 : 56;
   if (d > want + 6) en.approach(spd); else if (d < want - 14 && ai === 'blower') en.toward(-spd); else en.setVelocity(0, 0);
-  if (d < want + 14 && (en.t -= dt) <= 0) { en.mode = 'windup'; en.mt = en.mt0 = ai === 'sweeper' ? 700 : 600; en.t = ai === 'sweeper' ? 700 : 1300; en.setVelocity(0, 0); face(); }
+  if (d < want + 14 && (en.t -= dt) <= 0) { en.mode = 'windup'; en.mt = en.mt0 = ai === 'sweeper' ? 950 : 750; en.t = ai === "sweeper" ? 1000 : 1600; /* v13b: eased */ en.setVelocity(0, 0); face(); }
   en.anim();
 }
 

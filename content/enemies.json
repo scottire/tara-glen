@@ -1,51 +1,51 @@
 {
-  "_readme": "v13: kid (harmless pest: shoves, nicks a coin, runs home when beaten) and maint (zone-one boss, 3 phases: sweeper brush / blower cone / lobber on a bucket; yields instead of dying). char = chars.png character used as placeholder art. All older types removed.",
-  "types": {
-    "kid": {
-      "name": "Little kid",
-      "sheet": "dust",
-      "char": 1,
-      "chars": [
-        1,
-        11,
-        15,
-        18,
-        20,
-        21,
-        23
-      ],
-      "ai": "chaser",
-      "hp": 2,
-      "dmg": 0,
-      "speed": 22,
-      "chase": 40,
-      "sight": 70,
-      "flee": true,
-      "nick": true,
-      "perTier": {
-        "hp": 0
-      }
-    },
-    "maint": {
-      "name": "The Maintenance Man",
-      "sheet": "dust",
-      "char": 14,
-      "ai": "boss",
-      "boss": true,
-      "phases": [
-        "sweeper",
-        "blower",
-        "lobber"
-      ],
-      "hp": 9,
-      "dmg": 1,
-      "speed": 20,
-      "chase": 28,
-      "sight": 140,
-      "scale": 1.25,
-      "summon": false,
-      "yield": true,
-      "bark": "OI! Off the green! ...Oh, it's you. You're not getting that club back."
-    }
+ "_readme": "v13: kid (harmless pest: shoves, nicks a coin, runs home when beaten) and maint (zone-one boss, 3 phases: sweeper brush / blower cone / lobber on a bucket; yields instead of dying). char = chars.png character used as placeholder art. All older types removed.",
+ "types": {
+  "kid": {
+   "name": "Little kid",
+   "sheet": "dust",
+   "char": 1,
+   "chars": [
+    1,
+    11,
+    15,
+    18,
+    20,
+    21,
+    23
+   ],
+   "ai": "chaser",
+   "hp": 2,
+   "dmg": 0,
+   "speed": 22,
+   "chase": 40,
+   "sight": 70,
+   "flee": true,
+   "nick": true,
+   "perTier": {
+    "hp": 0
+   }
+  },
+  "maint": {
+   "name": "The Maintenance Man",
+   "sheet": "dust",
+   "char": 14,
+   "ai": "boss",
+   "boss": true,
+   "phases": [
+    "sweeper",
+    "blower",
+    "lobber"
+   ],
+   "hp": 7,
+   "dmg": 1,
+   "speed": 20,
+   "chase": 28,
+   "sight": 140,
+   "scale": 1.25,
+   "summon": false,
+   "yield": true,
+   "bark": "You're here for that club, are you? Well, you're not getting it."
   }
+ }
 }

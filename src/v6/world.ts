@@ -49,6 +49,7 @@ export class World extends Phaser.Scene implements Host {
     this.load.image('tiles', V('assets/tiles.png')); this.load.tilemapTiledJSON('map', V('assets/map.json'));
     this.load.spritesheet('player', V('assets/player.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('hero', V('assets/v10/player.png'), { frameWidth: 24, frameHeight: 24 }); this.load.json('hero', V('assets/v10/player.json'));
+    this.load.spritesheet('hero-nc', V('assets/v10/player-noclub.png'), { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('herofx', V('assets/v10/fx.png'), { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('chars', V('assets/v6/chars.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('dog', V('assets/v6/dog.png'), { frameWidth: 16, frameHeight: 16 });
@@ -59,8 +60,7 @@ export class World extends Phaser.Scene implements Host {
     // v11: Glen rope-swing tree + caravan furniture cut from the AI props sheet (scripts/gen/restyle.py v11)
     this.load.image('glen-tree', V('assets/v6/glen-tree.png'));
     // v13 zone-one placeholder art (scripts/gen/z1art.py)
-    this.load.spritesheet('d-parksign', V('assets/v13/parksign.png'), { frameWidth: 16, frameHeight: 20 });
-    for (const k of ['wood', 'binbag', 'treats', 'junk', 'frame']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
+    for (const k of ['wood', 'binbag', 'treats', 'junk', 'frame', 'bigshed']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
     for (const k of ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']) this.load.image('ip-' + k, V(`assets/v6/ip/${k}.png`));
     this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', V('assets/balloon.png'));
@@ -123,7 +123,8 @@ export class World extends Phaser.Scene implements Host {
     for (const o of map.getObjectLayer('caravans')!.objects) {
       const key = prop(o, 'orient') === 'v' ? 'caravan-v' : 'caravan-h', inset = key === 'caravan-v' ? 20 : 14;
       const a = CARAVAN_ART[key === 'caravan-v' ? 'v' : 'h'], flip = key === 'caravan-h' && prop(o, 'segId') % 2 === 1; // same rule as grid.py Grid.art
-      cull(this.add.image(o.x! - a.ox, o.y! + o.height! - a.fh, key, prop(o, 'variant')).setOrigin(0).setFlipX(flip).setDepth(o.y! + o.height!));
+      if (prop(o, 'segId') === 177) cull(this.add.image(o.x! - a.ox, o.y! + o.height! - a.fh, 'v13-bigshed').setOrigin(0).setDepth(o.y! + o.height!)); // v13: 177 is the maintenance shed
+      else cull(this.add.image(o.x! - a.ox, o.y! + o.height! - a.fh, key, prop(o, 'variant')).setOrigin(0).setFlipX(flip).setDepth(o.y! + o.height!));
       body(o.x! + 2, o.y! + inset, o.width! - 4, o.height! - inset - 2);
       const lab = prop(o, 'label') ?? (params.has('ids') ? String(prop(o, 'segId')) : null);
       if (prop(o, 'home') || [127, 131].includes(prop(o, 'segId'))) cull(this.add.text(o.x! + o.width! / 2, o.y! + o.height! - 3, lab ?? String(prop(o, 'segId')), { fontFamily: 'monospace', fontSize: '24px', color: '#fff', stroke: '#3a2a20', strokeThickness: 4 })
@@ -148,6 +149,7 @@ export class World extends Phaser.Scene implements Host {
     // generated decor (solid ones get bodies)
     for (const d of G.w.decor) {
       const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite, d.frame ?? 0).setOrigin(0.5, 1).setDepth(d.y * 16 + 14));
+      if (d.sprite === 'sandpit') s.setDepth(1); // v13: flat on the ground
       if (d.anim || G.w.decorAnim.includes(d.sprite)) s.play({ key: 'd-' + d.sprite, startFrame: Math.floor(Math.random() * 2) });
       if (d.solid) { const w = s.width; body(d.x * 16 + 8 - w / 2 + 2, d.y * 16 + 4, w - 4, 11); }
       (d as any).obj = s;
@@ -267,7 +269,8 @@ export class World extends Phaser.Scene implements Host {
     if (l.kind === 'ride' && has) return this.sayOnce(l.id, r, [S('rideHint')], true);
     if (l.kind === 'jump' && has) { if (this.riding) return this.hop(o, true); return this.sayOnce(l.id + 'r', r, ['Get on the bike 🚲 and hit the ramp.'], true); }
     if ((l.kind === 'crowd' || l.kind === 'guard') && has) return this.openLock(o, l.kind === 'crowd' ? 'Full time. The crowd drifts off.' : 'Tadhg lifts the rope.');
-    this.sayOnce(l.id, r, [l.text]);
+    const txt = (l.textBy as any[] | undefined)?.find((t) => cond(t.when))?.text ?? l.text; // v13: lines change with the story
+    this.sayOnce(l.id + ':' + txt, r, [txt]);
   }
   openLock(o: (typeof this.lockObjs)[number], msg: string) {
     if (o.open) return; o.open = true; (o.body!.body as Phaser.Physics.Arcade.StaticBody).enable = false;

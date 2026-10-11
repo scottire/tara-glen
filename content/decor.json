@@ -141,6 +141,44 @@
    "lines": [
     "SKIP ← Across from the field."
    ]
+  },
+  {
+   "id": "sand_z1",
+   "sprite": "sandpit",
+   "at": {
+    "zone": "z1",
+    "near": [
+     76,
+     64
+    ]
+   }
+  },
+  {
+   "id": "swing_z1",
+   "sprite": "swingset",
+   "solid": true,
+   "at": {
+    "zone": "z1",
+    "near": [
+     74,
+     64
+    ]
+   },
+   "lines": [
+    "The swings. The chains still squeak exactly like they did when you were six."
+   ]
+  },
+  {
+   "id": "slide_z1",
+   "sprite": "slide",
+   "solid": true,
+   "at": {
+    "zone": "z1",
+    "near": [
+     78,
+     64
+    ]
+   }
   }
  ],
  "rules": [

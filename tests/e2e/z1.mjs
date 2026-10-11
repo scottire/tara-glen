@@ -33,11 +33,32 @@ ok('signRoute', await ev(async () => {
   const near = signs.map((sg) => Math.round(Math.min(...path.map((n) => Math.hypot(n.x - sg.x, n.y - sg.y)))));
   return { pathLen: path.length, signDistTiles: near, allOnRoute: near.every((d) => d <= 5) };
 }));
+// v13b out of order: 177, briars and the football before talking to {friend}
+await ev(() => { const u = tgTest.G.ui, o = u.say.bind(u); window.__said = []; u.say = (m) => { window.__said.push(...(m.lines ?? [])); return o(m); }; });
+const said = () => ev(() => { const s = window.__said.slice(); window.__said.length = 0; return s; });
+const pushDoor = (room) => ev(async (room) => { const d = tgTest.G.w.doors.find((d) => d.room === room); tg.player.body.reset(d.x, d.y + 6); tg.doorArmed = true;
+  tg.player.keys.UP.isDown = true; await new Promise((r) => setTimeout(r, 500)); tg.player.keys.UP.isDown = false; return tgTest.G.st.room; }, room);
+const bumpBriars = () => ev(async () => { const o = tg.lockObjs.find((o) => o.l.id === 'glen_brambles'), bb = o.body.getBounds(); tg.player.body.reset(bb.centerX, bb.bottom + 8);
+  tg.player.keys.UP.isDown = true; await new Promise((r) => setTimeout(r, 500)); tg.player.keys.UP.isDown = false; tg.player.body.reset(bb.centerX, bb.bottom + 90); await new Promise((r) => setTimeout(r, 200)); return o.open; });
+await said();
+const early = {};
+early.room177 = await pushDoor('177'); early.doorLine = (await said()).join(' | '); await closeAll();
+await ev(() => { tgTest.tp('maint_out'); tgTest.use('maint_out'); }); await wait(300); early.maintLine = (await said()).join(' | ');
+early.noBossYet = await ev(() => !tg.enemies.some((e) => e.s?.type === 'maint'));
+await page.screenshot({ path: '/workspace/z1b-shed-outside.png' }); await closeAll();
+await bumpBriars(); early.briars = (await said()).join(' | '); await closeAll();
+await ev(() => { tgTest.tp('oisin'); tgTest.use('oisin'); }); await wait(300); early.oisin = (await said()).join(' | '); await closeAll();
+await ev(() => { tgTest.tp('frame_ball'); tgTest.use('frame_ball'); }); await wait(300); early.ballNoClub = !(await st()).items.football; await closeAll();
+await ev(() => { tg.player.body.reset(77 * 16, 68 * 16); }); await wait(500); await page.screenshot({ path: '/workspace/z1b-playground.png' });
+await ev(() => { const o = tg.lockObjs.find((o) => o.l.id === 'glen_brambles'); const p = tgTest.G.w.doors.find((d) => d.room === '177'); tg.player.body.reset(p.x + 70, p.y - 30); }); await wait(500);
+await page.screenshot({ path: '/workspace/z1b-border.png' });
+ok('early', early);
 // 3. the skip: drop the bag -> friend's story
 await ev(() => { tgTest.tp('skip_drop'); tgTest.use('skip_drop'); }); await wait(900);
 await page.screenshot({ path: '/workspace/z1-skip.png' });
 await closeAll(); s = await st(); ok('skip', { bag_dropped: s.flags.includes('bag_dropped'), binbag: s.items.binbag ?? 0 });
 await ev(() => { tgTest.tp('friend'); tgTest.use('friend'); }); await wait(300); await closeAll();
+ok('briarsAfterCiara', (await bumpBriars(), (await said()).join(' | '))); await closeAll();
 // briars still shut without the club
 ok('briarsShutBefore', await ev(() => !tg.lockObjs.find((o) => o.l.id === 'glen_brambles').open));
 // 4. little kids: punch until they run home
@@ -51,10 +72,11 @@ ok('kids', await ev(async () => {
   out.punches = (tg.combat.stats.punches ?? 0) - out.punches0; return out;
 }));
 // 5. boss in 177
-await ev(() => tg.enterRoom('177')); await wait(1800); await closeAll();
+ok('door177AfterCiara', await pushDoor('177')); await wait(1800); await closeAll(); ok('bossBark', (await said()).join(' | '));
 ok('bossRoom', await scene());
 const boss = async () => ev(() => { const e = room.enemies.find((e) => e.s?.type === 'maint'); return e ? { hp: e.life.life, phase: e.phase, ai: e.ai, mode: e.mode, dead: e.sm.current === 'dead' } : null; });
 ok('bossStart', await boss());
+await wait(1200); await closeAll(); await page.screenshot({ path: '/workspace/z1b-shed-inside.png' });
 const phases = new Set(); let shot = false;
 for (let i = 0; i < 160; i++) {
   const r = await ev(() => { const s = room, e = s.enemies.find((e) => e.s?.type === 'maint'); if (!e || e.sm.current === 'dead') return 'done';
@@ -100,6 +122,6 @@ ok('wood', await ev(async () => {
   await p2.evaluate(() => { const c = tg.cameras.main; c.stopFollow(); c.setZoom(0.85); c.centerOn(82 * 16, 40 * 16); document.querySelectorAll('#hud,#controls,.rbtn,#joy,#btns').forEach((e) => (e.style.visibility = 'hidden')); });
   await p2.waitForTimeout(800); await p2.screenshot({ path: '/workspace/z1-overview.png' }); }
 ok('errors', errs);
-const pass = R.wake.binbag === 1 && R.noObjective.objective === '' && !R.noObjective.arrowVisible && R.signRoute.allOnRoute && R.skip.bag_dropped && R.kids.fled >= 1 &&
+const E = R.early; const pass = E.room177 === null && /STAFF ONLY/.test(E.doorLine) && /busy/.test(E.maintLine) && E.noBossYet && /Nothing's getting through/.test(E.briars) && /can't reach/.test(E.oisin) && E.ballNoClub && /hack through/.test(R.briarsAfterCiara) && R.door177AfterCiara === '177' && /not getting it/.test(R.bossBark) && R.wake.binbag === 1 && R.noObjective.objective === '' && !R.noObjective.arrowVisible && R.signRoute.allOnRoute && R.skip.bag_dropped && R.kids.fled >= 1 &&
   R.bossEnd?.dead && R.bossPhases.length === 3 && R.club.club && R.briars.open && R.enterGlen === 'glen' && R.football.ball_back && R.cat.maxhpGain === 1 && R.wood.gained === 6 && !errs.length;
 R.PASS = pass; console.log(JSON.stringify(R, null, 1)); await b.close(); process.exit(pass ? 0 : 1);

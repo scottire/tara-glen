@@ -45,7 +45,7 @@ export class Ents {
           h.physics.add.collider(h.player, obj); break;
         case 'note': obj = h.add.image(e.x, e.y, 'items', itemFrame('note')); break;
         case 'vista': case 'whisper': obj = h.add.sprite(e.x, e.y, 'd-sparkle').play('d-sparkle'); break;
-        case 'interact': obj = e.sprite === 'none' ? h.add.image(e.x, e.y, 'fx-dot').setAlpha(0) : e.sprite === 'frame' ? h.add.image(e.x, e.y - 8, 'v13-frame') : h.add.image(e.x, e.y - 4, 'd-' + (e.sprite ?? (e.kind === 'hook' ? 'whitethorn' : 'tap'))); break;
+        case 'interact': obj = e.sprite === 'slideball' ? h.add.image(e.x - 6, e.y - 40, 'd-ball') : e.sprite === 'none' ? h.add.image(e.x, e.y, 'fx-dot').setAlpha(0) : e.sprite === 'frame' ? h.add.image(e.x, e.y - 8, 'v13-frame') : h.add.image(e.x, e.y - 4, 'd-' + (e.sprite ?? (e.kind === 'hook' ? 'whitethorn' : 'tap'))); break;
         case 'activity': obj = h.add.image(e.x, e.y, 'spot'); h.tweens.add({ targets: obj, scale: 1.3, alpha: 0.6, angle: 45, duration: 800, yoyo: true, repeat: -1 }); break;
         case 'hider': obj = h.add.sprite(e.x, e.y, 'd-bush').play('d-bush'); break;
         case 'door': obj = h.physics.add.staticImage(e.x, e.y, 'interior6', 29); h.physics.add.collider(h.player, obj, () => this.use({ kind: 'door', e, obj })); break;

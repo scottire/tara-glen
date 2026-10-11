@@ -37,8 +37,10 @@ class C:
         n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
         for i in range(n + 1): t = i / max(1, n); s.px(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, mat)
 
+NOCLUB = False  # v13: a second sheet without the iron (bare hands until the club is won back)
 def club(c, hx, hy, ang, L=9):
     """golf iron from the hands at angle ang (radians, 0 = right, y down): grip, steel shaft, angled iron head"""
+    if NOCLUB: return
     ca, sa = math.cos(ang), math.sin(ang)
     c.line(hx, hy, hx + ca * 2, hy + sa * 2, 'grip')
     c.line(hx + ca * 2, hy + sa * 2, hx + ca * L, hy + sa * L, 'shaft')
@@ -201,6 +203,12 @@ def main():
     for k, f in enumerate(frames): sheet.paste(f, ((k % cols) * F, (k // cols) * F))
     out = os.path.join(ROOT, 'public/assets/v10'); os.makedirs(out, exist_ok=True)
     sheet.save(os.path.join(out, 'player.png')); json.dump(meta, open(os.path.join(out, 'player.json'), 'w'))
+    global NOCLUB; NOCLUB = True
+    nc = Image.new('RGBA', sheet.size, (0, 0, 0, 0)); k = 0
+    for name, n in ANIMS:
+        for d in DIRS:
+            for i in range(n): nc.paste(pose(d, name, i), ((k % cols) * F, (k // cols) * F)); k += 1
+    nc.save(os.path.join(out, 'player-noclub.png')); NOCLUB = False
     fx_sheet().save(os.path.join(out, 'fx.png'))
     # x4 preview: one row per anim, all four directions
     pv = Image.new('RGBA', (F * 4 * 16 + 8 * 4, F * 4 * len(ANIMS)), (90, 140, 70, 255))

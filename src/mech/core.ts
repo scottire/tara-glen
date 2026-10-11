@@ -92,8 +92,11 @@ export function heroAnims(scene: Phaser.Scene) {
   for (const [name, dirs] of Object.entries<Record<string, number[]>>(meta.anims)) for (const [d, frames] of Object.entries(dirs)) {
     const [rate, repeat] = HERO_RATE[name] ?? [8, -1];
     scene.anims.create({ key: `h-${name}-${d}`, frameRate: rate, repeat, frames: scene.anims.generateFrameNumbers('hero', { frames }) });
+    if (scene.textures.exists('hero-nc')) scene.anims.create({ key: `hn-${name}-${d}`, frameRate: rate, repeat, frames: scene.anims.generateFrameNumbers('hero-nc', { frames }) });
   }
 }
+/** v13: bare-handed sprite until the club is won back */
+const HP = () => (G.st?.items?.club || !(globalThis as any).__heroNc ? 'h-' : 'hn-');
 type Keys = Record<string, Phaser.Input.Keyboard.Key>;
 export class Player extends Character {
   keys: Keys;
@@ -102,21 +105,21 @@ export class Player extends Character {
     super(scene, x, y, 'hero', G.st.hp > 0 ? Math.min(G.st.hp, G.st.maxhp) : G.st.maxhp, G.st.maxhp, F.invulnMs ?? P.invulnMs);
     // v10 hero: 24x24 frames, feet on row 22; origin keeps the feet where the old 16px sprite had them
     this.setOrigin(0.5, 14 / 24).setSize(10, 8).setOffset(7, 14).setCollideWorldBounds(true);
-    heroAnims(scene); this.play('h-idle-down');
+    heroAnims(scene); (globalThis as any).__heroNc = scene.anims.exists('hn-idle-down'); this.play(HP() + 'idle-down');
     this.keys = scene.input.keyboard!.addKeys('UP,DOWN,LEFT,RIGHT,W,A,S,D') as Keys;
     this.sm.add({ name: 'idle' }, { name: 'move' }, this.hurtState('idle'),
-      { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.play('h-faint-down'); this.scene.time.delayedCall(900, () => this.scene.events.emit('player-dead')); } });
+      { name: 'dead', onEnter: () => { this.setVelocity(0, 0); this.play(HP() + 'faint-down'); this.scene.time.delayedCall(900, () => this.scene.events.emit('player-dead')); } });
     this.sm.set('idle');
   }
   onDamage() { G.st.hp = this.life.life; persist(); this.pose('hurt', 300); this.scene.cameras.main.shake(140, F.hurtShake); sfx('hurt'); vibrate(F.vibrateFinisherMs); squash(this, 1.3, 0.7); this.setTint(0xff4040).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => this.active && this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)); this.scene.events.emit('hud'); }
-  revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); this.play('h-idle-' + this.facing); persist(); }
+  revive(x: number, y: number) { this.life.heal(); G.st.hp = this.life.max; this.setAngle(0).setAlpha(1).setPosition(x, y); this.sm.set('idle'); this.play(HP() + 'idle-' + this.facing); persist(); }
   dashing = false; dashReady = 0; slow = 1; poseUntil = 0;
   /** play a one-off action animation (swing/roll/hurt/...) for `ms`; walking/idle won't override it meanwhile */
   pose(name: string, ms: number, dir: Dir = this.facing) {
-    const k = `h-${name}-${dir}`; if (!this.scene.anims.exists(k)) return;
+    const k = `${HP()}${name}-${dir}`; if (!this.scene.anims.exists(k)) return;
     this.poseUntil = this.scene.time.now + ms; this.anims.play(k, true);
   }
-  idle() { if (this.scene.time.now >= this.poseUntil && this.sm.current !== 'dead') this.anims.play('h-idle-' + this.facing, true); }
+  idle() { if (this.scene.time.now >= this.poseUntil && this.sm.current !== 'dead') this.anims.play(HP() + 'idle-' + this.facing, true); }
   /** v9 dodge-roll: always available; burst along `angle` with i-frames (the `dashing` flag). With the skateboard it goes
    *  further, passes dash locks and hurts enemies on contact. Cooldown is enforced by Combat. */
   dodge(angle: number) {
@@ -153,7 +156,7 @@ export class Player extends Character {
     if ((this.scene as any).combat?.swingUntil > this.scene.time.now) return true; // facing locked mid-swing
     const moving = v.length() >= 0.01;
     if (moving) this.facing = Math.abs(v.x) > Math.abs(v.y) ? (v.x > 0 ? 'right' : 'left') : (v.y > 0 ? 'down' : 'up');
-    if (this.scene.time.now >= this.poseUntil) this.anims.play(`h-${moving ? 'walk' : 'idle'}-${this.facing}`, true);
+    if (this.scene.time.now >= this.poseUntil) this.anims.play(`${HP()}${moving ? 'walk' : 'idle'}-${this.facing}`, true);
     this.sm.set(moving ? 'move' : 'idle'); return moving;
   }
 }

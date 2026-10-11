@@ -9,6 +9,7 @@ from grid import Grid, ROOT, ROAD, SAND, SEA, HEDGE, BLOCK_H, BLOCK_V, WALL_GID
 import rooms as RG
 from logic import ok, apply, mentions
 from art import DECOR, ANIM, ITEM_SPRITES, MONSTER_ORDER
+DECOR.update({'parksign': (16, 20), 'mower': (24, 20), 'workbench': (32, 20), 'toolwall': (32, 24), 'wheelbarrow': (20, 16), 'paints': (16, 16), 'swingset': (48, 32), 'slide': (32, 32), 'sandpit': (96, 48)})  # v13: scripts/gen/z1art.py
 
 CHECK = '--check' in sys.argv
 def J(p): return json.load(open(os.path.join(ROOT, p)))
@@ -102,7 +103,8 @@ for gd in WD['gates']:
     ts = [t for t, i in GATE_TILES.items() if i == gd['id']]
     if ts: lock_defs.append(dict({k: v for k, v in gd.items() if k not in ('near', 'width')}, tiles_=ts))
 lock_defs.append({'id': 'glen_brambles', 'kind': 'crack', 'req': ['club'], 'art': 'brambles', 'tiles_': [GLEN_OUT],  # v13: the golf club itself cuts the briars
-                  'text': "Briars choke the gap into the trees behind 127. Thick as your arm. You'd need something to hack through them."})
+                  'text': "Thick briars. Nothing's getting through that.",
+                  'textBy': [{'when': ['!@bag_dropped'], 'text': "Thick briars. Nothing's getting through that."}, {'text': 'Need something to hack through this.'}]})  # v13: state-aware
 def rect_tiles(r): return [(x, y) for y in range(r[1], r[3] + 1) for x in range(r[0], r[2] + 1)]
 for L in lock_defs:
     tiles = L.pop('tiles_') if 'tiles_' in L else rect_tiles(L['rect'])
@@ -245,6 +247,7 @@ for z in WD['zones']:
         lk = None
         if rng.random() < P['secretChance']:
             chs.insert(0, rng.choice(P['pools']['secret'])); lk = {0: dict(rng.choice(P['secretLocks']))}
+            if z['id'] == 'z1': lk = None  # v13: no dash/torch locks in zone one (those abilities mean nothing yet)
         mkroom(rid, f'Mobile {label}', chs, z['id'], {k: d[k] for k in ('x', 'y', 'out')}, lk)
         ROOMS[rid]['secret'] = bool(lk); proc_rooms[z['id']].append(rid)
 KNOCK = C['decor']['knock']
