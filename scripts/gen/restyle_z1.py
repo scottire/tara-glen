@@ -30,7 +30,9 @@ b16 = Image.new('RGBA', (16, 16)); b16.paste(P.fit(ball, 10, 10), (3, 6)); b16.s
 P.fit(club, 16, 16, align='centre').save(f'{A}/v13/club.png')
 signs = [c['im'] for c in sorted((c for r in cells(src('z1-park-signs')) for c in r), key=lambda c: c['x'])]  # left to right: right, left, up
 strip([P.fit(s, 16, 20) for s in signs], 16, 20).save(f'{A}/v6/decor/parksign.png')
-P.fit(signs[2], 16, 16).save(f'{A}/v6/decor/sign.png')  # generic sign (other zones' notice boards)
+note, board = parts('z1-note-board')
+P.fit(note, 10, 8, align='centre').save(f'{A}/v13/note.png')  # Mam's note on the table in 127
+P.fit(board, 16, 16).save(f'{A}/v6/decor/sign.png')  # generic sign (other zones' notice boards)
 P.fit(parts('z1-shed-exterior')[0], 50, 96, k=14).save(f'{A}/v13/bigshed.png')
 mower, bench, wall, barrow, paints, bucket = parts('z1-shed-props')
 for n, im, w, h in (('mower', mower, 24, 20), ('workbench', bench, 32, 20), ('toolwall', wall, 32, 24), ('wheelbarrow', barrow, 20, 16), ('paints', paints, 16, 16)):

@@ -60,7 +60,7 @@ export class World extends Phaser.Scene implements Host {
     // v11: Glen rope-swing tree + caravan furniture cut from the AI props sheet (scripts/gen/restyle.py v11)
     this.load.image('glen-tree', V('assets/v6/glen-tree.png'));
     // v13 zone-one art (AI sources -> scripts/gen/restyle_z1.py)
-    for (const k of ['wood', 'binbag', 'treats', 'junk', 'bigshed', 'football', 'club', 'catpeek']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
+    for (const k of ['wood', 'binbag', 'treats', 'junk', 'bigshed', 'football', 'club', 'catpeek', 'note']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
     this.load.spritesheet('v13-maintpose', V('assets/v13/maint-poses.png'), { frameWidth: 32, frameHeight: 24 }); // sweep, blow, winded, sitting
     for (const k of ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']) this.load.image('ip-' + k, V(`assets/v6/ip/${k}.png`));
     this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });

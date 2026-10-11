@@ -19,7 +19,7 @@ ok('noObjective', await ev(() => ({ objective: document.getElementById('objectiv
 await closeAll();
 await ev(() => { tgTest.tp('mam_note'); tgTest.use('mam_note'); }); await wait(700);
 ok('noteText', await ev(() => document.body.innerText.includes('captain') || !!(tgTest.G.ui?.box)));
-await page.screenshot({ path: '/workspace/z1-note.png' });
+await page.screenshot({ path: '/workspace/z1c-note.png' });
 await closeAll();
 // bag inspect (bag panel description)
 ok('bagInspect', await ev(() => tgTest.G.w.items.binbag.desc.includes('programme')));
