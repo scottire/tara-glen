@@ -248,7 +248,8 @@
    "icon": "🏌️",
    "kind": "ability",
    "how": "Tap ⚔️ to swing. Hold, then let go, for a big drive. It cuts briars.",
-   "desc": "Your 7-iron. Confiscated, recovered."
+   "desc": "Your 7-iron. Confiscated, recovered.",
+   "img": "assets/v13/club.png"
   },
   "wood": {
    "name": "Bonfire wood",

@@ -15,5 +15,5 @@ Last bonfire night of the summer, captain's night at the clubhouse. You wake in 
 - **Zones 2-7:** no enemies at all. Arenas/encounters removed; the abilities they gave are `stub_*` pickups in the same zones (chip z2, dashstrike z3,
   parry + combo4 z4), the clubhouse boss is `stub_gerry` (needs parry, gives the flag), and `stub_sausage` (z2) replaces Mrs Kehoe's z1 errand. build.py accepts
   `stub_*` as a temporary ability source (warns). The solver still proves z1..z7 in order and the seal check still passes.
-- Placeholder art: `scripts/gen/z1art.py` → `public/assets/v13/`. Kids/boss use `chars.png` characters.
+- Art: AI sources in `scripts/gen/tgstyle/src/z1/` (prompts: tg-artgen `assets/PROMPTS-z1.md`) → `scripts/gen/restyle_z1.py` (key, cells by connected components, stylise to palette + outline) → `public/assets/v13/`, decor, `chars.png` 26-32 (kids 26-28, maintenance man 29, Ciara 30, Oisín 31, Mrs Furlong 32), `v10/player.png` + `player-noclub.png`. Swings/slide use `public/assets/props`; the sand patch is painted by `ground.py` under decor with `sand: true`.
 - Test: `node tests/e2e/z1.mjs [base]` (iPhone 13 viewport) writes /workspace/z1-*.png. The practice yard is now opt-in (`?feelyard`).

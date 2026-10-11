@@ -122,13 +122,14 @@ export const say = (lines: string[], choices?: Choice[], done?: () => void) => {
 export const dialogOpen = () => !!((G as any).ui?.box);
 
 // ---------- HUD ----------
+const ico = (k: string) => { const it = G.w.items[k]; return it.img ? `<img src="${it.img}" alt="${it.name}" style="height:1.1em;image-rendering:pixelated;vertical-align:-0.15em">` : it.icon; }; // v13: pipeline icon (club)
 export function hud() {
   const st = G.st, I = G.w.items; if (!I) return;
   $('hearts').textContent = Array.from({ length: st.maxhp }, (_, i) => (i < st.hp ? '❤️' : '🤍')).join('');
   $('coins').textContent = `🪙${count('coin')}`;
   $('shells').textContent = (count('shell') ? `🐚${count('shell')} ` : '') + (count('wood') ? `🪵${count('wood')}` : ''); // v13: bonfire wood, just a number
   $('kids').textContent = count('kids') ? `🙈${count('kids')}/12` : '';
-  $('abilities').textContent = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map((k) => I[k].icon).join('');
+  $('abilities').innerHTML = Object.keys(I).filter((k) => I[k].kind === 'ability' && count(k)).map(ico).join('');
   const f = $('fire'), chip = count('chip') > 0; f.style.display = chip || count('throw') ? 'flex' : 'none';
   f.innerHTML = chip ? '⛳' : `💦<small>${count('balloons')}</small>`; f.classList.toggle('empty', !chip && !count('balloons'));
   $('dash').textContent = count('skateboard') ? '🛹' : '💨';
@@ -143,7 +144,7 @@ export function openBag() { sel = null; renderBag(); $('bag').classList.add('sho
 export function closeBag() { $('bag').classList.remove('show'); G.paused = dialogOpen(); }
 function renderBag() {
   const I = G.w.items, keys = Object.keys(I).filter((k) => count(k) > 0 && !I[k].hidden);
-  const cell = (k: string) => `<button data-k="${k}" class="${sel === k ? 'sel' : ''}"><span>${I[k].icon}</span>${count(k) > 1 ? `<small>${count(k)}</small>` : ''}</button>`;
+  const cell = (k: string) => `<button data-k="${k}" class="${sel === k ? 'sel' : ''}"><span>${ico(k)}</span>${count(k) > 1 ? `<small>${count(k)}</small>` : ''}</button>`;
   const stuff = keys.filter((k) => I[k].kind !== 'ability'), abil = keys.filter((k) => I[k].kind === 'ability');
   $('bag-items').innerHTML = stuff.length ? stuff.map(cell).join('') : `<p>${S('bagEmpty')}</p>`;
   $('bag-abil').innerHTML = abil.map(cell).join('');

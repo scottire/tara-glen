@@ -251,6 +251,11 @@ for i, f in enumerate([o for o in PROPS_ if o['name'] == 'golf-flag']):
     tx0, ty0 = fx - int(140 * math.cos(i * 1.3)), fy - int(90 * math.sin(i * 1.3 + 0.5))           # tee box
     tee = okg & (np.abs(xx - tx0) < 9) & (np.abs(yy - ty0) < 6); paint(tee, 'meadow', 3); paint(tee & ~ndi.binary_erosion(tee), 'meadow', 1)
 
+for d in [d for d in WJ['decor'] if d.get('sand')]:                                              # v13: playground sand under the swings/slide
+    cx, cy = d['x'] * 16 + 8, d['y'] * 16 + 6; rx = WJ['decorSizes'][d['sprite']][0] / 2 + 14
+    e = ((xx - cx) / rx) ** 2 + ((yy - cy) / 18) ** 2 + 0.2 * fbm(8, 91); bun = (e < 1) & ~road
+    paint(bun, 'sand', 2); paint(bun & (hsh < 0.12), 'sand', 3); paint(bun & ~ndi.binary_erosion(bun), 'sand', 1)
+
 # ---------------- palette-step shading (contact trims + shadows) ----------------
 key_ = lambda a: (a[..., 0].astype(np.int32) << 16) | (a[..., 1].astype(np.int32) << 8) | a[..., 2].astype(np.int32)
 LUT = {}

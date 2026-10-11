@@ -9,7 +9,7 @@ from grid import Grid, ROOT, ROAD, SAND, SEA, HEDGE, BLOCK_H, BLOCK_V, WALL_GID
 import rooms as RG
 from logic import ok, apply, mentions
 from art import DECOR, ANIM, ITEM_SPRITES, MONSTER_ORDER
-DECOR.update({'parksign': (16, 20), 'mower': (24, 20), 'workbench': (32, 20), 'toolwall': (32, 24), 'wheelbarrow': (20, 16), 'paints': (16, 16), 'swingset': (48, 32), 'slide': (32, 32), 'sandpit': (96, 48)})  # v13: scripts/gen/z1art.py
+DECOR.update({'parksign': (16, 20), 'mower': (24, 20), 'workbench': (32, 20), 'toolwall': (32, 24), 'wheelbarrow': (20, 16), 'paints': (16, 16), 'pg-swings': (56, 44), 'pg-slide': (40, 34)})  # v13: scripts/gen/restyle_z1.py (pg-* = public/assets/props art)
 
 CHECK = '--check' in sys.argv
 def J(p): return json.load(open(os.path.join(ROOT, p)))
@@ -197,6 +197,7 @@ for d in C['decor']['curated']:
     foot = solid_foot(d['sprite']) if d.get('solid') else None
     t = resolve(d['at'], sep=1, foot=(foot or []) + [(0, 1)])
     e = {'id': d['id'], 'sprite': d['sprite'], 'x': t[0], 'y': t[1], 'solid': bool(d.get('solid'))}
+    if d.get('sand'): e['sand'] = True  # v13: ground.py paints a sand patch under it
     if d.get('lines'): e['lines'] = d['lines']
     if 'frame' in d: e['frame'] = d['frame']
     decor.append(e); CURATED_DECOR[d['id']] = e

@@ -59,8 +59,9 @@ export class World extends Phaser.Scene implements Host {
     this.load.image('interior6img', V('assets/v6/interior.png'));
     // v11: Glen rope-swing tree + caravan furniture cut from the AI props sheet (scripts/gen/restyle.py v11)
     this.load.image('glen-tree', V('assets/v6/glen-tree.png'));
-    // v13 zone-one placeholder art (scripts/gen/z1art.py)
-    for (const k of ['wood', 'binbag', 'treats', 'junk', 'frame', 'bigshed']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
+    // v13 zone-one art (AI sources -> scripts/gen/restyle_z1.py)
+    for (const k of ['wood', 'binbag', 'treats', 'junk', 'bigshed', 'football', 'club', 'catpeek']) this.load.image('v13-' + k, V(`assets/v13/${k}.png`));
+    this.load.spritesheet('v13-maintpose', V('assets/v13/maint-poses.png'), { frameWidth: 32, frameHeight: 24 }); // sweep, blow, winded, sitting
     for (const k of ['sofa', 'tv', 'kitchen', 'bunk', 'wardrobe', 'table', 'lamp', 'shelf', 'rug', 'plant']) this.load.image('ip-' + k, V(`assets/v6/ip/${k}.png`));
     this.load.spritesheet('chest', V('assets/chest.png'), { frameWidth: 16, frameHeight: 16 });
     this.load.image('balloon', V('assets/balloon.png'));
@@ -75,7 +76,7 @@ export class World extends Phaser.Scene implements Host {
 
   create() {
     G.w = this.cache.json.get('world'); applyUrlState(); this.migrated = migrateSave();
-    for (const [k, [w, h]] of Object.entries<number[]>(G.w.decorSizes)) this.load.spritesheet('d-' + k, V(`assets/v6/decor/${k}.png`), { frameWidth: w, frameHeight: h });
+    for (const [k, [w, h]] of Object.entries<number[]>(G.w.decorSizes)) if (!k.startsWith('pg-')) this.load.spritesheet('d-' + k, V(`assets/v6/decor/${k}.png`), { frameWidth: w, frameHeight: h });
     const mp = this.cache.tilemap.get('map').data.properties as { name: string; value: number }[];
     const P = (k: string) => mp.find((p) => p.name === k)!.value;
     for (let y = 0; y < P('groundRows'); y++) for (let x = 0; x < P('groundCols'); x++) this.load.image(`g_${x}_${y}`, V(`assets/ground/g_${x}_${y}.png`));
@@ -148,8 +149,7 @@ export class World extends Phaser.Scene implements Host {
     }
     // generated decor (solid ones get bodies)
     for (const d of G.w.decor) {
-      const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, 'd-' + d.sprite, d.frame ?? 0).setOrigin(0.5, 1).setDepth(d.y * 16 + 14));
-      if (d.sprite === 'sandpit') s.setDepth(1); // v13: flat on the ground
+      const s = cull(this.add.sprite(d.x * 16 + 8, d.y * 16 + 16, d.sprite.startsWith('pg-') ? d.sprite.slice(3) : 'd-' + d.sprite, d.frame ?? 0).setOrigin(0.5, 1).setDepth(d.y * 16 + 14)); // v13: pg-* = playground props art
       if (d.anim || G.w.decorAnim.includes(d.sprite)) s.play({ key: 'd-' + d.sprite, startFrame: Math.floor(Math.random() * 2) });
       if (d.solid) { const w = s.width; body(d.x * 16 + 8 - w / 2 + 2, d.y * 16 + 4, w - 4, 11); }
       (d as any).obj = s;

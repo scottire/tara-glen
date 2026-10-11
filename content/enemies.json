@@ -4,15 +4,11 @@
   "kid": {
    "name": "Little kid",
    "sheet": "dust",
-   "char": 1,
+   "char": 26,
    "chars": [
-    1,
-    11,
-    15,
-    18,
-    20,
-    21,
-    23
+    26,
+    27,
+    28
    ],
    "ai": "chaser",
    "hp": 2,
@@ -29,7 +25,7 @@
   "maint": {
    "name": "The Maintenance Man",
    "sheet": "dust",
-   "char": 14,
+   "char": 29,
    "ai": "boss",
    "boss": true,
    "phases": [

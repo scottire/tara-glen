@@ -12,7 +12,7 @@ import { Character, G, ensureAnims, type Player } from '../mech/core';
 import type { Pather } from '../mech/path';
 import { say, bossBar } from './ui';
 import { familyOf } from './vibe';
-import { isMaintAi, maintThink, maintGuard, maintTextures } from '../v13/maint';
+import { isMaintAi, maintThink, maintGuard, maintTextures, maintPose } from '../v13/maint';
 import { bonk } from '../v13/fx';
 import { flash, burst, popup, spit, type Combat, type Foe } from '../v9/combat';
 
@@ -38,7 +38,7 @@ export class Enemy extends Character implements Foe {
     if (this.armor) this.shield = scene.add.circle(e.x, e.y, 10, 0x6aa8ff, 0.18).setStrokeStyle(1, 0x9cc8ff, 0.9);
     this.sm.add({ name: 'live', onUpdate: (dt) => this.think(dt) }, this.hurtState('live'), { name: 'dead', onEnter: () => this.die() });
     this.sm.set('live');
-    this.once('destroy', () => { this.tele?.destroy(); this.shield?.destroy(); });
+    this.once('destroy', () => { this.tele?.destroy(); this.shield?.destroy(); (this as any).poseImg?.destroy(); });
   }
   /** v12: back to the zone family's colour (bosses keep their own) */
   untint() { if (this.fam && !this.s.boss) this.setTint(this.fam.tint).setTintMode(Phaser.TintModes.MULTIPLY); else this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY); return this; }
@@ -202,7 +202,7 @@ export class Enemy extends Character implements Foe {
     this.onDeath?.(this);
     if (this.s.yield) { // v13: the boss gives up and sits down (stays put; the scene keeps him until you leave)
       this.setVelocity(0, 0); this.anims.stop(); this.setFrame(this.charN ? (this.charN - 1) * 16 : 0);
-      maintTextures(this.scene); const seat = this.scene.add.image(this.x, this.y + 6, 'v13-junk', 'j0').setScale(1.4).setDepth(this.y - 1); void seat;
+      maintPose(this, 3); // sits on his bucket
       this.scene.tweens.add({ targets: this, y: this.y + 2, scaleY: (this.s.scale ?? 1) * 0.88, duration: 400, ease: 'Back.out' });
       popup(this.scene, this.x, this.y - 18, 'I give up', '#fff'); return;
     }

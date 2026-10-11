@@ -607,7 +607,7 @@
   },
   "friend": {
    "name": "{friend}",
-   "sprite": 12,
+   "sprite": 30,
    "at": {
     "zone": "z1",
     "near": "decor:skip_z1",
@@ -644,7 +644,7 @@
   },
   "neighbour": {
    "name": "Mrs Furlong",
-   "sprite": 4,
+   "sprite": 32,
    "at": {
     "zone": "z1",
     "near": "caravan:136",
@@ -705,7 +705,7 @@
   },
   "oisin": {
    "name": "Oisín",
-   "sprite": 2,
+   "sprite": 31,
    "at": {
     "zone": "z1",
     "near": "decor:slide_z1",
@@ -762,7 +762,7 @@
   },
   "maint_out": {
    "name": "The maintenance man",
-   "sprite": 14,
+   "sprite": 29,
    "at": [
     {
      "when": [

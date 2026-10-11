@@ -143,19 +143,8 @@
    ]
   },
   {
-   "id": "sand_z1",
-   "sprite": "sandpit",
-   "at": {
-    "zone": "z1",
-    "near": [
-     76,
-     64
-    ]
-   }
-  },
-  {
    "id": "swing_z1",
-   "sprite": "swingset",
+   "sprite": "pg-swings",
    "solid": true,
    "at": {
     "zone": "z1",
@@ -166,11 +155,12 @@
    },
    "lines": [
     "The swings. The chains still squeak exactly like they did when you were six."
-   ]
+   ],
+   "sand": true
   },
   {
    "id": "slide_z1",
-   "sprite": "slide",
+   "sprite": "pg-slide",
    "solid": true,
    "at": {
     "zone": "z1",
@@ -178,7 +168,8 @@
      78,
      64
     ]
-   }
+   },
+   "sand": true
   }
  ],
  "rules": [

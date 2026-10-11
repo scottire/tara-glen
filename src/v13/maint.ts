@@ -17,6 +17,14 @@ export function maintTextures(scene: Phaser.Scene) {
   for (let i = 0; i < 3; i++) src.add('j' + i, 0, i * 8, 0, 8, 8);
 }
 
+/** AI action poses (v13-maintpose: 0 sweep, 1 blow, 2 winded, 3 sitting on the bucket) drawn over a hidden walk sprite; null = back to walking */
+export function maintPose(en: any, f: number | null) {
+  const sc = en.scene as Phaser.Scene; if (!sc.textures.exists('v13-maintpose')) return;
+  if (f === null) { if (en.poseImg?.visible) { en.poseImg.setVisible(false); en.setAlpha(1); } return; }
+  const p = en.poseImg ?? (en.poseImg = sc.add.sprite(en.x, en.y, 'v13-maintpose', 0).setOrigin(0.5, 23 / 24));
+  p.setFrame(f).setVisible(true).setPosition(en.x, en.y + 7).setDepth(en.y + 1).setFlipX(Math.cos(en.dir ?? 0) < 0).setTint(en.tintTopLeft ?? 0xffffff); en.setAlpha(0);
+}
+
 /** front guard: true if the hit should be blocked */
 export function maintGuard(en: any, from: { x: number; y: number }) {
   const ai = en.ai; if (ai !== 'sweeper' && ai !== 'blower') return false;
@@ -32,6 +40,7 @@ export function maintThink(en: any, dt: number, d: number) {
   const g = en.tele ?? (en.tele = sc.add.graphics()); g.setDepth(en.y - 1);
   en.mt -= dt;
   const face = () => { en.dir = Phaser.Math.Angle.Between(en.x, en.y, tg.x, tg.y); };
+  maintPose(en, ai === 'lobber' ? 3 : en.mode === 'windup' || en.mode === 'attack' ? (ai === 'sweeper' ? 0 : 1) : en.mode === 'recover' ? 2 : null);
   if (ai === 'lobber') {
     en.setVelocity(0, 0); g.clear();
     if (!en.seatT) { en.seatT = 1; popup(sc, en.x, en.y - 14, '*wheeze*', '#fff'); en.setAngle(0); }
@@ -53,8 +62,6 @@ export function maintThink(en: any, dt: number, d: number) {
     g.clear();
     const pa = Phaser.Math.Angle.Between(en.x, en.y, tg.x, tg.y);
     if (ai === 'sweeper') { // the brush swings across the arc; one hit
-      const k = 1 - Math.max(0, en.mt) / 340, a = en.dir - 1.2 + 2.4 * k;
-      g.lineStyle(4, 0xc9a06a, 0.9).lineBetween(en.x, en.y + 2, en.x + Math.cos(a) * 30, en.y + 2 + Math.sin(a) * 30);
       if (!en.hitDone && d < 36 && ang(pa, en.dir) < 1.25 && !tg.dashing) { en.hitDone = true; tg.hurt(en, en.s.dmg, 170); }
       if (en.mt <= 0) { en.mode = 'recover'; en.mt = 1400; popup(sc, en.x, en.y - 12, 'huff', '#fff'); burst(sc, en.x + Math.cos(en.dir) * 20, en.y + Math.sin(en.dir) * 20, 0xd8c8a0, 6, 30); }
     } else { // leaf blower: cone push, leaves fly

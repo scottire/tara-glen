@@ -45,17 +45,18 @@ const early = {};
 early.room177 = await pushDoor('177'); early.doorLine = (await said()).join(' | '); await closeAll();
 await ev(() => { tgTest.tp('maint_out'); tgTest.use('maint_out'); }); await wait(300); early.maintLine = (await said()).join(' | ');
 early.noBossYet = await ev(() => !tg.enemies.some((e) => e.s?.type === 'maint'));
-await page.screenshot({ path: '/workspace/z1b-shed-outside.png' }); await closeAll();
+await page.screenshot({ path: '/workspace/z1c-shed-outside.png' }); await closeAll();
 await bumpBriars(); early.briars = (await said()).join(' | '); await closeAll();
 await ev(() => { tgTest.tp('oisin'); tgTest.use('oisin'); }); await wait(300); early.oisin = (await said()).join(' | '); await closeAll();
 await ev(() => { tgTest.tp('frame_ball'); tgTest.use('frame_ball'); }); await wait(300); early.ballNoClub = !(await st()).items.football; await closeAll();
-await ev(() => { tg.player.body.reset(77 * 16, 68 * 16); }); await wait(500); await page.screenshot({ path: '/workspace/z1b-playground.png' });
+await ev(() => { const d = tgTest.G.w.decor.find((d) => d.id === 'slide_z1'); tg.player.body.reset(d.x * 16 - 8, d.y * 16 + 40); }); await wait(500); await page.screenshot({ path: '/workspace/z1c-playground.png' });
+ok('kidsSeen', await ev(() => { const k = tg.enemies.filter((e) => e.active && e.s?.type === 'kid'); if (!k.length) return 0; tg.player.body.reset(k[0].x - 40, k[0].y + 10); return k.length; })); await wait(600); await page.screenshot({ path: '/workspace/z1c-kids.png' });
 await ev(() => { const o = tg.lockObjs.find((o) => o.l.id === 'glen_brambles'); const p = tgTest.G.w.doors.find((d) => d.room === '177'); tg.player.body.reset(p.x + 70, p.y - 30); }); await wait(500);
 await page.screenshot({ path: '/workspace/z1b-border.png' });
 ok('early', early);
 // 3. the skip: drop the bag -> friend's story
 await ev(() => { tgTest.tp('skip_drop'); tgTest.use('skip_drop'); }); await wait(900);
-await page.screenshot({ path: '/workspace/z1-skip.png' });
+await page.screenshot({ path: '/workspace/z1c-skip-ciara.png' });
 await closeAll(); s = await st(); ok('skip', { bag_dropped: s.flags.includes('bag_dropped'), binbag: s.items.binbag ?? 0 });
 await ev(() => { tgTest.tp('friend'); tgTest.use('friend'); }); await wait(300); await closeAll();
 ok('briarsAfterCiara', (await bumpBriars(), (await said()).join(' | '))); await closeAll();
@@ -76,7 +77,7 @@ ok('door177AfterCiara', await pushDoor('177')); await wait(1800); await closeAll
 ok('bossRoom', await scene());
 const boss = async () => ev(() => { const e = room.enemies.find((e) => e.s?.type === 'maint'); return e ? { hp: e.life.life, phase: e.phase, ai: e.ai, mode: e.mode, dead: e.sm.current === 'dead' } : null; });
 ok('bossStart', await boss());
-await wait(1200); await closeAll(); await page.screenshot({ path: '/workspace/z1b-shed-inside.png' });
+await wait(1200); await closeAll(); await page.screenshot({ path: '/workspace/z1c-shed-inside.png' });
 const phases = new Set(); let shot = false;
 for (let i = 0; i < 160; i++) {
   const r = await ev(() => { const s = room, e = s.enemies.find((e) => e.s?.type === 'maint'); if (!e || e.sm.current === 'dead') return 'done';
@@ -88,8 +89,8 @@ for (let i = 0; i < 160; i++) {
   });
   if (r === 'done') break; phases.add(r.ai); await wait(230);
   if (r.ai === 'blower' && !shot) { // mid-fight shot: let him wind up and blow, slowed down
-    shot = true; await ev(() => { const s = room, e = s.enemies.find((e) => e.s?.type === 'maint'); const B = s.physics.world.bounds; e.body.reset(B.centerX - 30, B.centerY); s.player.body.reset(B.centerX + 20, B.centerY + 6); e.dir = Math.atan2(6, 50); e.mode = 'attack'; e.mt = 1500; });
-    await wait(450); await ev(() => { room.time.timeScale = 0.2; room.tweens.timeScale = 0.2; }); await page.screenshot({ path: '/workspace/z1-boss.png' }); await ev(() => { room.time.timeScale = 1; room.tweens.timeScale = 1; });
+    shot = true; await ev(() => { const cl0 = (v, a, b) => Math.max(a, Math.min(b, v)); const s = room, e = s.enemies.find((e) => e.s?.type === 'maint'); const B = s.physics.world.bounds; const px = cl0(B.centerX, B.x + 90, B.right - 30), py = cl0(B.centerY, B.y + 50, B.bottom - 30); e.body.reset(px - 34, py - 4); s.player.body.reset(px, py); e.dir = Math.atan2(4, 34); e.mode = 'attack'; e.mt = 1500; });
+    await wait(120); await ev(() => { room.time.timeScale = 0.2; room.tweens.timeScale = 0.2; }); await page.screenshot({ path: '/workspace/z1c-boss.png' }); await ev(() => { room.time.timeScale = 1; room.tweens.timeScale = 1; });
   }
 }
 await wait(500);
